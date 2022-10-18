@@ -62,7 +62,7 @@ setup(name='qcodes',
                                'tests/dataset/fixtures/2018-01-17/*/*']},
       install_requires=[
           'numpy>=1.10',
-          'pyqtgraph==0.11.1', #This version of pyqtgraph is required for Merlin plotting. After this there are big changes in how Qt is used, would require some fixing
+          'pyqtgraph',
           'matplotlib',
           'PyQt5',
           'ipykernel==6.9', #Required so plot windows do not close when restarting kernel. Documentation is non-existant so have no idea how to solve issue.
