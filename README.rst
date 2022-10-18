@@ -25,6 +25,13 @@ Some aspects of qcodes-elab have fallen out of compatibiliy with  current packag
 specifically, pyqtgraph and ipykernel. The current setup file accounts for this, but
 catching up is a near-term goal, and keeping up to date a longer term goal.
 
+Docs
+====
+Check out the wiki https://github.com/djcarrad/qcodes-elab/wiki for an introduction.
+There is no separate, comprehensive documentation, however, all the code is quite well 
+self-documented and everything is open source. If you need to know which arguments a 
+function takes, or which capabilities an instrument driver has, just open up the file! Or ask a friend
+
 Install
 =======
 
@@ -48,9 +55,6 @@ In the Anaconda prompt:
 
 Optionally install useful packages:
 	pip install zhinst scipy jupyterlab tqdm
-
-Docs
-====
 
 License
 =======
