@@ -41,7 +41,9 @@ Clone the qcodes-elab repository. In git bash, navigate to the desired folder, a
 
 In the Anaconda prompt:
 	conda create –n qcodes python
+	
 	activate qcodes
+	
 	pip install –e *path to repository*
 
 Optionally install useful packages:
