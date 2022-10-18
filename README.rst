@@ -33,7 +33,11 @@ the command line, you should add the anaconda PATH to environment variables duri
 
 Install NI VISA and GPIB(488.2) backend from National Instruments website
 
-Download/clone the qcodes-elab repository
+Install Visual Studio C++ build tools. https://visualstudio.microsoft.com/downloads/ --> Tools for Visual Studio --> Build Tools for Visual Studio.
+
+Install git
+
+Clone the qcodes-elab repository. In git bash, navigate to the desired folder, and use git clone https://github.com/djcarrad/qcodes-elab
 
 In the Anaconda prompt:
 	conda create –n qcodes python
