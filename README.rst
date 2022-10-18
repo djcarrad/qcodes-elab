@@ -53,9 +53,9 @@ Optionally install useful packages:
 	
 Status
 ------
-Some aspects of qcodes-elab have fallen out of compatibiliy with  current packages, 
-specifically, pyqtgraph and ipykernel. The current setup file accounts for this, but
-catching up is a near-term goal, and keeping up to date a longer term goal.
+As of 18/10/2022, latest versions of all packages required by qcodes are working, except:
+Ipykernel must be version 6.9 if plot windows should stay open when restarting the kernel. 
+Documentation is non-existent so this would be very hard to fix as far as I can tell.
 
 License
 =======
