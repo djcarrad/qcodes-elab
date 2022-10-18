@@ -3,6 +3,7 @@ QCoDeS
 
 QCoDeS is a Python-based data acquisition framework developed by the
 Copenhagen / Delft / Sydney / Microsoft quantum computing consortium.
+This is NOT the main version. You can find that here: https://qcodes.github.io/
 
 The elab version was forked from version 0.1.11 of qcodes, and is designed to preserve 
 key capabilites:
