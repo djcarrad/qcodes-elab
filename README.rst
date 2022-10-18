@@ -1,4 +1,4 @@
-QCoDeS
+QCoDeS-elab version
 ===================================
 
 QCoDeS is a Python-based data acquisition framework developed by the
