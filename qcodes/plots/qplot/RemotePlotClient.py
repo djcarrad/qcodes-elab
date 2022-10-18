@@ -19,7 +19,7 @@ from PyQt5.QtCore import QObject, pyqtSlot
 from RemoteQtPlotWidgets import QtPlot
 
 
-qtapp = QtGui.QApplication([])
+qtapp = QtWidgets.QApplication([])
 
 # set app icon
 app_icon = QtGui.QIcon()
@@ -362,4 +362,4 @@ if __name__ == '__main__':
     # mw.save()
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        QtGui.QApplication.instance().exec_()
+        QtWidgets.QApplication.instance().exec_()

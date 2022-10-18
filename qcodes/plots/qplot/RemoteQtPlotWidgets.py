@@ -35,10 +35,10 @@ for scale_name, scale in colorscales_raw.items():
 
 # pg.graphicsItems.GradientEditorItem.Gradients['grey']
 __colorscales['grey'] = __colorscales.pop('Greys')
-cc = pg.pgcollections.OrderedDict(__colorscales)
+#cc = pg.pgcollections.OrderedDict(__colorscales)
 
 
-pg.graphicsItems.GradientEditorItem.Gradients = cc
+#pg.graphicsItems.GradientEditorItem.Gradients = cc
 
 from pyqtgraph import dockarea
 
@@ -49,7 +49,7 @@ from PyQt5.QtCore import QBuffer, QIODevice, QByteArray
 from PyQt5.QtCore import QObject, pyqtSlot
 
 
-qtapp = QtGui.QApplication([])
+qtapp = QtWidgets.QApplication([])
 
 
 class PlotTrace(pg.PlotDataItem):
@@ -764,4 +764,4 @@ if __name__ == '__main__':
 
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        QtGui.QApplication.instance().exec_()
+        QtWidgets.QApplication.instance().exec_()
