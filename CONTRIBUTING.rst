@@ -1,136 +1,24 @@
 Contributing
 ============
 
-Hi, thanks for your interest in the project! We welcome pull requests
-from developers of all skill levels.
+If you have a new idea for a feature, or find a bug, come have a chat or write to me (Damon)! 
+Maybe the feature already exists or I can think of a quick way to fix the bug.
+Otherwise, read on for some sensible information from the original qcodes developers.
+If you are familiar with github, it should be pretty clear what you should do.
+If you are not, let's discuss the best way forward. I don't think every new student 
+should be forced to learn github. The second-most important thing is that we make the
+changes as quickly and robustly as possible so you can get the results you need
+as soon as possible.
 
-Jens H. Nielsen (Jens.Nielsen@microsoft.com), William H.P Nielsen
-(wihpniel@microsoft.com@nbi.ku.dk), Dominik Vogel (a-dovoge@microsoft.com), and
-Mikhail Astafev (a-miasta@microsoft.com) are the current maintainers of
-QCoDeS (aka core developers), along with a group of talented and smart
-volunteers. Please don't hesitate to reach out if you have any
-questions, or just need a little help getting started.
-
-Join us on Slack, where informal discussion is more than welcome. (For
-now email one of us to be invited)
+The most important thing is of course:
+**please do not mess with a working version of qcodes on one of the measurement computers!!**
 
 .. contents::
-
-Bugs reports and feature requests
----------------------------------
-
-We use github's `issues <https://github.com/qdev-dk/Qcodes/issues>`__.
-Search for existing and closed issues. If your problem or idea is not yet
-addressed, `please open a new issue
-<https://github.com/qdev-dk/Qcodes/issues/new>`__
-
-The github GUI will show you a template both for bugs and features.
-Delete the wrong part and try to follow the template. Writing a good
-issue helps you in the first place. Bug reports must be accompanied by a
-reproducible example.
-
-Have an idea about future directions to go with Qcodes? Visions of
-data-utopia that would take more than a few weeks to add or might change
-some core ideas in the package? We can use issues for this too. We will pick the
-``long-term`` or ``discussion`` labels.
-
- If somebody is assigned to an issue it means that somebody is working on it.
-
-Clever usage
-------------
-
-Figured out a new way to use QCoDeS? Found a package that makes your
-life better and easier? Got realtime analysis working after struggling
-with it for days? Write it on Slack so we can keep github more
-organized.
-
-Development
------------
-
-Setup
-~~~~~
-
--  Clone and register the package for development as described in the
-   `README <README.md#installation>`__
--  Run tests
--  Ready to hack
-
-.. _runnningtests:
-
-Running Tests
-~~~~~~~~~~~~~
-
-We don't want to reinvent the wheel, and thus use py.test.
-It's easy to install:
-
-::
-
-    pip install coverage pytest-cov pytest
-
-Then to test and view the coverage:
-
-::
-    py.test --cov=qcodes --cov-report xml --cov-config=.coveragerc
-
-
-You can also run single tests with:
-
-::
-
-    # python -m unittest module
-    # python -m unittest module.class
-    # python -m unittest module.class.function
-    python -m unittest qcodes.tests.test_metadata
-    # or
-    python -m unittest qcodes.tests.test_metadata.TestMetadatable.test_snapshot
-
-If the tests pass, you should be ready to start developing!
-
-To tests actual instruments, first instantiate them in an interactive
-python session, then run ``qcodes.test_instruments()``:
-
-.. code:: python
-
-    import qcodes
-    sig_gen = qcodes.instrument_drivers.agilent.E8527D.Agilent_E8527D('source', address='...')
-    qcodes.test_instruments()  # optional verbosity = 1 (default) or 2
-
-The output of this command should include lines like:
-
-::
-
-    ***** found one Agilent_E8527D, testing *****
-
-for each class of instrument you have defined. Note that if you
-instantiate several instruments of the same class, only the *last* one
-will be tested unless you write the test to explicitly test more than
-this.
-
-Coverage testing is generally meaningless for instrument drivers, as
-calls to ``add_parameter`` and ``add_function`` do not add any code
-other than the call itself, which is covered immediately on
-instantiation rather than on calling these parameters/functions. So it
-is up to the driver author to ensure that all functionality the
-instrument supports is covered by tests. Also, it's mentioned below but
-bears repeating: if you fix a bug, write a test that would have failed
-before your fix, so we can be sure the bug does not reappear later!
 
 New code and testing
 ~~~~~~~~~~~~~~~~~~~~
 -  Fork the repo into your github account
--  Make a branch within this repo
--  branch naming matters:
-
-   -  always select a prefix:
-
-      -  feature/bar (if you add the feature bar)
-      -  hotfix/bar (if you fix the bug bar)
-      -  foo/bar (if you foo the bar)
-
-   -  never use your username If you can't figure out a name for your
-      branch, re-think about what you would be doing. It's always a good
-      exercise to model the problem before you try to solve it. Also,
-      ping on slack. We <3 you in the first place.
+-  Make a branch within this repo to make your changes
 
 Commit Message Format
 ^^^^^^^^^^^^^^^^^^^^^
