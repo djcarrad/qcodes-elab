@@ -1,0 +1,68 @@
+{
+    "required": [
+        "gui",
+        "core",
+        "user"
+    ],
+    "type": "object",
+    "description": "schema for a qcodes config file",
+    "properties": {
+        "user": {
+            "type": "object",
+            "description": "controls user settings of qcodes",
+            "properties": {}
+        },
+        "core": {
+            "required": [
+                "legacy_mp",
+                "loglevel"
+            ],
+            "type": "object",
+            "description": "controls core settings of qcodes",
+            "properties": {
+                "loglevel": {
+                    "type": "string",
+                    "default": "DEBUG",
+                    "description": "control logging  level",
+                    "enum": [
+                        "CRITICAL",
+                        "ERROR",
+                        "WARNING",
+                        "INFO",
+                        "DEBUG"
+                    ]
+                },
+                "legacy_mp": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "control legacy buggy multiprocess"
+                }
+            }
+        },
+        "gui": {
+            "required": [
+                "notebook",
+                "plotlib"
+            ],
+            "type": "object",
+            "description": "controls gui of qcodes",
+            "properties": {
+                "plotlib": {
+                    "type": "string",
+                    "default": "matplotlib",
+                    "description": "Plotting library",
+                    "enum": [
+                        "QT",
+                        "matplotlib"
+                    ]
+                },
+                "notebook": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Use notebook frontend"
+                }
+            }
+        }
+    },
+    "$schema": "http://json-schema.org/draft-04/schema#"
+}

@@ -1,0 +1,1 @@
+http://stackoverflow.com/questions/12432637/pyqt4-set-windows-taskbar-icon
