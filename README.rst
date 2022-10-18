@@ -20,12 +20,6 @@ from Jupyter notebooks, but can be used from Spyder, traditional terminal-based
 shells and in stand-alone scripts as well. The features in `qcodes.utils.magic` 
 are exclusively for Jupyter notebooks.
 
-Status
-------
-Some aspects of qcodes-elab have fallen out of compatibiliy with  current packages, 
-specifically, pyqtgraph and ipykernel. The current setup file accounts for this, but
-catching up is a near-term goal, and keeping up to date a longer term goal.
-
 Docs
 ====
 Check out the wiki https://github.com/djcarrad/qcodes-elab/wiki for an introduction.
@@ -56,6 +50,12 @@ In the Anaconda prompt:
 
 Optionally install useful packages:
 	pip install zhinst scipy jupyterlab tqdm
+	
+Status
+------
+Some aspects of qcodes-elab have fallen out of compatibiliy with  current packages, 
+specifically, pyqtgraph and ipykernel. The current setup file accounts for this, but
+catching up is a near-term goal, and keeping up to date a longer term goal.
 
 License
 =======
