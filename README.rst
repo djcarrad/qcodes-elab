@@ -1,4 +1,4 @@
-QCoDeS |Build Status| |DOCS| |DOI|
+QCoDeS
 ===================================
 
 QCoDeS is a Python-based data acquisition framework developed by the
@@ -6,8 +6,11 @@ Copenhagen / Delft / Sydney / Microsoft quantum computing consortium.
 
 The elab version was forked from version 0.1.11 of qcodes, and is designed to preserve 
 key capabilites:
+
 - a text based data set
+
 - live plotting using 'qplot' developed by Merlin von Soosten.
+
 In addition, new features have been added to streamline data acquisition and the generation 
 of metadata files, data loading and analysis, and extra flexibility in setpoints for loops.
 
