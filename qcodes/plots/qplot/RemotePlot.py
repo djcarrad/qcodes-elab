@@ -143,7 +143,7 @@ class Plot():
     def add(self, *args, x=None, y=None, z=None,
             subplot=0, name=None, title=None, position=None,
             relativeto=None, xlabel=None, ylabel=None, zlabel=None,
-            xunit=None, yunit=None, zunit=None, silent=True,
+            xunit=None, yunit=None, zunit=None, silent=True,linecuts=False,
             # color=None, width=None, symbol=None, pen=False, brush=None,
             # size=None, antialias=None,
             **kwargs):
@@ -178,7 +178,8 @@ class Plot():
         arguments = {'subplot': subplot,
                      'title': title,
                      'position': position,
-                     'relativeto': relativeto}#,
+                     'relativeto': relativeto,
+                     'linecuts':linecuts}#,
                      # 'color': color,
                      # 'width': width,
                      # 'symbol': symbol,}

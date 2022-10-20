@@ -482,13 +482,52 @@ class PlotDock(dockarea.Dock):
         if ('name' in kwargs) and ('z' not in kwargs):
             self.legend.show()
 
-        if ('z' in kwargs):
+        if ('z' in kwargs) and (kwargs['linecuts']==False):
             # TODO  or len(args)>2
             item = PlotImage()
             item._hist = self.hist_item
             item.setImage(kwargs['z'], **kwargs)
             self.hist_item.setImageItem(item)
             self.hist_item.show()
+
+        elif ('z' in kwargs) and (kwargs['linecuts']==True):
+            color = kwargs.get('color', None)
+            width = kwargs.get('width', 1)
+            style = kwargs.get('style', None)
+            dash = kwargs.get('dash', None)
+            cosmetic = kwargs.get('cosmetic', True)
+            hsv = kwargs.get('hsv', None)
+
+            if (color is None) or (color not in 'rgbcmykw'):
+                cycle = color_cycle
+                color = cycle[len(self.plot_item.listDataItems()) % len(cycle)]
+
+            if pen is not None:
+                kwargs['pen'] = pg.mkPen(color=color, width=width, style=style, dash=dash, cosmetic=cosmetic, hsv=hsv)
+                color = kwargs['pen'].color()
+            else:
+                kwargs['pen'] = None
+
+            # If a marker symbol is desired use the same color as the line
+            symbol = kwargs.get('symbol', None)
+            if symbol == '.':
+                kwargs['symbol'] = 's'
+                if ('size' not in kwargs) and ('symbolSize' not in kwargs):
+                    kwargs['symbolSize'] = 5
+
+            if 'symbol' in kwargs or 'symbolPen' in kwargs or 'symbolSize' in kwargs:
+                if 'symbolBrush' not in kwargs:
+                    kwargs['symbolBrush'] = color
+
+            if ('size' in kwargs) and ('symbolSize' not in kwargs):
+                kwargs['symbolSize'] = kwargs['size']
+            
+            y=kwargs['y']
+            z=kwargs['z']
+            args=[y,z]
+            
+            item = PlotTrace(*args, **kwargs)
+
 
         else:
             color = kwargs.get('color', None)
