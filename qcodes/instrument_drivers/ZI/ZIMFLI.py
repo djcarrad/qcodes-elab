@@ -18,7 +18,7 @@ class ZIMFLI(Instrument):
     LI = {
             "numSigouts": 1,   # number of signal outputs
             "numOscs": 1,      # number of oscillators
-            "numDemods": 2,    # number of demodulators
+            "numDemods": 1,    # number of demodulators
             "numVins": 1,      # number of voltage inputs
             "numIins": 1,      # number of current inputs
             "numAUXouts": 4,   # number of AUX outputs
