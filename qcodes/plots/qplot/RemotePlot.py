@@ -144,8 +144,8 @@ class Plot():
             subplot=0, name=None, title=None, position=None,
             relativeto=None, xlabel=None, ylabel=None, zlabel=None,
             xunit=None, yunit=None, zunit=None, silent=True,linecuts=False,
-            # color=None, width=None, symbol=None, pen=False, brush=None,
-            # size=None, antialias=None,
+            symbol=None,#color=None, width=None, pen=False, brush=None,
+            size=None,# antialias=None,
             **kwargs):
         """
             position (str):
@@ -179,10 +179,11 @@ class Plot():
                      'title': title,
                      'position': position,
                      'relativeto': relativeto,
-                     'linecuts':linecuts}#,
+                     'linecuts':linecuts,
+                     'symbol': symbol,
+                     'size': size}#,
                      # 'color': color,
                      # 'width': width,
-                     # 'symbol': symbol,}
                      # 'pen': pen,
                      # 'brush': brush,
                      # 'size': size,

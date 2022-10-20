@@ -525,7 +525,7 @@ class PlotDock(dockarea.Dock):
             y=kwargs['y']
             z=kwargs['z']
             args=[y,z]
-            
+
             item = PlotTrace(*args, **kwargs)
 
 
