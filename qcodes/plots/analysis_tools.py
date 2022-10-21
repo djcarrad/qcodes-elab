@@ -2,6 +2,7 @@
 
 import numpy as np
 import glob
+import os
 from qcodes.data import data_set        
                     
 def IGconvert(listofnumbers,z_param='camp1_conductance',x_param='default',y_param='default',datafolder='data',exportfolder="inspectragadget"):
@@ -30,9 +31,32 @@ def IGconvert(listofnumbers,z_param='camp1_conductance',x_param='default',y_para
             z_data=data.arrays[z_param]
             
             filename = (datapaths[0][0].split("\\"))[1]
-            print(filename)
+            if not os.path.exists(exportfolder):
+                os.makedirs(exportfolder)
             with open(exportfolder+"/"+filename+".dat", "w") as txt_file:
                 for j in range(np.shape(z_data)[0]):
                     for k in range(np.shape(z_data)[1]):
                         txt_file.write('{} {} {}\n'.format(x_data[j],y_data[j,k],z_data[j,k]))
+            print('Exported to {}/{}.dat'.format(exportfolder,filename))
+
+def IGexport(data,z_param='camp1_conductance',x_param='default',y_param='default',exportfolder="inspectragadget"):
+    #export the currently loaded qcodes dataset to three column data files for loading in InSpectra Gadget
+    #x and y default to the the 'set' parameters in qcodes data. z defaults to conductance. change as required.
+    if x_param=='default':
+        x_param=list(data.arrays.keys())[0]
+    if y_param=='default':
+        y_param=list(data.arrays.keys())[1]
+    x_data=data.arrays[x_param]
+    y_data=data.arrays[y_param]
+    z_data=data.arrays[z_param]
+    
+    filename = (data.metadata['location'].split("/"))[1]
+    if not os.path.exists(exportfolder):
+        os.makedirs(exportfolder)
+    with open(exportfolder+"/"+filename+".dat", "w") as txt_file:
+        for j in range(np.shape(z_data)[0]):
+            for k in range(np.shape(z_data)[1]):
+                txt_file.write('{} {} {}\n'.format(x_data[j],y_data[j,k],z_data[j,k]))
+    print('Exported to {}/{}.dat'.format(exportfolder,filename))
+
 

@@ -57,6 +57,9 @@ As of 18/10/2022, latest versions of all packages required by qcodes are working
 Ipykernel must be version 6.9 if plot windows should stay open when restarting the kernel. 
 Documentation is non-existent so this would be very hard to fix as far as I can tell.
 
+On the to-do list is improving analysis functions, such as tighter integration with InspectraGadget
+and incorporation of fitting tools.
+
 License
 =======
 

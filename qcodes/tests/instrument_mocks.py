@@ -95,7 +95,7 @@ class MockMetaParabola(Instrument):
 
 class DummyInstrument(Instrument):
 
-    def __init__(self, name='dummy', gates=['dac1', 'dac2', 'dac3'], **kwargs):
+    def __init__(self, name='dummy', gates=['dac1', 'dac2'], **kwargs):
 
         """
         Create a dummy instrument that can be used for testing
@@ -117,6 +117,45 @@ class DummyInstrument(Instrument):
                                vals=Numbers(-800, 400),
                                get_cmd=None, set_cmd=None)
 
+class DummyMeasurementInstrument(Instrument):
+
+    def get_linear(self):
+        return self.output1()*.012564+self.output2()*0.025467
+    def get_para(self):
+        return 0.152*self.output1()**2+0.11*self.output2()**2
+    def __init__(
+            self,
+            name: str,
+            **kwargs):
+        super().__init__(name=name, **kwargs)
+        self.add_parameter('input1',
+                           parameter_class=Parameter,
+                           initial_value=0,
+                           label='Input 1',
+                           unit="V",
+                           vals=Numbers(-800, 400),
+                           get_cmd=self.get_linear, set_cmd=None)
+        self.add_parameter('input2',
+                           parameter_class=Parameter,
+                           initial_value=0,
+                           label='Input 2',
+                           unit="V",
+                           vals=Numbers(-800, 400),
+                           get_cmd=self.get_para, set_cmd=None)
+        self.add_parameter('output1',
+                            parameter_class=Parameter,
+                            initial_value=0,
+                            label='Output',
+                            unit="V",
+                            vals=Numbers(-800,400),
+                            get_cmd=None,set_cmd=None)
+        self.add_parameter('output2',
+                            parameter_class=Parameter,
+                            initial_value=0,
+                            label='Output',
+                            unit="V",
+                            vals=Numbers(-800,400),
+                            get_cmd=None,set_cmd=None)
 
 class DummyChannel(InstrumentChannel):
     """

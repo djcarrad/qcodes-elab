@@ -177,6 +177,8 @@ def load_data_nums(listofnumbers, datafolder="data"):
 
     return data
 
+def set_data_format(fmt='data/#{counter}_{name}_{date}_{time}'):
+    DataSet.location_provider=FormatLocation(fmt=fmt)
 
 class DataSet(DelegateAttributes):
 
@@ -762,7 +764,6 @@ class DataSet(DelegateAttributes):
             out += out_template.format(info=arr_info_i, lens=column_lengths)
 
         return out
-
 
 class _PrettyPrintDict(dict):
     """
