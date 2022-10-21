@@ -950,7 +950,7 @@ class Parameter(_BaseParameter):
         Create a collection of parameter values to be iterated over in a log scale
         
         """
-        setpoints=numpy.geomspace(start,stop,num=num)
+        setpoints=numpy.geomspace(self.start,self.stop,num=num)
         return SweepFixedValues(self, setpoints)
 
     def arbsweep(self, setpoints):
@@ -958,6 +958,30 @@ class Parameter(_BaseParameter):
         Create a collection of parameter values to be iterated over.
         Must be an array or list of values
         """
+        return SweepFixedValues(self, setpoints)
+
+    def returnsweep(self, start, stop, step=None, num=None):
+        """
+        Create a collection of parameter values to be iterated over.
+        Must be an array or list of values
+        """
+        if step is not None:
+            if num is not None:
+                raise AttributeError('Sweeps cannot accept step AND num.')
+            else:
+                num=numpy.int(numpy.abs((stop-start)/step)+1)
+        elif num is not None:
+            if step is not None:
+                raise AttributeError('Sweeps cannot accept step AND num.')
+            else:
+                step=numpy.abs((stop-start)/(num-1))
+                num=num
+        setpointsdown=numpy.linspace(start,stop,num)
+        if stop>start:
+            step=-step
+        setpointsup=numpy.linspace(stop+step,start,num-1)
+        setpoints=numpy.hstack((setpointsdown,setpointsup))
+
         return SweepFixedValues(self, setpoints)
 
 

@@ -51,7 +51,6 @@ from PyQt5.QtCore import QObject, pyqtSlot
 
 qtapp = QtWidgets.QApplication([])
 
-
 class PlotTrace(pg.PlotDataItem):
 
     '''
@@ -114,6 +113,67 @@ class PlotTrace(pg.PlotDataItem):
                 masky = np.isfinite(self.y)
                 super().setData(self.y[masky])
 
+class PlotLinecuts(pg.PlotDataItem):
+
+    '''
+    PlotDataItem with benefits
+
+    delete()
+    update()
+    - check if data has been updated
+    - call set_data() with the updated data
+
+
+
+    '''
+
+    def setData(self, *args, **kwargs):
+
+        y = None
+        x = None
+        if len(args) == 1:
+            kwargs['y'] = args[0]
+
+        elif len(args) == 2:
+            kwargs['x'] = args[0]
+            kwargs['y'] = args[1]
+
+        maskx = False
+        masky = False
+        if 'x' in kwargs:
+            x = kwargs['x']
+            maskx = np.isfinite(x)
+        if 'y' in kwargs:
+            y = kwargs['y']
+            masky = np.isfinite(y)
+
+        if ('x' in kwargs) and ('y' in kwargs):
+            if np.shape(maskx) == np.shape(masky):
+                maskx = maskx & masky
+                masky = maskx
+        if 'x' in kwargs:
+            kwargs['x'] = kwargs['x'][maskx]
+
+        if 'y' in kwargs:
+            kwargs['y'] = kwargs['y'][masky]
+
+        self.x = x
+        self.y = y
+        super().setData(**kwargs)
+
+    def update_data(self):
+        # self.updateItems()
+        if self.y is not None:
+            if self.x is not None:
+                maskx, masky = np.isfinite(self.x), np.isfinite(self.y)
+                if np.shape(maskx) == np.shape(masky):
+                    maskx = maskx & masky
+                    masky = maskx
+
+                super().setData(self.x[maskx], self.y[masky])
+            else:
+                masky = np.isfinite(self.y)
+                super().setData(self.y[masky])
 
 class PlotImage(pg.ImageItem):
 
@@ -526,7 +586,7 @@ class PlotDock(dockarea.Dock):
             z=kwargs['z']
             args=[y,z]
 
-            item = PlotTrace(*args, **kwargs)
+            item = PlotLinecuts(*args, **kwargs)
 
 
         else:
