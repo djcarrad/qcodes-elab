@@ -5,7 +5,7 @@ import glob
 import os
 from qcodes.data import data_set        
                     
-def IGconvert(listofnumbers,z_param='camp1_conductance',x_param='default',y_param='default',datafolder='data',exportfolder="inspectragadget"):
+def IGconvert(listofnumbers,z_param='conductance',x_param='default',y_param='default',datafolder='data',exportfolder="inspectragadget"):
     #convert many xyz qcodes datasets to three column data files for loading in InSpectra Gadget
     #x and y default to the the 'set' parameters in qcodes data. z defaults to conductance. change as required.
     #listofnumbers is a list of strings, in the format used in the file name, e.g. "#004"
@@ -39,7 +39,7 @@ def IGconvert(listofnumbers,z_param='camp1_conductance',x_param='default',y_para
                         txt_file.write('{} {} {}\n'.format(x_data[j],y_data[j,k],z_data[j,k]))
             print('Exported to {}/{}.dat'.format(exportfolder,filename))
 
-def IGexport(data,z_param='camp1_conductance',x_param='default',y_param='default',exportfolder="inspectragadget"):
+def IGexport(data,z_param='conductance',x_param='default',y_param='default',exportfolder="inspectragadget"):
     #export the currently loaded qcodes dataset to three column data files for loading in InSpectra Gadget
     #x and y default to the the 'set' parameters in qcodes data. z defaults to conductance. change as required.
     if x_param=='default':
