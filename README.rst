@@ -39,7 +39,7 @@ Install Visual Studio C++ build tools. https://visualstudio.microsoft.com/downlo
 
 Install git
 
-Clone the qcodes-elab repository. In git bash, navigate to the desired folder, and use git clone https://github.com/djcarrad/qcodes-elab
+Clone the qcodes-elab repository. In git bash, navigate to the desired folder, and use git clone https://github.com/djcarrad/qcodes-elab.git
 
 In the Anaconda prompt:
 	conda create –n qcodes python
