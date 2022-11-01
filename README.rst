@@ -20,8 +20,8 @@ from Jupyter notebooks, but can be used from Spyder, traditional terminal-based
 shells and in stand-alone scripts as well. The features in `qcodes.utils.magic` 
 are exclusively for Jupyter notebooks.
 
-If you would only like to load data associated with qcodes measurements on your personal
-computer, you may like to simply install qcodesloader: https://github.com/djcarrad/qcodes-loader
+If you would only like to load data associated with qcodes measurements, you may like to
+simply install qcodesloader: https://github.com/djcarrad/qcodes-loader
 
 Docs
 ====
