@@ -38,13 +38,13 @@ setup(name='qcodes',
       version=get_version(),
       use_2to3=False,
 
-      maintainer='Jens H Nielsen',
-      maintainer_email='Jens.Nielsen@microsoft.com',
+      maintainer='Damon Carrad',
+      maintainer_email='damonc@dtu.dk',
       description='Python-based data acquisition framework developed by the '
                   'Copenhagen / Delft / Sydney / Microsoft quantum computing '
-                  'consortium',
+                  'consortium. Forked for use in DTU elab',
       long_description=readme(),
-      url='https://github.com/QCoDeS/Qcodes',
+      url='https://github.com/djcarrad/qcodes-elab',
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Intended Audience :: Science/Research',
