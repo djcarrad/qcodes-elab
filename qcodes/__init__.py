@@ -67,6 +67,7 @@ from qcodes.instrument.parameter import (
     ArrayParameter,
     MultiParameter,
     StandardParameter,
+    ElapsedTimeParameter,
     ManualParameter,
     ScaledParameter,
     combine,

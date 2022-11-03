@@ -8,6 +8,7 @@ from qcodes.instrument.base import Instrument
 from qcodes.instrument.parameter import Parameter
 from qcodes.instrument.parameter import ManualParameter
 from qcodes.instrument.parameter import StandardParameter
+from qcodes.instrument.parameter import ElapsedTimeParameter
 
 from qcodes.actions import _actions_snapshot
 
@@ -47,7 +48,7 @@ class Station(Metadatable, DelegateAttributes):
 
     def __init__(self, *components: Metadatable,
                  monitor: Any=None, default: bool=True,
-                 update_snapshot: bool=True, **kwargs) -> None:
+                 update_snapshot: bool=True, inc_timer=True,**kwargs) -> None:
         super().__init__(**kwargs)
 
         # when a new station is defined, store it in a class variable
@@ -62,6 +63,10 @@ class Station(Metadatable, DelegateAttributes):
         self.components = {} # type: Dict[str, Metadatable]
         for item in components:
             self.add_component(item, update_snapshot=update_snapshot)
+
+        if inc_timer==True:
+            timer=ElapsedTimeParameter(name='timer')
+            self.add_component(timer, update_snapshot=update_snapshot)
 
         self.monitor = monitor
 
@@ -184,6 +189,9 @@ class Station(Metadatable, DelegateAttributes):
         Loop.validate_actions(*actions)
 
         self.default_measurement = actions
+
+        if 'timer' in self.components:
+            self.default_measurement = self.default_measurement + (self.components['timer'],)
 
     def measurement(self, *actions):
         """

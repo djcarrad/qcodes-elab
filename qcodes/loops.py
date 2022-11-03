@@ -833,6 +833,10 @@ class ActiveLoop(Metadatable):
 
         self.last_task_failed = False
 
+        station = self.station or Station.default
+        if 'timer' in self.data_set.arrays:
+            station.timer.reset_clock()
+
         for i, value in enumerate(self.sweep_values):
             if self.progress_interval is not None:
                 tprint('loop %s: %d/%d (%.1f [s])' % (

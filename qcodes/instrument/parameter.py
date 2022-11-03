@@ -56,6 +56,7 @@ from datetime import datetime, timedelta
 from copy import copy
 from operator import xor
 import time
+from time import perf_counter
 import logging
 import os
 import collections
@@ -1637,6 +1638,38 @@ class InstrumentRefParameter(Parameter):
         # of this parameter.
         return self._instrument.find_instrument(ref_instrument_name)
 
+class ElapsedTimeParameter(Parameter):
+    """
+    Parameter to measure elapsed time. Measures wall clock time since the
+    last reset of the instance's clock. The clock is reset upon creation of the
+    instance. The constructor passes kwargs along to the Parameter constructor.
+
+    Args:
+        name: The local name of the parameter. See the documentation of
+            :class:`qcodes.parameters.Parameter` for more details.
+    """
+
+    def __init__(self, name: str, label: str = "Elapsed time", **kwargs: Any):
+
+        hardcoded_kwargs = ["unit", "get_cmd", "set_cmd"]
+
+        for hck in hardcoded_kwargs:
+            if hck in kwargs:
+                raise ValueError(f'Can not set "{hck}" for an ' "ElapsedTimeParameter.")
+
+        super().__init__(name=name, label=label, unit="s", set_cmd=False, **kwargs)
+
+        self._t0: float = perf_counter()
+
+    def get_raw(self) -> float:
+        return perf_counter() - self.t0
+
+    def reset_clock(self) -> None:
+        self._t0 = perf_counter()
+
+    @property
+    def t0(self) -> float:
+        return self._t0
 
 # Deprecated parameters
 class StandardParameter(Parameter):
