@@ -210,7 +210,7 @@ class BreakIf:
 
     def snapshot(self, update=False):
         """
-        Snapshots breakif action
+        Snapshots breakIf action
         Args:
             update (bool): TODO not in use
 
@@ -219,7 +219,6 @@ class BreakIf:
 
         """
         return {'type': 'BreakIf', 'condition': repr(self.condition)}
-
 
 class _QcodesBreak(Exception):
     pass
