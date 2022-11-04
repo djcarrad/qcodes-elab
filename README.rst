@@ -45,7 +45,7 @@ the command line, you should add the anaconda PATH to environment variables duri
 
 - Clone the qcodes-elab repository. In git bash, navigate to the desired folder, and use
 
-git clone https://github.com/djcarrad/qcodes-elab.git
+	git clone https://github.com/djcarrad/qcodes-elab.git
 
 - In the Anaconda prompt:
 	conda create –n qcodes python
