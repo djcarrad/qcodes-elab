@@ -42,7 +42,7 @@ Install
 
 - Install git: https://git-scm.com/download/win
 
-- Clone the qcodes-elab repository. In git bash, navigate to the desired folder (usually C:/git), and use
+- Clone the qcodes-elab repository. In git bash, navigate to the desired folder (usually cd C:/git), and use
 
 	git clone https://github.com/djcarrad/qcodes-elab.git qcodes-elab
 
@@ -60,7 +60,7 @@ Install
 	
 Updating
 --------
-Open git bash, cd to the install folder (usually C:/git/qcodes-elab), and use 
+Open git bash, navigate to the install folder (usually cd C:/git/qcodes-elab), and use 
 
 	git pull
 Status
