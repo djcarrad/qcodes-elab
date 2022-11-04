@@ -43,9 +43,9 @@ the command line, you should add the anaconda PATH to environment variables duri
 
 - Install git: https://git-scm.com/download/win
 
-- Clone the qcodes-elab repository. In git bash, navigate to the desired folder, and use
+- Clone the qcodes-elab repository. In git bash, navigate to the desired folder (usually C:/git, and use
 
-	git clone https://github.com/djcarrad/qcodes-elab.git
+	git clone https://github.com/djcarrad/qcodes-elab.git qcodes-elab
 
 - In the Anaconda prompt:
 
