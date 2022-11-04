@@ -34,27 +34,27 @@ function takes, or which capabilities an instrument driver has, just open up the
 Install
 =======
 
-Install anaconda from anaconda website: if you want to be able to call python from 
+- Install anaconda from anaconda website: if you want to be able to call python from 
 the command line, you should add the anaconda PATH to environment variables during install
 
-Install NI VISA and GPIB(488.2) backend from National Instruments website
+- If necessary, install NI VISA and GPIB(488.2) backend from National Instruments website
 
-Install Visual Studio C++ build tools. https://visualstudio.microsoft.com/downloads/ --> Tools for Visual Studio --> Build Tools for Visual Studio.
+- Install Visual Studio C++ build tools. https://visualstudio.microsoft.com/downloads/ --> Tools for Visual Studio --> Build Tools for Visual Studio.
 
-Install git
+- Install git: https://git-scm.com/download/win
 
-Clone the qcodes-elab repository. In git bash, navigate to the desired folder, and use
+- Clone the qcodes-elab repository. In git bash, navigate to the desired folder, and use
 
 git clone https://github.com/djcarrad/qcodes-elab.git
 
-In the Anaconda prompt:
+- In the Anaconda prompt:
 	conda create –n qcodes python
 	
 	activate qcodes
 	
 	pip install –e *path to repository*
 
-Optionally install useful packages:
+- Optionally install useful packages from the anaconda prompt:
 	pip install zhinst scipy jupyterlab tqdm
 	
 Status
