@@ -34,8 +34,7 @@ function takes, or which capabilities an instrument driver has, just open up the
 Install
 =======
 
-- Install anaconda from anaconda website: if you want to be able to call python from 
-the command line, you should add the anaconda PATH to environment variables during install
+- Install anaconda from anaconda website: if you want to be able to call python from the command line, you should add the anaconda PATH to environment variables during install
 
 - If necessary, install NI VISA and GPIB(488.2) backend from National Instruments website
 
