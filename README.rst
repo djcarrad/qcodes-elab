@@ -72,6 +72,8 @@ Documentation is non-existent so this would be very hard to fix as far as I can 
 On the to-do list is improving analysis functions, such as tighter integration with InspectraGadget
 and incorporation of fitting tools.
 
+If there is a feature that you desire, feel free to contact me, damonc@dtu.dk. We can try to make it happen together!
+
 License
 =======
 
