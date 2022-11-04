@@ -26,6 +26,7 @@ simply install qcodesloader: https://github.com/djcarrad/qcodes-loader
 Docs
 ====
 Check out the wiki https://github.com/djcarrad/qcodes-elab/wiki for an introduction.
+The accompanying jupyter notebooks are under 'tutorials'
 There is no separate, comprehensive documentation, however, all the code is quite well 
 self-documented and everything is open source. If you need to know which arguments a 
 function takes, or which capabilities an instrument driver has, just open up the file! Or ask a friend
