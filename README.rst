@@ -48,7 +48,9 @@ the command line, you should add the anaconda PATH to environment variables duri
 
 - In the Anaconda prompt:
 	conda create –n qcodes python
+	
 	activate qcodes
+	
 	pip install –e *path to repository*
 
 - Optionally install useful packages from the anaconda prompt:
