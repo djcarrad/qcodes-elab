@@ -44,9 +44,11 @@ the command line, you should add the anaconda PATH to environment variables duri
 - Install git: https://git-scm.com/download/win
 
 - Clone the qcodes-elab repository. In git bash, navigate to the desired folder, and use
+
 	git clone https://github.com/djcarrad/qcodes-elab.git
 
 - In the Anaconda prompt:
+
 	conda create –n qcodes python
 	
 	activate qcodes
@@ -54,6 +56,7 @@ the command line, you should add the anaconda PATH to environment variables duri
 	pip install –e *path to repository*
 
 - Optionally install useful packages from the anaconda prompt:
+
 	pip install zhinst scipy jupyterlab tqdm
 	
 Status
