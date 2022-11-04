@@ -61,6 +61,7 @@ Install
 Updating
 --------
 Open git bash, cd to the repository, and use 
+
 	git pull
 Status
 ======
