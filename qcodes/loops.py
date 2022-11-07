@@ -64,6 +64,12 @@ from .actions import (_actions_snapshot, Task, Wait, _Measure, _Nest,
 log = logging.getLogger(__name__)
 
 
+def device_move(devicename,end_gate,steps=100,step_time=0.03):
+    start_gate = devicename()
+    for i in range(0,steps+1):
+        devicename(start_gate + (end_gate - start_gate)/steps * i)
+        time.sleep(step_time)
+
 def active_loop():
     return ActiveLoop.active_loop
 
