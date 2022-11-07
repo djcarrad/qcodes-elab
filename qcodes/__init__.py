@@ -35,7 +35,7 @@ from qcodes.version import __version__
 
 
 from qcodes.station import Station
-from qcodes.loops import Loop, active_loop, active_data_set, device_move
+from qcodes.loops import Loop, active_loop, active_data_set, param_move
 from qcodes.measure import Measure
 from qcodes.actions import Task, Wait, BreakIf
 haswebsockets = True
