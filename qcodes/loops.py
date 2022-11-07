@@ -67,7 +67,7 @@ log = logging.getLogger(__name__)
 def param_move(param_name,end_value,steps=100,step_time=0.03):
     start_value = param_name()
     for i in range(0,steps+1):
-        devicename(start_value + (end_value - start_value)/steps * i)
+        param_name(start_value + (end_value - start_value)/steps * i)
         time.sleep(step_time)
 
 def active_loop():
