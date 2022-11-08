@@ -73,7 +73,7 @@ setup(name='qcodes',
           'jsonschema',
           'pyzmq',
           'wrapt',
-          'serial',
+          'pyserial',
           'pandas'
       ],
 
