@@ -417,7 +417,7 @@ class MercuryiPS_120(SerialInstrument):
             return val
         else:
 
-            if isinstance(setpoint, collections.Iterable):
+            if isinstance(setpoint, collections.abc.Iterable):
                 pass
             else:
                 setpoint = [setpoint]
@@ -433,7 +433,7 @@ class MercuryiPS_120(SerialInstrument):
 
 
     def _set_field(self, axes, setpoint):
-        if isinstance(setpoint, collections.Iterable):
+        if isinstance(setpoint, collections.abc.Iterable):
             pass
         else:
             setpoint = [setpoint]
