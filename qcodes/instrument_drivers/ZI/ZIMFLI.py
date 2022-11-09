@@ -483,7 +483,7 @@ class ZIMFLI(Instrument):
         y = float(data['y'])
         return y
 
-    def getR(self,path)
+    def getR(self,path):
         data = self.daq.getSample(path)
         x = float(data['x'])
         y = float(data['y'])
