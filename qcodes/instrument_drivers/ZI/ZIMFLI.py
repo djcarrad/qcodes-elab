@@ -31,8 +31,10 @@ class ZIMFLI(Instrument):
         global daq
         if server == "internal":
             self.daq = ziDAQServer('mf-{}'.format(serial), 8004, 6)  # Unlike the HF2 where the server runs on the computer, on MF instruments the server runs on the instrument, so the host is the instrument not "localhost"
-        if server == "local":
+        elif server == "local":
             self.daq = ziDAQServer('localhost', 8004, 6)
+        else:
+            raise ValueError('Server should be either internal or local')
         super().__init__(name, **kwargs)
 
         self.name = name
@@ -99,6 +101,13 @@ class ZIMFLI(Instrument):
                                label='Y',
                                unit='V',
                                get_cmd= partial(self.getY,'/{}/demods/{}/sample'.format(self.serial,n)),
+                               get_parser = float)
+
+            #Demod R
+            self.add_parameter(name='demod{}_R'.format(n),
+                               label='R',
+                               unit='V',
+                               get_cmd= partial(self.getR,'/{}/demods/{}/sample'.format(self.serial,n)),
                                get_parser = float)
 
             # Demod phase
@@ -474,6 +483,13 @@ class ZIMFLI(Instrument):
         y = float(data['y'])
         return y
 
+    def getR(self,path)
+        data = self.daq.getSample(path)
+        x = float(data['x'])
+        y = float(data['y'])
+        R = np.sqrt(x**2+y**2)
+        return R
+        
     def getP(self,path):
         data = self.daq.getSample(path)
         P = float(data['phase'])
