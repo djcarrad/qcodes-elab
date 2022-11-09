@@ -131,7 +131,12 @@ class ZIHF2LI(Instrument):
                                unit='V',
                                get_cmd= partial(self.getY,'/{}/demods/{}/sample'.format(self.serial,n)),
                                get_parser = float)
-            
+
+            self.add_parameter(name='demod{}_R'.format(n),
+                               label='R',
+                               unit='V',
+                               get_cmd= partial(self.getR,'/{}/demods/{}/sample'.format(self.serial,n)),
+                               get_parser = float)            
 
 
             self.add_parameter(name='demod{}_phase'.format(n),
@@ -392,6 +397,13 @@ class ZIHF2LI(Instrument):
         data = self.daq.getSample(path)
         y = float(data['y'])
         return y
+
+    def getR(self,path)
+        data = self.daq.getSample(path)
+        x = float(data['x'])
+        y = float(data['y'])
+        R = np.sqrt(x**2+y**2)
+        return R
     
     def getP(self,path):
         data = self.daq.getSample(path)
