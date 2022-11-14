@@ -16,11 +16,11 @@ In addition, new features have been added to streamline data acquisition and the
 of metadata files, data loading and analysis, and extra flexibility in setpoints for loops.
 
 QCoDeS-elab is compatible with Python 3.5+. It is primarily intended for use
-from Jupyter notebooks, but can be used from Spyder, traditional terminal-based
-shells and in stand-alone scripts as well. The features in `qcodes.utils.magic` 
+from Jupyter notebooks and jupyter lab, but can also be used from Spyder, traditional terminal-based
+shells and in stand-alone scripts. The features in `qcodes.utils.magic` 
 are exclusively for Jupyter notebooks.
 
-If you would only like to load data associated with qcodes measurements, you may like to
+If you would only like to load data associated with qcodes-elab measurements, you may like to
 simply install qcodesloader: https://github.com/djcarrad/qcodes-loader
 
 Docs
@@ -38,7 +38,9 @@ Install
 
 - Install git: https://git-scm.com/download/win
 
-- Clone the qcodes-elab repository. In git bash, navigate to the desired folder (usually cd C:/git), and use
+- Open the newly installed git bash, navigate to the desired folder (usually cd C:/git), and clone the repository
+
+	cd C:/git
 
 	git clone https://github.com/djcarrad/qcodes-elab.git qcodes-elab
 
@@ -67,7 +69,7 @@ or
 Additionally...
 ---------------
 
-- If you are going to use VISA instruments (e.g. ones that communicate via GPIB, USB, RS232) you should install NI VISA and GPIB(488.2) backend from National Instruments website
+- If you are going to use VISA instruments (e.g. ones that communicate via GPIB, USB, RS232) you should install the NI VISA and GPIB(488.2) backends from the National Instruments website
 
 - If the qcodes install fails, you may need to install Visual Studio C++ build tools. https://visualstudio.microsoft.com/downloads/ --> Tools for Visual Studio --> Build Tools for Visual Studio.
 	
