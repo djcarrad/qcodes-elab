@@ -44,7 +44,7 @@ Install
 
 	git clone https://github.com/djcarrad/qcodes-elab.git qcodes-elab
 
-- In the Anaconda prompt:
+- Now open the Anaconda prompt and type:
 
 	conda create –n qcodes python
 	
