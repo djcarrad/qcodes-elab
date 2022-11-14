@@ -36,10 +36,6 @@ Install
 
 - Install anaconda from anaconda website: if you want to be able to call python from the command line, you should add the anaconda PATH to environment variables during install
 
-- If necessary, install NI VISA and GPIB(488.2) backend from National Instruments website
-
-- Install Visual Studio C++ build tools. https://visualstudio.microsoft.com/downloads/ --> Tools for Visual Studio --> Build Tools for Visual Studio.
-
 - Install git: https://git-scm.com/download/win
 
 - Clone the qcodes-elab repository. In git bash, navigate to the desired folder (usually cd C:/git), and use
@@ -57,6 +53,24 @@ Install
 - Optionally install useful packages from the anaconda prompt:
 
 	pip install zhinst scipy jupyterlab tqdm
+
+You can now run qcodes in jupyter notebook or jupyter lab by opening the anaconda prompt, and typing
+
+	activate qcodes
+	
+	jupyter notebook
+
+or
+
+	jupyter lab
+	
+Additionally...
+---------------
+
+- If you are going to use VISA instruments (e.g. ones that communicate via GPIB, USB, RS232) you should install NI VISA and GPIB(488.2) backend from National Instruments website
+
+- If the qcodes install fails, you may need to install Visual Studio C++ build tools. https://visualstudio.microsoft.com/downloads/ --> Tools for Visual Studio --> Build Tools for Visual Studio.
+	
 	
 Updating
 --------
