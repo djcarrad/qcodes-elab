@@ -30,7 +30,6 @@ class MercuryiPSArray(MultiParameter):
             e.args = e.args + ('getting {}'.format(self.full_name),)
             raise e
 
-    Setting of MultiParameter not supported currently
     def set(self, setpoint):
         return self._set(setpoint)
 

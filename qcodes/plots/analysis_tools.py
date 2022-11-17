@@ -40,7 +40,7 @@ def IGconvert(listofnumbers,z_param='conductance',x_param='default',y_param='def
             print('Exported to {}/{}.dat'.format(exportfolder,filename))
 
 def IGexport(data,z_param='conductance',x_param='default',y_param='default',exportfolder="inspectragadget"):
-    #export the currently loaded qcodes dataset to three column data files for loading in InSpectra Gadget
+    #export a previously loaded qcodes dataset to three column data files for loading in InSpectra Gadget
     #x and y default to the the 'set' parameters in qcodes data. z defaults to conductance. change as required.
     if x_param=='default':
         x_param=list(data.arrays.keys())[0]
