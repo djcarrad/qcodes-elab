@@ -77,7 +77,7 @@ class Keithley_2700(VisaInstrument):
     This driver does not contain all commands available, but only the ones
     most commonly used.
     '''
-    def __init__(self, name, address, reset=False, **kwargs):
+    def __init__(self, name, address, reset=False, use_defaults=False, **kwargs):
         super().__init__(name, address, **kwargs)
 
         self._modes = ['VOLT:AC', 'VOLT:DC', 'CURR:AC', 'CURR:DC', 'RES',
@@ -179,7 +179,8 @@ class Keithley_2700(VisaInstrument):
             self.reset()
         else:
             self.get_all()
-            self.set_defaults()
+            if use_defaults:
+                self.set_defaults()
 
         self.connect_message()
 
