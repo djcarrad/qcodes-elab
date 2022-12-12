@@ -1,4 +1,5 @@
 from qcodes import VisaInstrument, validators as vals
+import numpy as np
 
 
 class RohdeSchwarz_SGS100A(VisaInstrument):
@@ -50,6 +51,16 @@ class RohdeSchwarz_SGS100A(VisaInstrument):
                            set_cmd='SOUR:POW {:.2f}',
                            get_parser=float,
                            vals=vals.Numbers(-120, 25))
+        self.add_parameter(name='Vrms',
+                           label='Vrms',
+                           unit='V',
+                           get_cmd=getVrms,
+                           set_cmd=setVrms,
+                           # get_cmd='SOUR:POW?',
+                           # set_cmd='SOUR:POW {:.2f}',
+                           get_parser=float
+                           #vals=vals.Numbers(-120, 25)
+                           )
         self.add_parameter('status',
                            label='RF Output',
                            get_cmd=':OUTP:STAT?',
@@ -139,6 +150,17 @@ class RohdeSchwarz_SGS100A(VisaInstrument):
         self.add_function('run_self_tests', call_cmd='*TST?')
 
         self.connect_message()
+
+    def setVrms(val):
+        if val==0:
+            self.power(-119)
+        elif -119 < (10*np.log10(val*val/0.05)):
+            self.power(10*np.log10(val*val/0.05))
+        else:
+            self.power(-119)
+
+    def getVrms():
+        return np.sqrt(0.05*10**(self.power()/10))
 
     def get_parser_on_off(self,value):
         if value == '0':

@@ -122,26 +122,27 @@ class Triton(IPInstrument):
                            unit='T',
                            get_cmd=partial(self._get_control_B_param, 'VECT'))
 
-        self.add_parameter(name='Bx',
-                           label='Magnetic field x-component',
-                           unit='T',
-                           get_cmd=partial(
-                               self._get_control_Bcomp_param, 'VECTBx'),
-                           set_cmd=partial(self._set_control_Bx_param))
+        # Below seems to not work on T12. Unnecessary since we control the IPS120 directly. Can likely delete in future.
+        # self.add_parameter(name='Bx',
+        #                    label='Magnetic field x-component',
+        #                    unit='T',
+        #                    get_cmd=partial(
+        #                        self._get_control_Bcomp_param, 'VECTBx'),
+        #                    set_cmd=partial(self._set_control_Bx_param))
 
-        self.add_parameter(name='By',
-                           label='Magnetic field y-component',
-                           unit='T',
-                           get_cmd=partial(
-                               self._get_control_Bcomp_param, 'VECTBy'),
-                           set_cmd=partial(self._set_control_By_param))
+        # self.add_parameter(name='By',
+        #                    label='Magnetic field y-component',
+        #                    unit='T',
+        #                    get_cmd=partial(
+        #                        self._get_control_Bcomp_param, 'VECTBy'),
+        #                    set_cmd=partial(self._set_control_By_param))
 
-        self.add_parameter(name='Bz',
-                           label='Magnetic field z-component',
-                           unit='T',
-                           get_cmd=partial(
-                               self._get_control_Bcomp_param, 'VECTBz'),
-                           set_cmd=partial(self._set_control_Bz_param))
+        # self.add_parameter(name='Bz',
+        #                    label='Magnetic field z-component',
+        #                    unit='T',
+        #                    get_cmd=partial(
+        #                        self._get_control_Bcomp_param, 'VECTBz'),
+        #                    set_cmd=partial(self._set_control_Bz_param))
 
         self.add_parameter(name='magnet_sweep_time',
                            label='Magnet sweep time',
