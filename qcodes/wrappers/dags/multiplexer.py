@@ -1,8 +1,10 @@
 import qcodes as qc
+from qcodes import param_move as device_move
 from qcodes.instrument_drivers.QDev.QDac import QDac
 import numpy as np
+import time
 
-def mpx_out(lvls, out):
+def mpx_out(lvls, out, qdac):
     #convert to binary
     # 0 means gate 1 positive gate 2 negative
     # 1 menas gate 1 negative gate 2 positive
@@ -47,7 +49,7 @@ def mpx_out(lvls, out):
                 device_move(qdac["ch{:02d}_v".format(dkey1[n])], open_volt,100)
                 
 
-def mpx_element(mpx_size, lvl, element):
+def mpx_element(mpx_size, lvl, element, qdac):
     # QDAC channel key #
     skey0 = [15,13,11,9,7,5,3,1]
     skey1 = [16,14,12,10,8,6,4,2]
@@ -111,7 +113,7 @@ def mpx_element(mpx_size, lvl, element):
     return gate_to_sweep 
     
     
-def mpx_out_src(lvls, out):
+def mpx_out_src(lvls, out, qdac):
     # QDAC channel key #
     skey0 = [15,13,11,9,7,5,3,1]
     skey1 = [16,14,12,10,8,6,4,2]
@@ -142,7 +144,7 @@ def mpx_out_src(lvls, out):
 
                 
 
-def mpx_out_drn(lvls, out):
+def mpx_out_drn(lvls, out, qdac):
     
     # QDAC channel key #
     dkey0 = [31,29,27,25,23,21,19,17]
@@ -172,7 +174,7 @@ def mpx_out_drn(lvls, out):
                 
             
 
-def mpx_out_test(lvls, out):
+def mpx_out_test(lvls, out, qdac):
     #convert to binary
     # 0 means gate 1 positive gate 2 negative
     # 1 menas gate 1 negative gate 2 positive
@@ -210,21 +212,21 @@ def mpx_out_test(lvls, out):
             print("ch{:02d}_v ".format(dkey1[n]) + str(open_volt))
             print(" ")
             
-def qdac_all_off():
+def qdac_all_off(qdac):
     for n in range(1,49):
         if -0.01 < qdac["ch{:02d}_v".format(n)]() <0.01:
             qdac["ch{:02d}_v".format(n)](0)
         else:
             device_move(qdac["ch{:02d}_v".format(n)], 0, 100)
             
-def qdac_all_set(value):
+def qdac_all_set(value,qdac):
     for n in range(1,17):
         if value-0.01 < qdac["ch{:02d}_v".format(n)]() <value+0.01:
             0
         else:
             device_move(qdac["ch{:02d}_v".format(n)], value, 100)
             
-def qdac_all_status():
+def qdac_all_status(qdac):
     for n in range(1,49):
         val = qdac["ch{:02d}_v".format(n)]()
         print("ch{:02d}: {} V".format(n,val))
