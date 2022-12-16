@@ -69,6 +69,10 @@ def comma_sequence_to_list_of_floats(sequence: str) -> Sequence[float]:
         return []
     return [float(x.strip()) for x in sequence.split(',')]
 
+def comma_sequence_to_single_float(sequence: str) -> float:
+    if not sequence:
+        return []
+    return [float(x.strip()) for x in sequence.split(',')][0]
 
 def diff_matrix(initial: Sequence[float],
                 measurements: Sequence[Sequence[float]]) -> np.ndarray:
@@ -1221,7 +1225,7 @@ class QDac2Channel(InstrumentChannel):
             vals=validators.Enum('dc', 'med', 'high')
         )
         self.add_parameter(
-            name='dc_constant_V',
+            name='volt',
             label=f'ch{channum}',
             unit='V',
             set_cmd=self._set_fixed_voltage_immediately,
@@ -1259,6 +1263,21 @@ class QDac2Channel(InstrumentChannel):
             unit='A',
             get_cmd=f'read{channum}?',
             get_parser=comma_sequence_to_list_of_floats
+        )
+        self.add_parameter(
+            name='curr',
+            # Perform immediate current measurement on channel
+            label=f'ch{channum}',
+            unit='A',
+            get_cmd=f'read{channum}?',
+            get_parser=comma_sequence_to_single_float
+        )
+        self.add_parameter(
+            name='curr_range',
+            label='curr_range',
+            set_cmd='sens{1}:rang {0}'.format('{}', channum),
+            get_cmd=f'sens{channum}:rang?',
+            vals=validators.Enum('low', 'high')
         )
         self.add_parameter(
             name='fetch_current_A',
