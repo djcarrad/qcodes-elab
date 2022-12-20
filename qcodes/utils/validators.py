@@ -338,6 +338,38 @@ class OnOff(Validator):
     def validate(self, value: str, context: str='') -> None:
         self._validator.validate(value, context)
 
+class ComplexNumbers(Validator):
+    """
+    A validator for complex numbers.
+    """
+
+    validtypes = (complex, np.complex128, np.complex64)
+
+    def __init__(self) -> None:
+
+        self._valid_values = ((1 + 1j),)
+
+    def validate(
+        self, value: Union[complex, "np.complexfloating[Any,Any]"], context: str = ""
+    ) -> None:
+        """
+        Validates if complex number else raises error.
+
+        Args:
+            value: A complex number.
+            context: Context for validation.
+
+        Raises:
+            TypeError: If not a complex number.
+        """
+        if not isinstance(value, self.validtypes):
+            raise TypeError(f"{repr(value)} is not complex; {context}")
+
+    is_numeric = False  # there is no meaningful way to sweep a complex number
+
+    def __repr__(self) -> str:
+        return "<Complex Number>"
+
 
 class Multiples(Ints):
     """

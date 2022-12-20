@@ -1,10 +1,10 @@
 Metadata-Version: 2.1
 Name: qcodes
 Version: 0.1.11
-Summary: Python-based data acquisition framework developed by the Copenhagen / Delft / Sydney / Microsoft quantum computing consortium
-Home-page: https://github.com/QCoDeS/Qcodes
-Maintainer: Jens H Nielsen
-Maintainer-email: Jens.Nielsen@microsoft.com
+Summary: Python-based data acquisition framework developed by the Copenhagen / Delft / Sydney / Microsoft quantum computing consortium. Forked for use in DTU elab
+Home-page: https://github.com/djcarrad/qcodes-elab
+Maintainer: Damon Carrad
+Maintainer-email: damonc@dtu.dk
 License: MIT
 Classifier: Development Status :: 3 - Alpha
 Classifier: Intended Audience :: Science/Research
@@ -15,89 +15,101 @@ Provides-Extra: MatPlot
 Provides-Extra: QtPlot
 Provides-Extra: coverage tests
 Provides-Extra: Slack
-License-File: LICENSE
 License-File: LICENSE.rst
 
-QCoDeS |Build Status| |DOCS| |DOI|
+QCoDeS-elab version
 ===================================
 
 QCoDeS is a Python-based data acquisition framework developed by the
 Copenhagen / Delft / Sydney / Microsoft quantum computing consortium.
-While it has been developed to serve the needs of nanoelectronic device
-experiments, it is not inherently limited to such experiments, and can
-be used anywhere a system with many degrees of freedom is controllable
-by computer.
-To learn more about QCoDeS, browse our `homepage <http://qcodes.github.io/Qcodes>`_ .
+This is NOT the main version. You can find that here: https://qcodes.github.io/
 
-To get  a feeling of qcodes browse the Jupyter notebooks in `docs/examples
-<https://github.com/QCoDeS/Qcodes/tree/master/docs/examples>`__ .
+The elab version was forked from version 0.1.11 of qcodes, and is designed to preserve 
+key capabilites:
 
+- a text based data set
 
-QCoDeS is compatible with Python 3.5+. It is primarily intended for use
-from Jupyter notebooks, but can be used from traditional terminal-based
-shells and in stand-alone scripts as well. The features in
-`qcodes.utils.magic` are exclusively for Jupyter notebooks.
+- live plotting using 'qplot' developed by Merlin von Soosten.
 
-Status
-------
-QCoDeS is still in development, more documentation and features will be coming!
-The team behind this project just expanded.  There are still rough edges, and
-gray areas but QCoDeS has been running without major issue in two long running
-experiments.
+In addition, new features have been added to streamline data acquisition and the generation 
+of metadata files, data loading and analysis, and extra flexibility in setpoints for loops.
 
-The most important features in the roadmap are:
+QCoDeS-elab is compatible with Python 3.5+. It is primarily intended for use
+from Jupyter notebooks and jupyter lab, but can also be used from Spyder, traditional terminal-based
+shells and in stand-alone scripts. The features in `qcodes.utils.magic` 
+are exclusively for Jupyter notebooks.
 
-- a more flexible and faster data storage solution
-- a robust architecture that uses the full potential of your hardware
+If you would only like to load data associated with qcodes-elab measurements, you may like to
+simply install qcodesloader: https://github.com/djcarrad/qcodes-loader
 
+Docs
+====
+Check out the wiki https://github.com/djcarrad/qcodes-elab/wiki for an introduction. The 
+accompanying jupyter notebooks are under 'tutorials'. As of yet, there is no separate, comprehensive
+documentation; this is high on the to-do list. However, all the code is quite well self-documented and 
+everything is open source. If you need to know which arguments a function takes, or which capabilities 
+an instrument driver has, just open up the file! Or ask a friend
 
 Install
 =======
 
-In general, refer to `here <http://qcodes.github.io/Qcodes/start/index.html#installation>`__
-for installation.
+- Install anaconda from anaconda website: if you want to be able to call python from the command line, you should add the anaconda PATH to environment variables during install
 
+- Install git: https://git-scm.com/download/win
 
-Docs
-====
+- Open the newly installed git bash, navigate to the desired folder (usually cd C:/git), and clone the repository
 
-Read it `here <http://qcodes.github.io/Qcodes>`__ .
-Documentation is updated and deployed on every successful build in master.
+	cd C:/git
 
-We use sphinx for documentations, makefiles are provided both for
-Windows, and \*nix, so that you can build the documentation locally.
+	git clone https://github.com/djcarrad/qcodes-elab.git qcodes-elab
 
-Make sure that you have the extra dependencies required to install the docs
+- Now open the Anaconda prompt and type:
 
-.. code:: bash
+	conda create â€“n qcodes python
+	
+	activate qcodes
+	
+	pip install â€“e *path to repository*
 
-    pip install -r docs_requirements.txt
+- Optionally install useful packages from the anaconda prompt:
 
-Go to the directory ``docs`` and
+	pip install zhinst scipy jupyterlab tqdm
 
-.. code:: bash
+You can now run qcodes in jupyter notebook or jupyter lab by opening the anaconda prompt, and typing
 
-    make html-api
+	activate qcodes
+	
+	jupyter notebook
 
-This generate a webpage, index.html, in ``docs/_build/html`` with the
-rendered html.
+or
 
-Contributing
-============
+	jupyter lab
+	
+Additionally...
+---------------
 
-See `Contributing <https://github.com/QCoDeS/Qcodes/tree/master/CONTRIBUTING.rst>`__ for information about bug/issue
-reports, contributing code, style, and testing
+- If you are going to use VISA instruments (e.g. ones that communicate via GPIB, USB, RS232) you should install the NI VISA and GPIB(488.2) backends from the National Instruments website
 
+- If the qcodes install fails, you may need to install Visual Studio C++ build tools. https://visualstudio.microsoft.com/downloads/ --> Tools for Visual Studio --> Build Tools for Visual Studio.
+	
+	
+Updating
+--------
+Open git bash, navigate to the install folder (usually cd C:/git/qcodes-elab), and use 
 
+	git pull
+Status
+======
+As of 18/10/2022, latest versions of all packages required by qcodes are working, except:
+Ipykernel must be version 6.9 if plot windows should stay open when restarting the kernel. 
+Documentation is non-existent so this would be very hard to fix as far as I can tell.
+
+On the to-do list is improving analysis functions, such as tighter integration with InspectraGadget
+and incorporation of fitting tools.
+
+If there is a feature that you desire, feel free to contact me, damonc@dtu.dk. We can try to make it happen together!
 
 License
 =======
 
 See `License <https://github.com/QCoDeS/Qcodes/tree/master/LICENSE.rst>`__.
-
-.. |Build Status| image:: https://travis-ci.org/QCoDeS/Qcodes.svg?branch=master
-    :target: https://travis-ci.org/QCoDeS/Qcodes
-.. |DOCS| image:: https://img.shields.io/badge/read%20-thedocs-ff66b4.svg
-   :target: http://qcodes.github.io/Qcodes
-.. |DOI| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1216747.svg
-   :target: https://doi.org/10.5281/zenodo.1216747

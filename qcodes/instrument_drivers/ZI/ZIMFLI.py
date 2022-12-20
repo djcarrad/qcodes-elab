@@ -4,6 +4,7 @@ from qcodes.instrument.base import Instrument
 from qcodes.utils.validators import Numbers, Enum, Ints
 from functools import partial
 import numpy as np
+import time
 
 class ZIMFLI(Instrument):
     """
@@ -22,10 +23,27 @@ class ZIMFLI(Instrument):
             "numVins": 1,      # number of voltage inputs
             "numIins": 1,      # number of current inputs
             "numAUXouts": 4,   # number of AUX outputs
-            "numAUXins": 2     # number of AUX inputs
+            "numAUXins": 2,     # number of AUX inputs
+            "numscopes": 1
         }
 
-
+    scoperates = {
+            '0': 60e6,
+            '1': 30e6,
+            '2': 15e6,
+            '3': 7.5e6,
+            '4': 3.75e6,
+            '5': 1.88e6,
+            '6': 936e3,
+            '7': 469e3,
+            '8': 234e3,
+            '9': 117e3,
+            '10': 58.6e3,
+            '11': 29.3e3,
+            '12': 14.6e3,
+            '13': 7.32e3,
+            '14': 3.66e3,
+            '15': 1.83e3}
 
     def __init__(self, name, serial, server="local", **kwargs):
         global daq
@@ -431,11 +449,21 @@ class ZIMFLI(Instrument):
         #                                },
         #                    vals=Ints(min_value=0, max_value=1))
 
-
-
-
-
-
+        # Scope parameters
+        for n in range(self.LI["numscopes"]):
+            self.add_parameter(name='scope{}_length'.format(n),
+                                label='scope{}_length'.format(n),
+                                unit='samples',
+                                get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/length'.format(self.serial,n)),
+                                set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/length'.format(self.serial,n)))
+            self.add_parameter(name='scope{}_channel'.format(n),
+                                label='scope{}_channel'.format(n),
+                                get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/channel'.format(self.serial,n)),
+                                get_parser=self.scope_chan_parser,
+                                set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/channel'.format(self.serial,n)),
+                                vals= Ints(min_value=1, max_value=3))
+            self.add_parameter(name='scope{}_data'.format(n),
+                                get_cmd=self.getScope)
 
 
 
@@ -494,3 +522,48 @@ class ZIMFLI(Instrument):
         data = self.daq.getSample(path)
         P = float(data['phase'])
         return P
+
+    def scope_chan_parser(self,val):
+        if val==3:
+            return 'Both Channel 1 and 2'
+        if val==2:
+            return 'Channel 2'
+        if val==1:
+            return 'Channel 1'
+
+    def getScope(self):
+        scope=self.daq.scopeModule()
+
+        #At the moment assuming only one scope to simplify code. Not sure if possible to have more scopes with add-ons
+        scope.subscribe('/{}/scopes/0/wave'.format(self.serial))
+        scope.execute()
+        #Need to wait until data is returned after execute. But not obvious exactly how long this should be
+        #It's not just totalsamples/samplerate, seems to depend on communication time, which is always somewhat random
+        #Therefore just read the data until it includes the device serial; then the aquisition is definitely complete
+        read=scope.read()
+        while self.serial not in read:
+            read=scope.read()
+        data=read[self.serial]['scopes']['0']['wave'][0][0]
+
+        dt=data['dt']
+        totalsamples=data['totalsamples']
+        xdata=[-totalsamples*dt/2+dt*i for i in range(totalsamples)]
+
+        #The data retured depends on how many scope channels are running. Find this out and return accordingly
+        numchans=partial(self.daq.getInt,'/{}/scopes/0/channel'.format(self.serial))()
+
+        if numchans==3:
+            ydata_ch1=data['wave'][0]
+            ydata_ch2=data['wave'][1]
+            return(xdata,ydata_ch1,ydata_ch2)
+
+        elif numchans==2:
+            ydata_ch2=data['wave'][0]
+            return(xdata,ydata_ch2)
+
+        elif numchans==1:
+            ydata_ch1=data['wave'][0]
+            return(xdata,ydata_ch1)
+
+        else:
+            return('No scope channels active')
