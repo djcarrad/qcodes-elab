@@ -567,3 +567,15 @@ class ZIMFLI(Instrument):
 
         else:
             return('No scope channels active')
+
+        def run_scope_meas(self,name):
+            xraw,yraw1,yraw2=self.scope0_data()
+            xarray=qc.DataArray(label='time',unit='s',array_id='xdata',name='xdata',preset_data=xraw,is_setpoint=True)
+            y1array=qc.DataArray(label='Scope Ch 1',unit='V',array_id='ydata1',name='ydata1',preset_data=yraw1,set_arrays=(xarray,))
+            y2array=qc.DataArray(label='Scope Ch 2',unit='V',array_id='ydata2',name='ydata2',preset_data=yraw2,set_arrays=(xarray,))
+            data=qc.new_data(name=name)
+            data.add_array(xarray)
+            data.add_array(y1array)
+            data.add_array(y2array)
+            data.finalize()
+            return data

@@ -135,19 +135,20 @@ class QDac2ExternalTrigger(InstrumentChannel):
             name='source_from_bus',
             call_cmd=f'outp:trig{external}:sour bus'
         )
-        self.add_parameter(
-            name='source_from_input',
-            # Route external input to external output
-            set_cmd='outp:trig{0}:sour ext{1}'.format(external, '{}'),
-            get_parser=int
-        )
-        self.add_parameter(
-            name='source_from_trigger',
-            # Route internal trigger to external output
-            set_parser=_trigger_context_to_value,
-            set_cmd='outp:trig{0}:sour int{1}'.format(external, '{}'),
-            get_parser=int
-        )
+        #Commenting these as they don't seem to work on our setup at the moment. DJC
+        # self.add_parameter(
+        #     name='source_from_input',
+        #     # Route external input to external output
+        #     set_cmd='outp:trig{0}:sour ext{1}'.format(external, '{}'),
+        #     get_parser=int
+        # )
+        # self.add_parameter(
+        #     name='source_from_trigger',
+        #     # Route internal trigger to external output
+        #     set_parser=_trigger_context_to_value,
+        #     set_cmd='outp:trig{0}:sour int{1}'.format(external, '{}'),
+        #     get_parser=int
+        # )
         self.add_parameter(
             name='width_s',
             label='width',
