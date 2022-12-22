@@ -456,12 +456,23 @@ class ZIMFLI(Instrument):
                                 unit='samples',
                                 get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/length'.format(self.serial,n)),
                                 set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/length'.format(self.serial,n)))
+            self.add_parameter(name='scope{}_triglevel'.format(n),
+                                label='scope{}_triglevel'.format(n),
+                                unit='V',
+                                get_cmd=partial(self.daq.getDouble,'/{}/scopes/{}/triglevel'.format(self.serial,n)),
+                                set_cmd=partial(self.daq.setDouble,'/{}/scopes/{}/triglevel'.format(self.serial,n)))
             self.add_parameter(name='scope{}_channel'.format(n),
                                 label='scope{}_channel'.format(n),
                                 get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/channel'.format(self.serial,n)),
                                 get_parser=self.scope_chan_parser,
                                 set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/channel'.format(self.serial,n)),
                                 vals= Ints(min_value=1, max_value=3))
+            self.add_parameter(name='scope{}_rate'.format(n),
+                                label='scope{}_rate'.format(n),
+                                get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/time'.format(self.serial,n)),
+                                get_parser=self.scope_rate_parser,
+                                set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/time'.format(self.serial,n)),
+                                vals= Ints(min_value=1, max_value=15))
             self.add_parameter(name='scope{}_data'.format(n),
                                 get_cmd=self.getScope)
 
@@ -531,6 +542,9 @@ class ZIMFLI(Instrument):
         if val==1:
             return 'Channel 1'
 
+    def scope_rate_parser(self,val):
+        return self.scoperates[str(val)]
+
     def getScope(self):
         scope=self.daq.scopeModule()
 
@@ -567,15 +581,3 @@ class ZIMFLI(Instrument):
 
         else:
             return('No scope channels active')
-
-        def run_scope_meas(self,name):
-            xraw,yraw1,yraw2=self.scope0_data()
-            xarray=qc.DataArray(label='time',unit='s',array_id='xdata',name='xdata',preset_data=xraw,is_setpoint=True)
-            y1array=qc.DataArray(label='Scope Ch 1',unit='V',array_id='ydata1',name='ydata1',preset_data=yraw1,set_arrays=(xarray,))
-            y2array=qc.DataArray(label='Scope Ch 2',unit='V',array_id='ydata2',name='ydata2',preset_data=yraw2,set_arrays=(xarray,))
-            data=qc.new_data(name=name)
-            data.add_array(xarray)
-            data.add_array(y1array)
-            data.add_array(y2array)
-            data.finalize()
-            return data
