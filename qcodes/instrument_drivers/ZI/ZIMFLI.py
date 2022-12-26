@@ -44,6 +44,34 @@ class ZIMFLI(Instrument):
             '13': 7.32e3,
             '14': 3.66e3,
             '15': 1.83e3}
+    scopechaninputs = { #Note there are technically more options: Only including keys for those we have installed
+            '0': 'Signal input 1',
+            '1': 'Current input 1',
+            '2': 'Trigger input 1',
+            '3': 'Trigger input 2',
+            '4': 'Aux output 1',
+            '5': 'Aux output 2',
+            '6': 'Aux output 3',
+            '7': 'Aux output 4',
+            '8': 'Aux input 1',
+            '9': 'Aux input 2',
+            '10': 'Osc phase demod 2',
+            '11': 'Osc phase demod 4',
+            '14': 'Trigger output 1',
+            '15': 'Trigger output 2',
+            '16': 'Demod 1 X',
+            '17': 'Demod 2 X',
+            '32': 'Demod 1 Y',
+            '33': 'Demod 2 Y',
+            '48': 'Demod 1 R',
+            '49': 'Demod 2 R',
+            '64': 'Demod 1 theta',
+            '65': 'Demod 2 theta'}
+
+    def print_scope_rates(self):
+        print(self.scoperates)
+    def print_scope_chaninputs(self):
+        print(self.scopechaninputs)
 
     def __init__(self, name, serial, server="local", **kwargs):
         global daq
@@ -475,9 +503,19 @@ class ZIMFLI(Instrument):
                                 vals= Ints(min_value=1, max_value=15))
             self.add_parameter(name='scope{}_data'.format(n),
                                 get_cmd=self.getScope)
-
-
-
+            self.add_parameter(name='scope{}_trigsource'.format(n),
+                                label='scope{}_trigsource'.format(n),
+                                get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/trigchannel'.format(self.serial,n)),
+                                get_parser=self.scope_chaninput_parser,
+                                set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/trigchannel'.format(self.serial,n)),
+                                vals= Enum(0,1,2,3,4,5,6,7,8,9,10,11,14,15,16,17,32,33,48,49,64,65))
+            for chan in range(2):
+                self.add_parameter(name='scope{}_ch{}_input'.format(n,chan+1),
+                                label='scope{}_ch{}_input'.format(n,chan+1),
+                                get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/channels/{}/inputselect'.format(self.serial,n,chan)),
+                                get_parser=self.scope_chaninput_parser,
+                                set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/channels/{}/inputselect'.format(self.serial,n,chan)),
+                                vals= Enum(0,1,2,3,4,5,6,7,8,9,10,11,14,15,16,17,32,33,48,49,64,65))
 
     ## commands
 
@@ -544,6 +582,9 @@ class ZIMFLI(Instrument):
 
     def scope_rate_parser(self,val):
         return self.scoperates[str(val)]
+
+    def scope_chaninput_parser(self,val):
+        return self.scopechaninputs[str(val)]
 
     def getScope(self):
         scope=self.daq.scopeModule()

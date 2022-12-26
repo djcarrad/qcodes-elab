@@ -13,8 +13,8 @@ def mpx_out(lvls, out, qdac):
     skey0 = [15,13,11,9,7,5,3,1]
     skey1 = [16,14,12,10,8,6,4,2]
 
-    #dkey0 = [31,29,27,25,23,21,19,17]
-    #dkey1 = [32,30,28,26,24,22,20,18]
+    dkey0 = [31,29,27,25,23,21,19,17]
+    dkey1 = [32,30,28,26,24,22,20,18]
     
     # open and close voltages for branches #
     open_volt = 1
@@ -172,7 +172,71 @@ def mpx_out_drn(lvls, out, qdac):
             if not (open_volt-0.1*open_volt < qdac["ch{:02d}_v".format(dkey1[n])]() < open_volt+0.1*open_volt):
                 device_move(qdac["ch{:02d}_v".format(dkey1[n])], open_volt,5)
                 
-            
+def mpx_out_src_fast(lvls, out, qdac):
+    # QDAC channel key #
+    skey0 = [15,13,11,9,7,5,3,1]
+    skey1 = [16,14,12,10,8,6,4,2]
+    
+    # open and close voltages for branches #
+    open_volt = 1
+    close_volt = -2
+    
+    
+    binary_format = '0{}b'.format(lvls)
+    gate_key = format(out,binary_format)
+    gate_key = gate_key[::-1]
+    prep_time = time.time()
+    
+    for n in range(len(gate_key)):
+        if gate_key[n] == '0':
+            if not (open_volt-0.1*open_volt < qdac["ch{:02d}_v".format(skey0[n])].get_latest() < open_volt+0.1*open_volt):
+                qdac["ch{:02d}_v".format(skey0[n])](open_volt)
+                #device_move(qdac["ch{:02d}_v".format(skey0[n])], open_volt,5)
+            if not (close_volt-0.1*close_volt > qdac["ch{:02d}_v".format(skey1[n])].get_latest() > close_volt+0.1*close_volt):
+                qdac["ch{:02d}_v".format(skey1[n])](close_volt)
+                #device_move(qdac["ch{:02d}_v".format(skey1[n])], close_volt,5)
+
+        
+        if gate_key[n] == '1':
+            if not (close_volt-0.1*close_volt > qdac["ch{:02d}_v".format(skey0[n])].get_latest() > close_volt+0.1*close_volt):
+                qdac["ch{:02d}_v".format(skey0[n])](close_volt)
+                #device_move(qdac["ch{:02d}_v".format(skey0[n])], close_volt,5)
+            if not (open_volt-0.1*open_volt < qdac["ch{:02d}_v".format(skey1[n])].get_latest() < open_volt+0.1*open_volt):
+                qdac["ch{:02d}_v".format(skey1[n])](open_volt)
+                #device_move(qdac["ch{:02d}_v".format(skey1[n])], open_volt,5)
+
+def mpx_out_drn_fast(lvls, out, qdac):
+    
+    # QDAC channel key #
+    dkey0 = [31,29,27,25,23,21,19,17]
+    dkey1 = [32,30,28,26,24,22,20,18]
+    
+    # open and close voltages for branches #
+    open_volt = 1
+    close_volt = -2
+    
+    
+    binary_format = '0{}b'.format(lvls)
+    gate_key = format(out,binary_format)
+    gate_key = gate_key[::-1]
+    
+    for n in range(len(gate_key)):
+        if gate_key[n] == '0':
+            if not (open_volt-0.1*open_volt < qdac["ch{:02d}_v".format(dkey0[n])].get_latest() < open_volt+0.1*open_volt):
+                qdac["ch{:02d}_v".format(dkey0[n])](open_volt)
+                #device_move(qdac["ch{:02d}_v".format(dkey0[n])], open_volt,5)
+            if not (close_volt-0.1*close_volt > qdac["ch{:02d}_v".format(dkey1[n])].get_latest() > close_volt+0.1*close_volt):
+                qdac["ch{:02d}_v".format(dkey1[n])](close_volt)
+                #device_move(qdac["ch{:02d}_v".format(dkey1[n])], close_volt,5)
+        
+        if gate_key[n] == '1':
+            if not (close_volt-0.1*close_volt > qdac["ch{:02d}_v".format(dkey0[n])].get_latest() > close_volt+0.1*close_volt):
+                qdac["ch{:02d}_v".format(dkey0[n])](close_volt)
+                #device_move(qdac["ch{:02d}_v".format(dkey0[n])], close_volt,5)
+            if not (open_volt-0.1*open_volt < qdac["ch{:02d}_v".format(dkey1[n])].get_latest() < open_volt+0.1*open_volt):
+                qdac["ch{:02d}_v".format(dkey1[n])](open_volt)
+                #device_move(qdac["ch{:02d}_v".format(dkey1[n])], open_volt,5)
+
 
 def mpx_out_test(lvls, out, qdac):
     #convert to binary

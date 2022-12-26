@@ -1,6 +1,8 @@
 """Station objects - collect all the equipment you use to do an experiment."""
 from typing import Dict, List, Optional, Sequence, Any
 
+import time
+
 from qcodes.utils.metadata import Metadatable
 from qcodes.utils.helpers import make_unique, DelegateAttributes
 
@@ -192,6 +194,15 @@ class Station(Metadatable, DelegateAttributes):
 
         if 'timer' in self.components:
             self.default_measurement = self.default_measurement + (self.components['timer'],)
+
+    def communication_time(self,measurement_num=1):
+        commtimes=[]
+        for i in range(measurement_num)
+            starttime=time.time()
+            self.measurement()
+            endtime=time.time()
+            commtimes.append(endtime-starttime)
+        return commtimes
 
     def measurement(self, *actions):
         """

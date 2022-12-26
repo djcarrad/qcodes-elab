@@ -670,6 +670,22 @@ class ActiveLoop(Metadatable):
 
         return self.data_set
 
+    def time_estimate(self,station=None,extra_delays=None):
+        """
+        Give the user an estimate of how long their measurement will take
+        """
+        if self.data_set is None:
+            raise RuntimeError('No DataSet yet defined for this loop')
+        station = station or self.station or Station.default
+        if station is None:
+            print('Note: Station not declared. Estimate does not include'
+                    'an estimate of communication time.')
+        else:
+            starttime=time.time()
+            station.measurement()
+            endtime=time.time()
+            commtime=endtime-starttime
+
     def run_temp(self, **kwargs):
         """
         wrapper to run this loop in the foreground as a temporary data set,
