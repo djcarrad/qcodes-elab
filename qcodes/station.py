@@ -197,7 +197,7 @@ class Station(Metadatable, DelegateAttributes):
 
     def communication_time(self,measurement_num=1):
         commtimes=[]
-        for i in range(measurement_num)
+        for i in range(measurement_num):
             starttime=time.time()
             self.measurement()
             endtime=time.time()
