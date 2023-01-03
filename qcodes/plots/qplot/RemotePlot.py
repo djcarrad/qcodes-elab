@@ -140,6 +140,10 @@ class Plot():
     def clear(self):
         self.publish({'clear_plot': True})
 
+    def add_multiple(self,*z_params):
+        for i,z_param in enumerate(z_params):
+            self.add(z_param,title=z_param.full_name,name=z_param.name,subplot=i)
+
     def add(self, *args, x=None, y=None, z=None,
             subplot=0, name=None, title=None, position=None,
             relativeto=None, xlabel=None, ylabel=None, zlabel=None,
