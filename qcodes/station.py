@@ -48,7 +48,7 @@ class Station(Metadatable, DelegateAttributes):
 
     default = None # type: 'Station'
 
-    def __init__(self, *components: Metadatable,
+    def __init__(self, *components: Metadatable, add_variables: Any=None,
                  monitor: Any=None, default: bool=True,
                  update_snapshot: bool=True, inc_timer=True,**kwargs) -> None:
         super().__init__(**kwargs)
@@ -73,6 +73,9 @@ class Station(Metadatable, DelegateAttributes):
         self.monitor = monitor
 
         self.default_measurement = [] # type: List
+
+        if add_variables is not None:
+            self.auto_add(add_variables)
 
     def snapshot_base(self, update: bool=False,
                       params_to_skip_update: Sequence[str]=None) -> Dict:
