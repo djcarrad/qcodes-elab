@@ -123,6 +123,48 @@ class Station(Metadatable, DelegateAttributes):
 
         return snap
 
+    def auto_add(self,variables,add_instruments: bool=True,add_parameters: bool=True,update_snapshot: bool=True):
+        """
+        Automatically add instruments to the station.
+        Usually, variables=globals()
+        """
+        if add_instruments==True:
+            if 'instruments' in self.snapshot_base():
+                for variable in variables:
+                    if isinstance(variables[variable],Instrument):
+                        if variables[variable].name not in self.snapshot_base()['instruments']:
+                            self.add_component(variables[variable],update_snapshot=update_snapshot)
+            else:
+                for variable in variables:
+                    if isinstance(variables[variable],Instrument):
+                        self.add_component(variables[variable],update_snapshot=update_snapshot)
+
+            if 'instruments' not in self.snapshot_base():
+                raise KeyError('No instruments found in variable list!')
+            else:
+                names=[]
+                for variable in self.snapshot_base()['instruments']:
+                    names.append(variable)
+                print('Instruments in station: '+str(names))
+        if add_parameters==True:
+            if 'parameters' in self.snapshot_base():
+                for variable in variables:
+                    if isinstance(variables[variable],Parameter):
+                        if variables[variable].name not in self.snapshot_base()['parameters']:
+                            self.add_component(variables[variable],update_snapshot=update_snapshot)
+            else:
+                for variable in variables:
+                    if isinstance(variables[variable],Parameter):
+                        self.add_component(variables[variable],update_snapshot=update_snapshot)
+
+            if 'parameters' not in self.snapshot_base():
+                raise KeyError('No parameters found in variable list!')
+            else:
+                names=[]
+                for variable in self.snapshot_base()['parameters']:
+                    names.append(variable)
+                print('Parameters in station: '+str(names))
+
     def add_component(self, component: Metadatable, name: str=None,
                       update_snapshot: bool=True) -> str:
         """
