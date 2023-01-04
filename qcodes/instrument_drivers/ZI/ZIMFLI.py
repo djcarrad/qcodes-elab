@@ -2,6 +2,7 @@ from zhinst.ziPython import ziDAQServer
 from zhinst.utils import utils
 from qcodes.instrument.base import Instrument
 from qcodes.utils.validators import Numbers, Enum, Ints
+from qcodes import DataArray
 from functools import partial
 import numpy as np
 import time
@@ -600,25 +601,50 @@ class ZIMFLI(Instrument):
             read=scope.read()
         data=read[self.serial]['scopes']['0']['wave'][0][0]
 
+        #At the moment assuming xaxis is time, need to change this if it's the FFT...
         dt=data['dt']
         totalsamples=data['totalsamples']
         xdata=[-totalsamples*dt/2+dt*i for i in range(totalsamples)]
+        xarray=DataArray(label='Time',unit='s',array_id='time',name='time',preset_data=xdata,is_setpoint=True)
 
-        #The data retured depends on how many scope channels are running. Find this out and return accordingly
+        #The data retured depends on how many scope channels are running. Find this out and return accordingly.
+        #Also need to find out if the current input is being used, to assign units correctly
         numchans=partial(self.daq.getInt,'/{}/scopes/0/channel'.format(self.serial))()
 
+        #Returns qcodes arrays. 
         if numchans==3:
+            chan1input=partial(self.daq.getInt,'/{}/scopes/0/channels/0/inputselect'.format(self.serial))()
+            chan2input=partial(self.daq.getInt,'/{}/scopes/0/channels/1/inputselect'.format(self.serial))()
+            print(chan1input,chan2input)
+            if chan1input==1:
+                units=['A','V']
+            elif chan2input==1:
+                units=['V','A']
+            else:
+                units=['V','V']
             ydata_ch1=data['wave'][0]
+            yarray1=DataArray(label='Scope Ch 1',unit=units[0],array_id='channel1',name='channel1',preset_data=ydata_ch1,set_arrays=(xarray,))
             ydata_ch2=data['wave'][1]
-            return(xdata,ydata_ch1,ydata_ch2)
+            yarray2=DataArray(label='Scope Ch 2',unit=units[1],array_id='channel2',name='channel2',preset_data=ydata_ch2,set_arrays=(xarray,))
+            return(xarray,yarray1,yarray2)
 
         elif numchans==2:
+            if partial(self.daq.getInt,'/{}/scopes/0/channels/1/inputselect'.format(self.serial))() ==1:
+                units='A'
+            else:
+                units='V'
             ydata_ch2=data['wave'][0]
-            return(xdata,ydata_ch2)
+            yarray=DataArray(label='Scope Ch 2',unit=units,array_id='channel2',name='channel2',preset_data=ydata_ch2,set_arrays=(xarray,))
+            return(xarray,yarray)
 
         elif numchans==1:
+            if partial(self.daq.getInt,'/{}/scopes/0/channels/0/inputselect'.format(self.serial))() ==1:
+                units='A'
+            else:
+                units='V'
             ydata_ch1=data['wave'][0]
-            return(xdata,ydata_ch1)
+            yarray=DataArray(label='Scope Ch 1',unit=units,array_id='channel1',name='channel1',preset_data=ydata_ch1,set_arrays=(xarray,))
+            return(xarray,yarray)
 
         else:
             return('No scope channels active')
