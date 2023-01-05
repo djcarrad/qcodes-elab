@@ -615,7 +615,6 @@ class ZIMFLI(Instrument):
         if numchans==3:
             chan1input=partial(self.daq.getInt,'/{}/scopes/0/channels/0/inputselect'.format(self.serial))()
             chan2input=partial(self.daq.getInt,'/{}/scopes/0/channels/1/inputselect'.format(self.serial))()
-            print(chan1input,chan2input)
             if chan1input==1:
                 units=['A','V']
             elif chan2input==1:
@@ -629,7 +628,8 @@ class ZIMFLI(Instrument):
             return(xarray,yarray1,yarray2)
 
         elif numchans==2:
-            if partial(self.daq.getInt,'/{}/scopes/0/channels/1/inputselect'.format(self.serial))() ==1:
+            chan2input=partial(self.daq.getInt,'/{}/scopes/0/channels/1/inputselect'.format(self.serial))()
+            if chan2input==1:
                 units='A'
             else:
                 units='V'
@@ -638,7 +638,8 @@ class ZIMFLI(Instrument):
             return(xarray,yarray)
 
         elif numchans==1:
-            if partial(self.daq.getInt,'/{}/scopes/0/channels/0/inputselect'.format(self.serial))() ==1:
+            chan1input=partial(self.daq.getInt,'/{}/scopes/0/channels/0/inputselect'.format(self.serial))()
+            if chan1input ==1:
                 units='A'
             else:
                 units='V'

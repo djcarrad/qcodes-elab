@@ -33,6 +33,8 @@ from qcodes.utils.validators import Numbers as NumbersValidator
 
 # %% Helper functions
 
+class K2700Exception(Exception):
+    pass
 
 def bool_to_str(val):
     '''
@@ -164,16 +166,32 @@ class Keithley_2700(VisaInstrument):
                                       'of PowerLine Cycles, use get_nplc().'))
 
         # add functions
-        self.add_parameter('amplitude',
-                           unit='arb.unit',
-                           label=name,
+        # self.add_parameter('amplitude',
+        #                    unit='arb.unit',
+        #                    label=name,
+        #                    get_cmd=':DATA:FRESH?',
+        #                    get_parser=float)
+        # self.add_parameter('readnext',
+        #                    unit='arb.unit',
+        #                    label=name,
+        #                    get_cmd=':DATA:FRESH?',
+        #                    get_parser=float)
+
+        self.add_parameter('volt',
+                           unit='V',
+                           label='Voltage',
                            get_cmd=':DATA:FRESH?',
-                           get_parser=float)
-        self.add_parameter('readnext',
-                           unit='arb.unit',
-                           label=name,
+                           get_parser=self._volt_parser)
+        self.add_parameter('curr',
+                           unit='A',
+                           label='Current',
                            get_cmd=':DATA:FRESH?',
-                           get_parser=float)
+                           get_parser=self._curr_parser)
+        self.add_parameter('resistance',
+                           unit='Ohm',
+                           label='Resistance',
+                           get_cmd=':DATA:FRESH?',
+                           get_parser=self._res_parser)
 
         if reset:
             self.reset()
@@ -181,7 +199,7 @@ class Keithley_2700(VisaInstrument):
             self.get_all()
             if use_defaults:
                 self.set_defaults()
-
+        startupmode=self.mode()
         self.connect_message()
 
     def get_all(self):
@@ -311,6 +329,21 @@ class Keithley_2700(VisaInstrument):
 
         # Get all values again because some parameters depend on mode
         self.get_all()
+
+    def _volt_parser(self,reading):
+        if self.mode.get_latest()=='VOLT:DC' or self.mode.get_latest()=='VOLT:AC':
+            value=float(reading.split('V')[0])
+            return value
+
+    def _curr_parser(self,reading):
+        if self.mode.get_latest()=='CURR:DC' or self.mode.get_latest()=='CURR:AC':
+            value=float(reading.split('A')[0])
+            return value
+
+    def _res_parser(self,reading):
+        if self.mode.get_latest()=='RES' or self.mode.get_latest()=='FRES':
+            value=float(reading.split('OHM')[0])
+            return value
 
     def _mode_par_value(self, mode, par, val):
         '''
