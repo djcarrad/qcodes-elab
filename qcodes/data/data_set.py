@@ -180,6 +180,10 @@ def load_data_nums(listofnumbers, datafolder="data"):
 def set_data_format(fmt='data/#{counter}_{name}_{date}_{time}'):
     DataSet.location_provider=FormatLocation(fmt=fmt)
 
+def set_data_folder(folder='data'):
+    fmt=folder+'/#{counter}_{name}_{date}_{time}'
+    DataSet.location_provider=FormatLocation(fmt=fmt)
+
 class DataSet(DelegateAttributes):
 
     """

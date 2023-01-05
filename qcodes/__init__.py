@@ -48,7 +48,7 @@ if haswebsockets:
 
 from qcodes.plots import analysis_tools
 from qcodes.plots.qplot.RemotePlot import Plot
-from qcodes.data.data_set import DataSet, new_data, load_data, load_data_num, load_data_nums, set_data_format
+from qcodes.data.data_set import DataSet, new_data, load_data, load_data_num, load_data_nums, set_data_format, set_data_folder
 from qcodes.data.location import FormatLocation
 from qcodes.data.data_array import DataArray
 from qcodes.data.format import Formatter
