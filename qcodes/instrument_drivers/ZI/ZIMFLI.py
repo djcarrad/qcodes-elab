@@ -44,7 +44,8 @@ class ZIMFLI(Instrument):
             '12': 14.6e3,
             '13': 7.32e3,
             '14': 3.66e3,
-            '15': 1.83e3}
+            '15': 1.83e3,
+            '16': 916}
     scopechaninputs = { #Note there are technically more options: Only including keys for those we have installed
             '0': 'Signal input 1',
             '1': 'Current input 1',
@@ -74,7 +75,8 @@ class ZIMFLI(Instrument):
     def print_scope_chaninputs(self):
         print(self.scopechaninputs)
 
-    def __init__(self, name, serial, server="local", **kwargs):
+    def __init__(self, name, serial, server="local",digi=False, **kwargs):
+        begin_time=time.time()
         global daq
         if server == "internal":
             self.daq = ziDAQServer('mf-{}'.format(serial), 8004, 6)  # Unlike the HF2 where the server runs on the computer, on MF instruments the server runs on the instrument, so the host is the instrument not "localhost"
@@ -86,7 +88,7 @@ class ZIMFLI(Instrument):
 
         self.name = name
         self.serial = serial
-
+        self.digi = digi #Set to true if digi option installed.
 
         # Register clock source
         self.add_parameter(name='clock_src',
@@ -501,9 +503,10 @@ class ZIMFLI(Instrument):
                                 get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/time'.format(self.serial,n)),
                                 get_parser=self.scope_rate_parser,
                                 set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/time'.format(self.serial,n)),
-                                vals= Ints(min_value=1, max_value=15))
-            self.add_parameter(name='scope{}_data'.format(n),
-                                get_cmd=self.getScope)
+                                vals= Ints(min_value=1, max_value=16))
+            if self.digi==True: #The following will only work for instruments with the DIGI option installed.
+                self.add_parameter(name='scope{}_data'.format(n),
+                                    get_cmd=self.getScope)
             self.add_parameter(name='scope{}_trigsource'.format(n),
                                 label='scope{}_trigsource'.format(n),
                                 get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/trigchannel'.format(self.serial,n)),
@@ -518,6 +521,9 @@ class ZIMFLI(Instrument):
                                 set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/channels/{}/inputselect'.format(self.serial,n,chan)),
                                 vals= Enum(0,1,2,3,4,5,6,7,8,9,10,11,14,15,16,17,32,33,48,49,64,65))
 
+        self.fwrevision = partial(self.daq.getInt,'{}/system/fwrevision'.format(self.serial))()
+        t = time.time() - (begin_time or self._t0)
+        print('Connected to: Zurich Instruments MFLI (serial:{}, firmware:{}) as {} in {:.2f}s'.format(self.serial,self.fwrevision,self.name,t))
     ## commands
 
     def setAmplitude(self,path,val):
