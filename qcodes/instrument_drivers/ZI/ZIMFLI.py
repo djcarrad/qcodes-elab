@@ -29,23 +29,23 @@ class ZIMFLI(Instrument):
         }
 
     scoperates = {
-            '0': 60e6,
-            '1': 30e6,
-            '2': 15e6,
-            '3': 7.5e6,
-            '4': 3.75e6,
-            '5': 1.88e6,
-            '6': 936e3,
-            '7': 469e3,
-            '8': 234e3,
-            '9': 117e3,
-            '10': 58.6e3,
-            '11': 29.3e3,
-            '12': 14.6e3,
-            '13': 7.32e3,
-            '14': 3.66e3,
-            '15': 1.83e3,
-            '16': 916}
+            0: 60e6,
+            1: 30e6,
+            2: 15e6,
+            3: 7.5e6,
+            4: 3.75e6,
+            5: 1.88e6,
+            6: 936e3,
+            7: 469e3,
+            8: 234e3,
+            9: 117e3,
+            10: 58.6e3,
+            11: 29.3e3,
+            12: 14.6e3,
+            13: 7.32e3,
+            14: 3.66e3,
+            15: 1.83e3,
+            16: 916}
     scopechaninputs = { #Note there are technically more options: Only including keys for those we have installed
             '0': 'Signal input 1',
             '1': 'Current input 1',
@@ -495,29 +495,31 @@ class ZIMFLI(Instrument):
             self.add_parameter(name='scope{}_channel'.format(n),
                                 label='scope{}_channel'.format(n),
                                 get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/channel'.format(self.serial,n)),
-                                get_parser=self.scope_chan_parser,
+                                get_parser=self._scope_chan_parser,
                                 set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/channel'.format(self.serial,n)),
                                 vals= Ints(min_value=1, max_value=3))
             self.add_parameter(name='scope{}_rate'.format(n),
                                 label='scope{}_rate'.format(n),
                                 get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/time'.format(self.serial,n)),
-                                get_parser=self.scope_rate_parser,
+                                get_parser=self._scope_rate_parser,
                                 set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/time'.format(self.serial,n)),
-                                vals= Ints(min_value=1, max_value=16))
+                                set_parser=self._scope_setrate_parser,
+                                vals= Enum(60000000,30000000,15000000,7500000,3750000,1880000,936000,469000,
+                                            234000,117000,58600,29300,14600,7320,3660,1830,916))
             if self.digi==True: #The following will only work for instruments with the DIGI option installed.
                 self.add_parameter(name='scope{}_data'.format(n),
-                                    get_cmd=self.getScope)
+                                    get_cmd=self._getScope)
             self.add_parameter(name='scope{}_trigsource'.format(n),
                                 label='scope{}_trigsource'.format(n),
                                 get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/trigchannel'.format(self.serial,n)),
-                                get_parser=self.scope_chaninput_parser,
+                                get_parser=self._scope_chaninput_parser,
                                 set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/trigchannel'.format(self.serial,n)),
                                 vals= Enum(0,1,2,3,4,5,6,7,8,9,10,11,14,15,16,17,32,33,48,49,64,65))
             for chan in range(2):
                 self.add_parameter(name='scope{}_ch{}_input'.format(n,chan+1),
                                 label='scope{}_ch{}_input'.format(n,chan+1),
                                 get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/channels/{}/inputselect'.format(self.serial,n,chan)),
-                                get_parser=self.scope_chaninput_parser,
+                                get_parser=self._scope_chaninput_parser,
                                 set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/channels/{}/inputselect'.format(self.serial,n,chan)),
                                 vals= Enum(0,1,2,3,4,5,6,7,8,9,10,11,14,15,16,17,32,33,48,49,64,65))
 
@@ -579,7 +581,7 @@ class ZIMFLI(Instrument):
         P = float(data['phase'])
         return P
 
-    def scope_chan_parser(self,val):
+    def _scope_chan_parser(self,val):
         if val==3:
             return 'Both Channel 1 and 2'
         if val==2:
@@ -587,13 +589,18 @@ class ZIMFLI(Instrument):
         if val==1:
             return 'Channel 1'
 
-    def scope_rate_parser(self,val):
-        return self.scoperates[str(val)]
+    def _scope_rate_parser(self,val):
+        return self.scoperates[val]
 
-    def scope_chaninput_parser(self,val):
+    def _scope_setrate_parser(self,val):
+        for key, value in self.scoperates.items():
+            if val == value:
+                return key
+
+    def _scope_chaninput_parser(self,val):
         return self.scopechaninputs[str(val)]
 
-    def getScope(self):
+    def _getScope(self):
         scope=self.daq.scopeModule()
 
         #At the moment assuming only one scope to simplify code. Not sure if possible to have more scopes with add-ons

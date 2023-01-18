@@ -951,7 +951,7 @@ class Parameter(_BaseParameter):
         Create a collection of parameter values to be iterated over in a log scale
         
         """
-        setpoints=numpy.geomspace(self.start,self.stop,num=num)
+        setpoints=numpy.geomspace(start,stop,num=num)
         return SweepFixedValues(self, setpoints)
 
     def arbsweep(self, setpoints):
