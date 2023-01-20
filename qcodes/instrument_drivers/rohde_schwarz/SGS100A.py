@@ -54,8 +54,8 @@ class RohdeSchwarz_SGS100A(VisaInstrument):
         self.add_parameter(name='Vrms',
                            label='Vrms',
                            unit='V',
-                           get_cmd=getVrms,
-                           set_cmd=setVrms,
+                           get_cmd=self.getVrms,
+                           set_cmd=self.setVrms,
                            # get_cmd='SOUR:POW?',
                            # set_cmd='SOUR:POW {:.2f}',
                            get_parser=float
@@ -151,7 +151,7 @@ class RohdeSchwarz_SGS100A(VisaInstrument):
 
         self.connect_message()
 
-    def setVrms(val):
+    def setVrms(self,val):
         if val==0:
             self.power(-119)
         elif -119 < (10*np.log10(val*val/0.05)):
@@ -159,7 +159,7 @@ class RohdeSchwarz_SGS100A(VisaInstrument):
         else:
             self.power(-119)
 
-    def getVrms():
+    def getVrms(self):
         return np.sqrt(0.05*10**(self.power()/10))
 
     def get_parser_on_off(self,value):
