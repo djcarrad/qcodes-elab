@@ -542,7 +542,7 @@ class ZIMFLI(Instrument):
         outRange = self.daq.getDouble('/{}/sigouts/{}/range'.format(serial,sig))
         out = val*np.sqrt(2)
 
-        if out <= 1:
+        if out <= outRange*np.sqrt(2):
             self.daq.setDouble(path, out)
         else:
             raise ValueError("Value {} is outside the output range".format(val))
