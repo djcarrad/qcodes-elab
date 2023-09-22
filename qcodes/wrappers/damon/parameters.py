@@ -1,4 +1,4 @@
-from qcodes.instrument.parameter import MultiParameter
+from qcodes.instrument.parameter import MultiParameter, Parameter
 import numpy as np
 
 class Dummyinstrument:
@@ -652,29 +652,28 @@ class QResistanceParameterDAC4pt(MultiParameter):
 
 
 
-class CernoxParameter(MultiParameter):
-    #Parameter for converting voltage read by lock-in connected to Cernox. Assumes 30uV excitation applied. WILL NOT WORK OTHERWISE
+class CernoxParameter(Parameter):
+    #Parameter for converting T12's extra cernox to temperature
 
-    def __init__(self, volt_param, v_amp_ins, name='temperature'):
-        p_name = 'resistance'
+    def __init__(self, res_param, name='temperature'):
 
-        super().__init__(name=name, names=(name, volt_param.name), shapes=((), ()))
+        super().__init__(name=name, )
+        self._res_param=res_param
+        self.labels = ('Temperature')
+        self.units = ('K')
 
-        self._volt_param = volt_param
-        self._instrument = v_amp_ins
+    def get_raw(self):
+        CernoxData = np.loadtxt('cernoxdata.txt',delimiter=' ')
+        res = self._res_param.get()
 
-        v_label = getattr(volt_param, 'label', None)
-        v_unit = getattr(volt_param, 'unit', None)
+        temperature = np.interp(res,CernoxData[0],CernoxData[1])
 
-        self.labels = ('Temperature', v_label)
-        self.units = ('K', v_unit)
-
-    def get(self):
-        CernoxData = np.loadtxt('CernoxCalibration.txt',delimiter=' ')
-        volt = (self._volt_param.get() /self._instrument.gain.get())
-
-        temperature = np.interp(volt,CernoxData[0],CernoxData[1])
-
-        value = (temperature, volt)
+        value = temperature
         self._save_val(value)
         return value
+
+
+def CernoxTemperature(res):
+    CernoxData = np.loadtxt('cernoxdata.txt',delimiter=' ')
+    temperature = np.interp(res,CernoxData[0],CernoxData[1])
+    return(temperature)
