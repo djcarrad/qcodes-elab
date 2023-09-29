@@ -2453,3 +2453,12 @@ class QDac2(VisaInstrument):
         raise ValueError(
             f'Instrument name "{name}" is incompatible with QCoDeS parameter '
             'generation (no spaces, punctuation, prepended numbers, etc)')
+
+
+    def print_all_voltages(self):
+        for i in range(24):
+            print('ch{:.0f}: {} V'.format(i+1,self.channels[i].volt()))
+
+    def print_all_currents(self):
+        for i in range(24):
+            print('ch{:.0f}: {} A'.format(i+1,self.channels[i].curr()))
