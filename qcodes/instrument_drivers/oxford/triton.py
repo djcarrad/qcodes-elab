@@ -77,6 +77,12 @@ class Triton(IPInstrument):
                            get_cmd=partial(self._get_control_param, 'TSET'),
                            set_cmd=partial(self._set_control_param, 'TSET'))
 
+        # self.add_parameter(name='pid_setpoint_withwait',
+        #                    label='PID temperature setpoint',
+        #                    unit='K',
+        #                    get_cmd=partial(self._get_control_param, 'TSET'),
+        #                    set_cmd=partial(self._set_pid_with_wait, 'TSET'))
+
         self.add_parameter(name='pid_rate',
                            label='PID ramp rate',
                            unit='K/min',
@@ -402,3 +408,11 @@ class Triton(IPInstrument):
 
     def _recv(self):
         return super()._recv().rstrip()
+
+    # def _set_pid_with_wait(self, param, value):
+    #     chan = self._get_control_channel()
+    #     cmd = 'SET:DEV:T{}:TEMP:LOOP:{}:{}'.format(chan, param, value)
+    #     self.write(cmd)
+    #     if value>0.02:
+    #         while np.abs(self.MC()-triton.pid_setpoint())>triton.pid_setpoint()*0.1:
+    #             time.sleep(5)
