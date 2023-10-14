@@ -457,12 +457,31 @@ class ZIMFLI(Instrument):
 
         # REgister AUX inputs
         for n in range(self.LI["numAUXins"]):
-            # AUX input value
+
+            # AUX input value; returned at 50Hz
             self.add_parameter(name='AUXin{}_value'.format(n),
                                label='AUXin{}_value'.format(n),
                                unit = "V",
                                get_cmd= partial(self.daq.getDouble,'/{}/auxins/0/values/{}'.format(self.serial, n)),
                                get_parser = float)
+
+        self.add_parameter(name='AUXin_averaging',
+                               label='AUXin_averaging',
+                               set_cmd= partial(self.daq.setInt,'/{}/auxins/0/averaging'.format(self.serial)),
+                               get_cmd= partial(self.daq.getInt,'/{}/auxins/0/averaging'.format(self.serial)),
+                               vals= Ints(min_value=0, max_value=16))
+
+        # AUX input values; returned at averaging rate
+        self.add_parameter(name='AUXin0_sample',
+                        label='AUXin0_sample',
+                        unit = "V",
+                        get_cmd= partial(self.daq.getAuxInSample,'/{}/auxins/0/sample'.format(self.serial, n)),
+                        get_parser = self._get_aux_sample0)
+        self.add_parameter(name='AUXin1_sample',
+                        label='AUXin1_sample',
+                        unit = "V",
+                        get_cmd= partial(self.daq.getAuxInSample,'/{}/auxins/0/sample'.format(self.serial, n)),
+                        get_parser = self._get_aux_sample1)        
 
 
         ################## MDS stuff ##############
@@ -558,7 +577,6 @@ class ZIMFLI(Instrument):
 
         return out
 
-
     def getX(self,path):
         data = self.daq.getSample(path)
         x = float(data['x'])
@@ -580,6 +598,14 @@ class ZIMFLI(Instrument):
         data = self.daq.getSample(path)
         P = float(data['phase'])
         return P
+
+    def _get_aux_sample0(self,reading):
+            channel=0
+            return reading['ch{:d}'.format(channel)][0]
+
+    def _get_aux_sample1(self,reading):
+            channel=1
+            return reading['ch{:d}'.format(channel)][0]
 
     def _scope_chan_parser(self,val):
         if val==3:
