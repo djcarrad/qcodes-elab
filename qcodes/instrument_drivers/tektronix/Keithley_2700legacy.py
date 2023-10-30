@@ -72,10 +72,12 @@ class Keithley_2700(VisaInstrument):
         <name> =  = Keithley_2700(<name>, address='<GPIB address>', reset=<bool>,
             change_display=<bool>, change_autozero=<bool>)
 
-    This driver does not yet contain all commands available, but supports reading
-    voltage, current, resistance, temperature and frequency. Each of these parameters
-    is only available when mode() is set to the corresponding value.
+    Status: beta-version.
 
+    This driver will most likely work for multiple Keithley SourceMeters.
+
+    This driver does not contain all commands available, but only the ones
+    most commonly used.
     '''
     def __init__(self, name, address, reset=False, use_defaults=False, **kwargs):
         super().__init__(name, address, **kwargs)
@@ -86,18 +88,13 @@ class Keithley_2700(VisaInstrument):
         # self._change_autozero = change_autozero
         self._averaging_types = ['MOV', 'REP']
         self._trigger_sent = False
-        self._name=name
-        self._address=address
-
-        # Force the K2700 to provide only the raw value rather than a complicated string
-        self.write(':FORM:ELEM READ')
 
         # Add parameters to wrapper
         self.add_parameter('mode',
                            get_cmd=':CONF?',
                            get_parser=parsestr,
                            #set_cmd=':CONF:{}',
-                           set_cmd=self._set_mode,
+                           set_cmd=self.set_mode,
                            vals=StringValidator())
 
         self.add_parameter('trigger_count',
@@ -169,51 +166,33 @@ class Keithley_2700(VisaInstrument):
                                       'To get the integrationtime as a Number '
                                       'of PowerLine Cycles, use get_nplc().'))
 
-        if self.mode().startswith('VOLT'):
-            self.add_parameter('volt',
-                                unit='V',
-                                label='Voltage',
-                                get_cmd=':DATA:FRESH?',
-                                get_parser=float)
+        # add functions
+        # self.add_parameter('amplitude',
+        #                    unit='arb.unit',
+        #                    label=name,
+        #                    get_cmd=':DATA:FRESH?',
+        #                    get_parser=float)
+        # self.add_parameter('readnext',
+        #                    unit='arb.unit',
+        #                    label=name,
+        #                    get_cmd=':DATA:FRESH?',
+        #                    get_parser=float)
 
-        elif self.mode().startswith('CURR'):
-            self.add_parameter('curr',
-                                unit='A',
-                                label='Current',
-                                get_cmd=':DATA:FRESH?',
-                                get_parser=float)
-
-        elif self.mode()=='RES' or self.mode()=='FRES':
-            self.add_parameter('res',
-                                unit='Ohm',
-                                label='Resistance',
-                                get_cmd=':DATA:FRESH?',
-                                get_parser=float)
-
-        elif self.mode().startswith('FREQ'):
-            self.add_parameter('freq',
-                                unit='Hz',
-                                label='Frequency',
-                                get_cmd=':DATA:FRESH?',
-                                get_parser=float)
-
-        elif self.mode().startswith('TEMP'):
-            self.add_parameter('temp',
-                                unit='K',
-                                label='Temperature',
-                                get_cmd=':DATA:FRESH?',
-                                get_parser=float)
-
-        else:
-            #I am pretty sure this should be impossible, but just in case.
-            print('You are using the K2700 in a mode that is not one of\n'
-                'VOLT:AC,VOLT:DC,CURR:AC,CURR:DC,RES,FRES,TEMP,FREQ.\n'
-                'The parameter measurement() will return the measured value but units and labels will be generic')
-            self.add_parameter('measurement',
-                                unit='arb',
-                                label=self._name,
-                                get_cmd=':DATA:FRESH?',
-                                get_parser=float)
+        self.add_parameter('volt',
+                           unit='V',
+                           label='Voltage',
+                           get_cmd=':DATA:FRESH?',
+                           get_parser=self._volt_parser_read)
+        self.add_parameter('curr',
+                           unit='A',
+                           label='Current',
+                           get_cmd=':DATA:FRESH?',
+                           get_parser=self._curr_parser_read)
+        self.add_parameter('resistance',
+                           unit='Ohm',
+                           label='Resistance',
+                           get_cmd=':DATA:FRESH?',
+                           get_parser=self._res_parser_read)
 
         if reset:
             self.reset()
@@ -221,7 +200,7 @@ class Keithley_2700(VisaInstrument):
             self.get_all()
         if use_defaults:
             self.set_defaults()
-
+        self.write(':FORM:ELEM READ')
         startupmode=self.mode()
         self.connect_message()
 
@@ -267,7 +246,7 @@ class Keithley_2700(VisaInstrument):
     #           functions
     # --------------------------------------
 
-    def _set_mode_volt_dc(self):
+    def set_mode_volt_dc(self):
         '''
         Set mode to DC Voltage
 
@@ -299,7 +278,7 @@ class Keithley_2700(VisaInstrument):
         # TSTamp = Timestamp, RNUMber = Reading number,
         # CHANnel = Channel number, LIMits = Limits reading
 
-        self._set_mode_volt_dc()
+        self.set_mode_volt_dc()
         self.digits.set(7)
         self.trigger_continuous.set(True)
         self.range.set(10)
@@ -322,7 +301,7 @@ class Keithley_2700(VisaInstrument):
         logging.debug('Determine mode: mode=%s' % mode)
         return mode
 
-    def _set_mode(self, mode):
+    def set_mode(self, mode):
         '''
         Set the mode to the specified value
 
@@ -338,14 +317,61 @@ class Keithley_2700(VisaInstrument):
             string = ':CONF:%s' % mode
             self.write(string)
 
+            # if mode.startswith('VOLT'):
+            #     self._change_units('V')
+            # elif mode.startswith('CURR'):
+            #     self._change_units('A')
+            # elif mode.startswith('RES'):
+            #     self._change_units('Ohm')
+            # elif mode.startswith('FREQ'):
+            #     self._change_units('Hz')
+
         else:
-            logging.error('Invalid mode \'{}\'. Valid modes are {}'.format(mode,self._modes))
+            logging.error('invalid mode %s' % mode)
 
         # Get all values again because some parameters depend on mode
         self.get_all()
         self.trigger_continuous(True)
-        self.remove_instance(self)
-        self.__init__(self._name,self._address)
+
+    def _volt_parser(self,reading):
+        if self.mode.get_latest()=='VOLT:DC' or self.mode.get_latest()=='VOLT:AC':
+            value=float(reading.split('V')[0])
+            while isinstance(value,float)==False:
+                value=float(reading.split('V')[0])
+            return value
+
+    def _volt_parser_read(self,reading):
+        if self.mode.get_latest()=='VOLT:DC' or self.mode.get_latest()=='VOLT:AC':
+            return float(reading)
+        else:
+            raise ValueError(f'Instrument not in voltage mode')
+
+    def _curr_parser(self,reading):
+        if self.mode.get_latest()=='CURR:DC' or self.mode.get_latest()=='CURR:AC':
+            value=float(reading.split('A')[0])
+            while isinstance(value,float)==False:
+                value=float(reading.split('A')[0])
+            return value
+
+
+    def _curr_parser_read(self,reading):
+        if self.mode.get_latest()=='CURR:DC' or self.mode.get_latest()=='CURR:AC':
+            return float(reading)
+        else:
+            raise ValueError(f'Instrument not in current mode')
+
+    def _res_parser(self,reading):
+        if self.mode.get_latest()=='RES' or self.mode.get_latest()=='FRES':
+            value=float(reading.split('OHM')[0])
+            while isinstance(value,float)==False:
+                value=float(reading.split('A')[0])
+            return value
+
+    def _res_parser_read(self,reading):
+        if self.mode.get_latest()=='RES' or self.mode.get_latest()=='FRES':
+            return float(reading)
+        else:
+            raise ValueError(f'Instrument not in resistance mode')
 
     def _mode_par_value(self, mode, par, val):
         '''
