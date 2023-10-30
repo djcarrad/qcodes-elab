@@ -29,6 +29,7 @@ from qcodes.instrument.visa import VisaInstrument
 from qcodes.utils.validators import Strings as StringValidator
 from qcodes.utils.validators import Ints as IntsValidator
 from qcodes.utils.validators import Numbers as NumbersValidator
+from qcodes.utils.validators import Enum
 
 
 # %% Helper functions
@@ -98,7 +99,7 @@ class Keithley_2700(VisaInstrument):
                            get_parser=parsestr,
                            #set_cmd=':CONF:{}',
                            set_cmd=self._set_mode,
-                           vals=StringValidator())
+                           vals=Enum('VOLT:AC', 'VOLT:DC', 'CURR:AC', 'CURR:DC', 'RES', 'FRES', 'TEMP', 'FREQ'))
 
         self.add_parameter('trigger_count',
                            get_cmd=self._mode_par('INIT', 'CONT'),
