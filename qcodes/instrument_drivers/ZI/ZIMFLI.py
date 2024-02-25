@@ -281,6 +281,15 @@ class ZIMFLI(Instrument):
                                get_parser = float,
                                vals = Numbers(min_value=0.001, max_value=3))
 
+                        # input range
+            self.add_parameter(name='Vin{}_autorange'.format(n),
+                               label='Vin{}_autorange'.format(n),
+                               unit='V',
+                               set_cmd= partial(self.daq.setInt,'/{}/sigins/{}/autorange'.format(self.serial, n)),
+                               get_cmd= partial(self.daq.getInt,'/{}/sigins/{}/autorange'.format(self.serial, n)),
+                               get_parser = float)
+                               #vals = Numbers(min_value=0.001, max_value=3))
+
             # arbitrary scaling factor
             self.add_parameter(name='Vin{}_scaling'.format(n),
                                label='Vin{}_scaling'.format(n),

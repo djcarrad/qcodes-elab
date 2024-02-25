@@ -944,6 +944,8 @@ class Parameter(_BaseParameter):
             >>> sweep(15, 10.5, step=1.5)
             >[15.0, 13.5, 12.0, 10.5]
         """
+        if self.get()!=start:
+            print('Are you sure? Start value for {}.sweep is {} {} but {}()={} {}'.format(self.name,start,self.unit,self.name,self.get(),self.unit))
         return SweepFixedValues(self, start=start, stop=stop,
                                 step=step, num=num)
     def logsweep(self, start, stop, num=None):
@@ -951,6 +953,8 @@ class Parameter(_BaseParameter):
         Create a collection of parameter values to be iterated over in a log scale
         
         """
+        if self.get()!=start:
+            print('Are you sure? Start value for {}.sweep is {} {} but {}()={} {}'.format(self.name,start,self.unit,self.name,self.get(),self.unit))
         setpoints=numpy.geomspace(start,stop,num=num)
         return SweepFixedValues(self, setpoints)
 
@@ -959,6 +963,8 @@ class Parameter(_BaseParameter):
         Create a collection of parameter values to be iterated over.
         Must be an array or list of values
         """
+        if self.get()!=setpoints[0]:
+            print('Are you sure? Start value for {}.sweep is {} {} but {}()={} {}'.format(self.name,start,self.unit,self.name,self.get(),self.unit))
         return SweepFixedValues(self, setpoints)
 
     def returnsweep(self, start, stop, step=None, num=None):
@@ -982,9 +988,9 @@ class Parameter(_BaseParameter):
             step=-step
         setpointsup=numpy.linspace(stop+step,start,num-1)
         setpoints=numpy.hstack((setpointsdown,setpointsup))
-
+        if self.get()!=start:
+            print('Are you sure? Start value for {}.sweep is {} {} but {}()={} {}'.format(self.name,start,self.unit,self.name,self.get(),self.unit))
         return SweepFixedValues(self, setpoints)
-
 
 class ArrayParameter(_BaseParameter):
     """

@@ -113,9 +113,9 @@ def colourplot(data,figsize=0,cmap=0,labels=0,xlim=0,ylim=0,zlim=0,xmajor=0,xmin
     ax1.tick_params(axis='both', which='major', direction='out', length=10, width=1, labelsize=label_size)
     ax1.tick_params(axis='both', which='minor', direction='out', length=5, width=1, labelsize=label_size)
     if xlim!=0:
-        ax1.xlim(xlim)
+        ax1.set_xlim(xlim)
     if ylim!=0:
-        ax1.ylim(ylim)
+        ax1.set_ylim(ylim)
     
     return (fig,ax1,cax)
 
