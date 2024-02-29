@@ -920,7 +920,7 @@ class Parameter(_BaseParameter):
         """
         self.set(self.get() + value)
 
-    def sweep(self, start, stop, step=None, num=None):
+    def sweep(self, start, stop, step=None, num=None, print_warning=True):
         """
         Create a collection of parameter values to be iterated over.
         Requires `start` and `stop` and (`step` or `num`)
@@ -945,7 +945,8 @@ class Parameter(_BaseParameter):
             >[15.0, 13.5, 12.0, 10.5]
         """
         if self.get()!=start:
-            print('Are you sure? Start value for {}.sweep is {} {} but {}()={} {}'.format(self.name,start,self.unit,self.name,self.get(),self.unit))
+            if print_warning==True:
+                print('Are you sure? Start value for {}.sweep is {} {} but {}()={} {}'.format(self.name,start,self.unit,self.name,self.get(),self.unit))
         return SweepFixedValues(self, start=start, stop=stop,
                                 step=step, num=num)
     def logsweep(self, start, stop, num=None):

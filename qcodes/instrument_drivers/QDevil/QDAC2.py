@@ -5,6 +5,7 @@ from time import sleep as sleep_s
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
 from qcodes import param_move
+from qcodes import load_data_num
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
 from typing import NewType, Tuple, Sequence, List, Dict, Optional
@@ -164,7 +165,7 @@ class QDac2ExternalTrigger(InstrumentChannel):
             set_cmd='outp:trig{0}:pol {1}'.format(external, '{}'),
             get_cmd=f'outp:trig{external}:pol?',
             get_parser=str,
-            vals=validators.Enum('inv', 'norm')
+            vals=validators.Enum('INV', 'NORM')
         )
         self.add_parameter(
             name='delay_s',
@@ -1111,12 +1112,13 @@ class QDac2Channel(InstrumentChannel):
     def __init__(self, parent: 'QDac2', name: str, channum: int):
         super().__init__(parent, name)
         self._channum = channum
+
         self.add_parameter(
             name='measurement_range',
             label='range',
             set_cmd='sens{1}:rang {0}'.format('{}', channum),
             get_cmd=f'sens{channum}:rang?',
-            vals=validators.Enum('low', 'high')
+            vals=validators.Enum('LOW', 'HIGH')
         )
         self.add_parameter(
             name='measurement_aperture_s',
@@ -1187,7 +1189,7 @@ class QDac2Channel(InstrumentChannel):
             label='range',
             set_cmd='sour{1}:rang {0}'.format('{}', channum),
             get_cmd=f'sour{channum}:rang?',
-            vals=validators.Enum('low', 'high')
+            vals=validators.Enum('LOW', 'HIGH')
         )
         self.add_parameter(
             name='output_low_range_minimum_V',
@@ -1224,7 +1226,7 @@ class QDac2Channel(InstrumentChannel):
             set_cmd='sour{1}:filt {0}'.format('{}', channum),
             get_cmd=f'sour{channum}:filt?',
             get_parser=str,
-            vals=validators.Enum('dc', 'med', 'high')
+            vals=validators.Enum('DC', 'MED', 'HIGH')
         )
         self.add_parameter(
             name='volt',
@@ -1268,7 +1270,7 @@ class QDac2Channel(InstrumentChannel):
         )
         self.add_parameter(
             name='curr',
-            # Perform immediate current measurement on channel
+            # Perform immediate current measurement on channel, uncalibrated.
             label=f'ch{channum}',
             unit='A',
             get_cmd=f'read{channum}?',
@@ -1279,7 +1281,7 @@ class QDac2Channel(InstrumentChannel):
             label='curr_range',
             set_cmd='sens{1}:rang {0}'.format('{}', channum),
             get_cmd=f'sens{channum}:rang?',
-            vals=validators.Enum('low', 'high')
+            vals=validators.Enum('LOW', 'HIGH')
         )
         self.add_parameter(
             name='fetch_current_A',
@@ -1294,7 +1296,7 @@ class QDac2Channel(InstrumentChannel):
             label=f'DC mode',
             set_cmd='sour{1}:volt:mode {0}'.format('{}', channum),
             get_cmd=f'sour{channum}:volt:mode?',
-            vals=validators.Enum('fixed', 'list', 'sweep')
+            vals=validators.Enum('FIX', 'LIST', 'SWEEP')
         )
         self.add_function(
             name='dc_initiate',
