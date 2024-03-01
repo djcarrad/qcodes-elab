@@ -2,12 +2,16 @@ from qcodes.instrument.parameter import MultiParameter, Parameter
 from qcodes import Station,Plot,DataSet,param_move,set_data_format,Loop
 import numpy as np
 from datetime import date
+import json
 
 class QDac_current(Parameter):
-    def __init__(self, qdac, channel):
+    def __init__(self, qdac, channel, name=0):
 
         self._channel = str(channel).zfill(2)
-        self.name = (qdac.name+'_ch'+self._channel+'_curr')
+        if name==0:
+            self.name = (qdac.name+'_ch'+self._channel+'_curr')
+        else:
+            self.name = name
 
         super().__init__(name=self.name)
 
@@ -17,8 +21,16 @@ class QDac_current(Parameter):
         self.unit = ('A')
 
         self.serial=qdac.IDN()['serial']
-        self.fit_params_low=np.loadtxt('C:/git/qcodes-elab/qcodes/wrappers/damon/'+self.serial+'fit_params_low_latest.dat')[channel-1]
-        self.fit_params_high=np.loadtxt('C:/git/qcodes-elab/qcodes/wrappers/damon/'+self.serial+'fit_params_high_latest.dat')[channel-1]
+        with open('C:/git/qcodes-elab/qcodes/wrappers/damon/'+self.serial+'fit_params_low_latest.json','r') as f:
+            self.loaded_data_low=json.load(f)[self._channel]
+            self.calibration_date_low=self.loaded_data_low['calibration_date']
+            self.fit_params_low=self.loaded_data_low['fit_params']
+        f.close()
+        with open('C:/git/qcodes-elab/qcodes/wrappers/damon/'+self.serial+'fit_params_high_latest.json','r') as f:
+            self.loaded_data_high=json.load(f)[self._channel]
+            self.calibration_date_high=self.loaded_data_low['calibration_date']
+            self.fit_params_high=self.loaded_data_low['fit_params']
+        f.close()
 
     def get_raw(self):
 
@@ -49,8 +61,8 @@ def calibrate_qdac_currents(qdac,lowcurrent=True,highcurrent=True,nplc=2,numdata
     originaldatafmt=DataSet.location_provider.fmt
     
     #Do not let the user overwrite the calibration used by QDac_current driver unless they are going to do every channel
-    if channel_list!=0:
-        overwrite_latest=False
+    # if channel_list!=0:
+    #     overwrite_latest=False
 
     if channel_list==0:
         channel_list=[i+1 for i in range(24)]
@@ -73,13 +85,13 @@ def calibrate_qdac_currents(qdac,lowcurrent=True,highcurrent=True,nplc=2,numdata
 
     if lowcurrent==True:
         set_data_format(fmt='C:/Users/Triton12/Measurements/qdaccalibrations/serial'+serial+'/{date}/low/#{counter}_{name}_{date}_{time}')
-        fit_parameters_low=[]
+        fit_parameters_low={}
         if plot_results==True:
             pp_low=Plot()
         print('Running calibration for low current range on channel:')
         for i,channel in enumerate(channel_list):
             internal_station.set_measurement(qdac.channel(channel).curr)
-            print(channel)
+            print(channel,end=' ')
             qdac.channel(channel).curr_range('LOW')
             param_move(qdac.channel(channel).volt,-10,5)
             loop=Loop(qdac.channel(channel).volt.sweep(-10,10,num=numdatapoints,print_warning=False),delay=qdac.channel(channel).measurement_aperture_s()*2).each(*internal_station.measure())
@@ -90,23 +102,42 @@ def calibrate_qdac_currents(qdac,lowcurrent=True,highcurrent=True,nplc=2,numdata
             loop.run(station=internal_station,quiet=True)
             param_move(qdac.channel(channel).volt,0,5)
             fit=np.polyfit(data.arrays[name+'_ch'+channel+'_volt_set'],data.arrays[name+'_ch'+channel+'_curr'], fitindex)
-            fit_parameters_low.append(fit)
-        np.savetxt('C:\\Users\\Triton12\\Measurements\\qdaccalibrations\\serial'+serial+'\\'+str(date.today())+'\\low\\'+serial+'fit_params_low_'+str(date.today())+'.dat',fit_parameters_low)
-        print('Low current calibration values saved to')
-        print('C:\\Users\\Triton12\\Measurements\\qdaccalibrations\\serial'+serial+'\\'+str(date.today())+'\\low\\'+serial+'fit_params_low_'+str(date.today())+'.dat')
+            fit=fit.tolist()
+            fit_parameters_low[channel]={}
+            fit_parameters_low[channel]['fit_params']=fit
+            fit_parameters_low[channel]['calibration_date']=str(date.today())
+        
+        filename='C:\\Users\\Triton12\\Measurements\\qdaccalibrations\\serial'+serial+'\\'+str(date.today())+'\\low\\'+serial+'fit_params_low_'+str(date.today())
+        with open(filename+'.json','w') as f:
+            json.dump(fit_parameters_low, f, indent=4)
+        print('\nLow current calibration values saved to')
+        print(filename+'.json')
         if overwrite_latest==True:
-            np.savetxt('C:\\git\\qcodes-elab\\qcodes\\wrappers\\damon\\'+serial+'fit_params_low_latest.dat',fit_parameters_low)
-            print('and C:\\git\\qcodes-elab\\qcodes\\wrappers\\damon\\'+serial+'fit_params_low_latest.dat')
+            filename_latest='C:\\git\\qcodes-elab\\qcodes\\wrappers\\damon\\'+serial+'fit_params_low_latest'
+            try: #makes a file if this is the first time calibration.
+                with open(filename_latest+'.json', 'r') as f:
+                    loaded_data_low=json.load(f)
+            except:
+                f=open(filename_latest+'.json', 'x')
+                f.close()
+                loaded_data_low={}
+            for channel in channel_list:
+                loaded_data_low[channel]={}
+                loaded_data_low[channel]['calibration_date']=fit_parameters_low[channel]['calibration_date']
+                loaded_data_low[channel]['fit_params']=fit_parameters_low[channel]['fit_params']
+            with open(filename_latest+'.json','w') as f:
+                json.dump(loaded_data_low, f, indent=4)
+            print('and '+filename_latest+' updated')
             
     if highcurrent==True:
         set_data_format(fmt='C:/Users/Triton12/Measurements/qdaccalibrations/serial'+serial+'/{date}/high/#{counter}_{name}_{date}_{time}')
-        fit_parameters_high=[]
+        fit_parameters_high={}
         if plot_results==True:
             pp_high=Plot()
         print('Running calibration for high current range on channel:')
         for i,channel in enumerate(channel_list):
             internal_station.set_measurement(qdac.channel(channel).curr)
-            print(channel)
+            print(channel,end=' ')
             qdac.channel(channel).curr_range('HIGH')
             param_move(qdac.channel(channel).volt,-10,5)
             loop=Loop(qdac.channel(channel).volt.sweep(-10,10,num=numdatapoints,print_warning=False),delay=qdac.channel(channel).measurement_aperture_s()*2).each(*internal_station.measure())
@@ -117,13 +148,32 @@ def calibrate_qdac_currents(qdac,lowcurrent=True,highcurrent=True,nplc=2,numdata
             loop.run(station=internal_station,quiet=True)
             param_move(qdac.channel(channel).volt,0,5)
             fit=np.polyfit(data.arrays[name+'_ch'+channel+'_volt_set'],data.arrays[name+'_ch'+channel+'_curr'], fitindex)
-            fit_parameters_high.append(fit)
-        np.savetxt('C:\\Users\\Triton12\\Measurements\\qdaccalibrations\\serial'+serial+'\\'+str(date.today())+'\\high\\'+serial+'fit_params_high_'+str(date.today())+'.dat',fit_parameters_low)
-        print('High current calibration values saved to')
-        print('C:\\Users\\Triton12\\Measurements\\qdaccalibrations\\serial'+serial+'\\'+str(date.today())+'\\high\\'+serial+'fit_params_high_'+str(date.today())+'.dat')
+            fit=fit.tolist()
+            fit_parameters_high[channel]={}
+            fit_parameters_high[channel]['fit_params']=fit
+            fit_parameters_high[channel]['calibration_date']=str(date.today())
+
+        filename='C:\\Users\\Triton12\\Measurements\\qdaccalibrations\\serial'+serial+'\\'+str(date.today())+'\\high\\'+serial+'fit_params_high_'+str(date.today())
+        with open(filename+'.json','w') as f:
+            json.dump(fit_parameters_high, f, indent=4)
+        print('\nLow current calibration values saved to')
+        print(filename+'.json')
         if overwrite_latest==True:
-            np.savetxt('C:\\git\\qcodes-elab\\qcodes\\wrappers\\damon\\'+serial+'fit_params_high_latest.dat',fit_parameters_low)
-            print('and C:\\git\\qcodes-elab\\qcodes\\wrappers\\damon\\'+serial+'fit_params_low_latest.dat')
+            filename_latest='C:\\git\\qcodes-elab\\qcodes\\wrappers\\damon\\'+serial+'fit_params_high_latest'
+            try: #makes a file if this is the first time calibration.
+                with open(filename_latest+'.json', 'r') as f:
+                    loaded_data_high=json.load(f)
+            except:
+                f=open(filename_latest+'.json', 'x')
+                f.close()
+                loaded_data_high={}
+            for channel in channel_list:
+                loaded_data_high[channel]={}
+                loaded_data_high[channel]['calibration_date']=fit_parameters_high[channel]['calibration_date']
+                loaded_data_high[channel]['fit_params']=fit_parameters_high[channel]['fit_params']
+            with open(filename_latest+'.json','w') as f:
+                json.dump(loaded_data_high, f, indent=4)
+            print('and '+filename_latest+' updated')
         
     print('Returning qdac to initial configuration')
     for i,channel in enumerate(channel_list):
