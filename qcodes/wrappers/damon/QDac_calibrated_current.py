@@ -117,7 +117,8 @@ def calibrate_qdac_currents(qdac,lowcurrent=True,highcurrent=True,nplc=2,numdata
                 pp_low.add(data.arrays[name+'_ch'+channel+'_curr'],name='low_curr',title='ch'+channel,subplot=i)
 
         loop.run(station=internal_station,quiet=True,progress_interval=300)
-        param_move(qdac.channel(channel).volt,0,5)
+        for channel in enumerate(channel_list):
+            param_move(qdac.channel(channel).volt,0,5)
 
         for channel in channel_list:
             fit=np.polyfit(data.arrays['qdac_multiple_set'],data.arrays[name+'_ch'+channel+'_curr'], fitindex)
@@ -166,7 +167,8 @@ def calibrate_qdac_currents(qdac,lowcurrent=True,highcurrent=True,nplc=2,numdata
                 data.publisher=pp_high
                 pp_high.add(data.arrays[name+'_ch'+channel+'_curr'],name='high_curr',title='ch'+channel,subplot=i)
         loop.run(station=internal_station,quiet=True)
-        param_move(qdac.channel(channel).volt,0,5)
+        for channel in enumerate(channel_list):
+            param_move(qdac.channel(channel).volt,0,5)
 
         for channel in channel_list:
             fit=np.polyfit(data.arrays['qdac_multiple_set'],data.arrays[name+'_ch'+channel+'_curr'], fitindex)
@@ -178,7 +180,7 @@ def calibrate_qdac_currents(qdac,lowcurrent=True,highcurrent=True,nplc=2,numdata
         filename=base_folder+'serial'+serial+'/'+str(date.today())+'/high/'+serial+'fit_params_high_'+str(date.today())
         with open(filename+'.json','w') as f:
             json.dump(fit_parameters_high, f, indent=4)
-        print('\nLow current calibration values saved to')
+        print('\nHigh current calibration values saved to')
         print(filename+'.json')
         if overwrite_latest==True:
             filename_latest=loc_folder+serial+'fit_params_high_latest'
@@ -286,5 +288,6 @@ def linearity_test(qdac,channel_list=0,plotting=True,plot_raw=True,plot_calibrat
         qdac.channel(channel).output_filter(initialconfig['submodules']['ch'+channel]['parameters']['output_filter']['raw_value'])
         qdac.channel(channel).measurement_count(initialconfig['submodules']['ch'+channel]['parameters']['measurement_count']['raw_value'])
         qdac.channel(channel).measurement_nplc(initialconfig['submodules']['ch'+channel]['parameters']['measurement_nplc']['raw_value'])
+        qdac.channel(channel).volt(initialconfig['submodules']['ch'+channel]['parameters']['volt']['raw_value'])
     
     set_data_format(fmt=originaldatafmt)
