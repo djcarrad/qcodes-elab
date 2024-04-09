@@ -117,8 +117,7 @@ def calibrate_qdac_currents(qdac,lowcurrent=True,highcurrent=True,nplc=2,numdata
                 pp_low.add(data.arrays[name+'_ch'+channel+'_curr'],name='low_curr',title='ch'+channel,subplot=i)
 
         loop.run(station=internal_station,quiet=True,progress_interval=300)
-        for channel in enumerate(channel_list):
-            param_move(qdac.channel(channel).volt,0,5)
+        param_move(qdac_multiple,0,10)
 
         for channel in channel_list:
             fit=np.polyfit(data.arrays['qdac_multiple_set'],data.arrays[name+'_ch'+channel+'_curr'], fitindex)
@@ -167,8 +166,7 @@ def calibrate_qdac_currents(qdac,lowcurrent=True,highcurrent=True,nplc=2,numdata
                 data.publisher=pp_high
                 pp_high.add(data.arrays[name+'_ch'+channel+'_curr'],name='high_curr',title='ch'+channel,subplot=i)
         loop.run(station=internal_station,quiet=True)
-        for channel in enumerate(channel_list):
-            param_move(qdac.channel(channel).volt,0,5)
+        param_move(qdac_multiple,0,10)
 
         for channel in channel_list:
             fit=np.polyfit(data.arrays['qdac_multiple_set'],data.arrays[name+'_ch'+channel+'_curr'], fitindex)
