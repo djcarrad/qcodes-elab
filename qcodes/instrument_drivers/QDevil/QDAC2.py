@@ -1358,7 +1358,7 @@ class QDac2Channel(InstrumentChannel):
         return Measurement_Context(self, delay_s, repetitions, current_range,
                                    aperture_s, nplc)
 
-    def output_mode(self, range: str = 'high', filter: str = 'high') -> None:
+    def output_mode(self, range: str = 'HIGH', filter: str = 'HIGH') -> None:
         """Set the output voltage
 
         Args:

@@ -69,7 +69,13 @@ class Multiplexer(Instrument):
                     channel=MultiplexerChannel(self,name=gatename,volt=self._volt_source_list[2*i+j])
                 self.add_submodule(gatename,channel)
 
-        self.metadata['gates']=self.gates
+        self.metadata['volt_sources']={}
+        if curr_list!=0:
+            self.metadata['curr_sources']={}
+        for gate in self.gates:
+            self.metadata['volt_sources'][gate]=self.gates[gate]['volt'].full_name
+            if curr_list!=0:
+                self.metadata['curr_sources'][gate]=self.gates[gate]['curr'].full_name
 
         self.add_parameter(name='open_volt',
                             initial_value=open_volt,
@@ -231,11 +237,15 @@ class Multiplexer(Instrument):
         else:
             print('No curr_list provided on inititation')
 
-    def set_multiple_gates(self,voltage,gate_list=0,steps=101):
+    def set_multiple_gates(self,voltage,gate_list=0,stepnum=101):
         if gate_list==0:
             gate_list=self.gates
-        for gate in gate_list:
-            param_move(self.gates[gate]['volt'],voltage,steps)
+        if stepnum==1:
+            for gate in gate_list:
+                self.gates[gate]['volt'](voltage)
+        else:
+            for gate in gate_list:
+                param_move(self.gates[gate]['volt'],voltage,stepnum)
         
         
     def GrayCode(n):

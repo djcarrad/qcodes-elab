@@ -266,13 +266,13 @@ def linearity_test(qdac,channel_list=0,plotting=True,plot_raw=True,plot_calibrat
         print('Imporperly defined output range. Use output_range=\'LOW\' or \'HIGH\'' )
 
     loop=Loop(qdac_multiple.sweep(start=start,stop=stop,num=numdatapoints,print_warning=False),delay=qdac.channel(channel_list[0]).measurement_aperture_s()*2).each(*internal_station.measure())
-    data=loop.get_data_set(name='QDac#{} ch{} lin_test output_range {}'.format(serial,channel,output_range))
+    data=loop.get_data_set(name='QDac#{} lin_test output_range {}'.format(serial,channel,output_range))
 
     if plotting==True:
         data.publisher=pp
         if plot_raw==True:
             for i,channel in enumerate(channel_list):
-                pp.add(data.arrays['qdac_ch'+channel+'_curr'],name='uncalibrated',title='ch'+channel,subplot=i)
+                pp.add(data.arrays[name+'_ch'+channel+'_curr'],name='uncalibrated',title='ch'+channel,subplot=i)
         if plot_calibrated==True:
             for i,channel in enumerate(channel_list):
                 pp.add(data.arrays['qdac_ch'+channel+'_currcal'],name='calibrated',title='ch'+channel,subplot=i)
@@ -286,6 +286,6 @@ def linearity_test(qdac,channel_list=0,plotting=True,plot_raw=True,plot_calibrat
         qdac.channel(channel).output_filter(initialconfig['submodules']['ch'+channel]['parameters']['output_filter']['raw_value'])
         qdac.channel(channel).measurement_count(initialconfig['submodules']['ch'+channel]['parameters']['measurement_count']['raw_value'])
         qdac.channel(channel).measurement_nplc(initialconfig['submodules']['ch'+channel]['parameters']['measurement_nplc']['raw_value'])
-        qdac.channel(channel).volt(initialconfig['submodules']['ch'+channel]['parameters']['volt']['raw_value'])
+        #qdac.channel(channel).volt(initialconfig['submodules']['ch'+channel]['parameters']['volt']['raw_value'])
     
     set_data_format(fmt=originaldatafmt)
