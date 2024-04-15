@@ -114,9 +114,9 @@ class Multiplexer(Instrument):
 
         binary_string=''
         for lvl in range(self.lvls):
-            if np.abs(self.gates['lvl_{}_1'.format(lvl+1)]['volt']() - self.gates['lvl_{}_2'.format(lvl+1)]['volt']())<(self.open_volt()-self.close_volt())*0.1:
+            if np.abs(self.gates['lvl_{}_1'.format(lvl+1)]['volt'].get_latest() - self.gates['lvl_{}_2'.format(lvl+1)]['volt'].get_latest())<(self.open_volt()-self.close_volt())*0.1:
                 raise ValueError('Gates in level {} have almost the same voltage. The multiplexer is in an indeterminite state!!'.format(lvl+1))
-            elif self.gates['lvl_{}_1'.format(lvl+1)]['volt']() > self.gates['lvl_{}_2'.format(lvl+1)]['volt']():
+            elif self.gates['lvl_{}_1'.format(lvl+1)]['volt'].get_latest() > self.gates['lvl_{}_2'.format(lvl+1)]['volt'].get_latest():
                 binary_string=binary_string+'0'
             else:
                 binary_string=binary_string+'1'
@@ -125,22 +125,21 @@ class Multiplexer(Instrument):
 
     def _set_mpx_output(self,out):
 
-
         gate_key = self._convert_to_binary(out,self.lvls)
         
         if self.stepnum()==1:
             # Move the gates instantly
             for n in range(len(gate_key)):
                 if gate_key[n] == '0':
-                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                         self.gates['lvl_{}_1'.format(n+1)]['volt'](self.open_volt())
-                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt']()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt'].get_latest()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
                         self.gates['lvl_{}_2'.format(n+1)]['volt'](self.close_volt())
 
                 else:
-                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                         self.gates['lvl_{}_2'.format(n+1)]['volt'](self.open_volt())
-                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt']()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt'].get_latest()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
                         self.gates['lvl_{}_1'.format(n+1)]['volt'](self.close_volt())
 
 
@@ -148,15 +147,15 @@ class Multiplexer(Instrument):
             # Step the gates using param_move
             for n in range(len(gate_key)):
                 if gate_key[n] == '0':
-                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                         param_move(self.gates['lvl_{}_1'.format(n+1)]['volt'],self.open_volt(),self.stepnum())
-                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt']()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt'].get_latest()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
                         param_move(self.gates['lvl_{}_2'.format(n+1)]['volt'],self.close_volt(),self.stepnum())
 
                 else:
-                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                         param_move(self.gates['lvl_{}_2'.format(n+1)]['volt'],self.open_volt(),self.stepnum())
-                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt']()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt'].get_latest()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
                         param_move(self.gates['lvl_{}_1'.format(n+1)]['volt'],self.close_volt(),self.stepnum())
 
 
@@ -170,15 +169,15 @@ class Multiplexer(Instrument):
             #Move the gates instantly
             for n in range(len(gate_key)):
                 if gate_key[n] == '0':
-                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                         self.gates['lvl_{}_1'.format(n+1)]['volt'](self.open_volt())
-                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt']()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt'].get_latest()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
                         self.gates['lvl_{}_2'.format(n+1)]['volt'](self.close_volt())
 
                 else:
-                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                         self.gates['lvl_{}_2'.format(n+1)]['volt'](self.open_volt())
-                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt']()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt'].get_latest()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
                         self.gates['lvl_{}_1'.format(n+1)]['volt'](self.close_volt())
 
 
@@ -186,15 +185,15 @@ class Multiplexer(Instrument):
             # Step the gates using param_move
             for n in range(len(gate_key)):
                 if gate_key[n] == '0':
-                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                         param_move(self.gates['lvl_{}_1'.format(n+1)]['volt'],self.open_volt(),self.stepnum())
-                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt']()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt'].get_latest()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
                         param_move(self.gates['lvl_{}_2'.format(n+1)]['volt'],self.close_volt(),self.stepnum())
 
                 else:
-                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                         param_move(self.gates['lvl_{}_2'.format(n+1)]['volt'],self.open_volt(),self.stepnum())
-                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt']()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
+                    if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt'].get_latest()-self.close_volt())>(self.open_volt()-self.close_volt())*0.1:
                         param_move(self.gates['lvl_{}_1'.format(n+1)]['volt'],self.close_volt(),self.stepnum())
 
         #Open everything below that level.
@@ -202,17 +201,17 @@ class Multiplexer(Instrument):
         if self.stepnum()==1:
             #Move the gates instantly
             for n in openlevels:
-                if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                     self.gates['lvl_{}_1'.format(n+1)]['volt'](self.open_volt())
-                if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                         self.gates['lvl_{}_2'.format(n+1)]['volt'](self.open_volt())
 
         else:
             # Step the gates using param_move
             for n in openlevels:
-                if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                if np.abs(self.gates['lvl_{}_1'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                     param_move(self.gates['lvl_{}_1'.format(n+1)]['volt'],self.open_volt(),self.stepnum())
-                if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt']()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
+                if np.abs(self.gates['lvl_{}_2'.format(n+1)]['volt'].get_latest()-self.open_volt())>(self.open_volt()-self.close_volt())*0.1:
                     param_move(self.gates['lvl_{}_2'.format(n+1)]['volt'],self.open_volt(),self.stepnum())
 
         if element%2 == 0:
