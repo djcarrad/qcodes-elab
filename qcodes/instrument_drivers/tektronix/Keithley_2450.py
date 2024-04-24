@@ -1,5 +1,5 @@
 from qcodes import VisaInstrument
-from qcodes.utils.validators import Strings, Enum
+from qcodes.utils.validators import Strings, Enum,Bool
 
 
 class Keithley_2450(VisaInstrument):
@@ -85,6 +85,11 @@ class Keithley_2450(VisaInstrument):
                            set_cmd=':SENS:FUNC "{:s}"',
                            label='Sense mode')
 
+        self.add_parameter('fourwiresense',
+                           get_parser=int,
+                           get_cmd=self._get_rsense,
+                           set_cmd=self._set_rsense)
+
         self.add_parameter('output',
                            get_parser=int,
                            set_cmd=':OUTP:STAT {:d}',
@@ -137,6 +142,13 @@ class Keithley_2450(VisaInstrument):
             else:
                 raise RuntimeError(self.name+' not set to source voltage')
 
+    def _get_rsense(self):
+        sensestatus=self.sense().split('"')[1]
+        return self.ask(f'SENS:{sensestatus}:RSEN?')
+
+    def _set_rsense(self,value):
+        sensestatus=self.sense().split('"')[1]
+        return self.write(f'SENS:{sensestatus}:RSEN {value}')
 
     def _get_current(self):
         if self.output()==0:
