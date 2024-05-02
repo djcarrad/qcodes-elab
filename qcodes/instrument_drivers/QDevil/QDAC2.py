@@ -1,16 +1,21 @@
 import numpy as np
 import itertools
 import uuid
+import warnings
 from time import sleep as sleep_s
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
-from qcodes import param_move
-from qcodes import load_data_num
+from qcodes import param_move, Station, Plot, DataSet,set_data_format,Loop, Parameter
+from datetime import date
+import time
+from json import dump as json_dump
+from json import load as json_load
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
 from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import Version, parse
 import abc
+import os
 
 # Version 1.2.0
 #
@@ -19,7 +24,7 @@ import abc
 #
 # 1. Each command should be self-contained, so
 #
-#        qdac.ch02.dc_constant_V(0.1)
+#        self.ch02.dc_constant_V(0.1)
 #
 #    should make sure that channel 2 is in the right mode for outputting
 #    a constant voltage.
@@ -28,7 +33,7 @@ import abc
 #    explicitly part of the function name, like above.  If the numeric is
 #    a unit-less number, then prefixed by n_ like
 #
-#        qdac.n_channels()
+#        self.n_channels()
 #
 # 3. Allocation of resources should be automated as much as possible, preferably
 #    by python context managers that automatically clean up on exit.  Such
@@ -1269,12 +1274,20 @@ class QDac2Channel(InstrumentChannel):
             get_parser=comma_sequence_to_list_of_floats
         )
         self.add_parameter(
-            name='curr',
+            name='curr_ucal',
             # Perform immediate current measurement on channel, uncalibrated.
             label=f'ch{channum}',
             unit='A',
             get_cmd=f'read{channum}?',
             get_parser=comma_sequence_to_single_float
+        )
+        self.add_parameter(
+            name='curr',
+            # Perform immediate current measurement on channel, calibrated.
+            label=f'ch{channum}',
+            unit='A',
+            get_cmd=f'read{channum}?',
+            get_parser=self._get_calibrated_current
         )
         self.add_parameter(
             name='curr_range',
@@ -1285,7 +1298,7 @@ class QDac2Channel(InstrumentChannel):
         )
         self.add_parameter(
             name='fetch_current_A',
-            # Retrieve all available current measurements on channel
+            # Retrieve all available current measurements on channel. Uncalibrated.
             label=f'ch{channum}',
             unit='A',
             get_cmd=f'fetc{channum}?',
@@ -1310,6 +1323,38 @@ class QDac2Channel(InstrumentChannel):
             name='abort',
             call_cmd=f'sour{channum}:all:abor'
         )
+
+        self.loc_folder=os.path.dirname(__file__)
+
+        try:
+            with open(self.loc_folder+'\\'+self._parent.serial+'fit_params_low_latest.json','r') as f:
+                self.loaded_data_low=json_load(f)[str(self._channum).zfill(2)]
+                self.calibration_date_low=self.loaded_data_low['calibration_date']
+                self.fit_params_low=self.loaded_data_low['fit_params']
+            f.close()
+        except:
+            warnings.warn(f'Calibration for channel {self._channum} low current range not found. Calibrated current will not work.\nYou can use curr_ucal but it will be highly inaccurate for large resistive loads.')
+        try:
+            with open(self.loc_folder+'\\'+self._parent.serial+'fit_params_high_latest.json','r') as f:
+                self.loaded_data_high=json_load(f)[str(self._channum).zfill(2)]
+                self.calibration_date_high=self.loaded_data_high['calibration_date']
+                self.fit_params_high=self.loaded_data_high['fit_params']
+            f.close()
+        except:
+            warnings.warn(f'Calibration for channel {self._channum} high current range not found. Calibrated current will not work.\nYou can use curr_ucal but it will be highly inaccurate for large resistive loads.')
+
+    def _get_calibrated_current(self,val) -> float:
+        curr_raw=comma_sequence_to_single_float(val)
+        volt = self.volt()
+
+        if self.curr_range()=='LOW':
+            fitindex=np.shape(self.fit_params_low)[0]
+            value=curr_raw-sum(self.fit_params_low[i]*volt**(fitindex-1-i) for i in range(fitindex))
+        else:
+            fitindex=np.shape(self.fit_params_high)[0]
+            value=curr_raw-sum(self.fit_params_high[i]*volt**(fitindex-1-i) for i in range(fitindex))
+
+        return value
 
     @property
     def number(self) -> int:
@@ -1648,7 +1693,7 @@ class Virtual_Sweep_Context:
         """
         self._ensure_qdac_setup()
         trigger = self._arrangement.get_trigger_by_name(self._start_trigger_name)
-        self._arrangement._qdac.trigger(trigger)
+        self._arrangement._self.trigger(trigger)
 
     def _allocate_triggers(self, start_sweep: Optional[str]) -> None:
         if not start_sweep:
@@ -2087,10 +2132,12 @@ class QDac2(VisaInstrument):
             address (str): Visa identification string
             **kwargs: additional argument to the Visa driver
         """
+
         self._check_instrument_name(name)
         super().__init__(name, address, terminator='\n', **kwargs)
         self._set_up_serial()
         self._set_up_debug_settings()
+        self.serial=self.IDN()['serial']
         self._set_up_channels()
         self._set_up_external_triggers()
         self._set_up_internal_triggers()
@@ -2099,6 +2146,7 @@ class QDac2(VisaInstrument):
         self._check_for_wrong_model()
         self._check_for_incompatiable_firmware()
         self._set_up_manual_triggers()
+
 
     def n_channels(self) -> int:
         """
@@ -2469,3 +2517,243 @@ class QDac2(VisaInstrument):
     def set_multiple_channels(self,voltage,channel_list=[i+1 for i in range(24)],steps=1):
         for channel_num in channel_list:
             param_move(self.channel(channel_num).volt,voltage,steps)
+
+    def calibrate_currents(self,channel_list=0,lowcurrent=True,highcurrent=True,nplc=2,numdatapoints=1001,fitindex=10,plot_results=False,overwrite_latest=True,base_folder=0):
+    
+        #This procedure calibrates the open circuit current of a QDevil QDac-II. 
+        #Due to common mode error, each channel measures a unique, voltage dependent current in open circuit which must be corrected for.
+        #Before running the calibration, remove all loads from the outputs.
+        #
+        loc_folder=os.path.dirname(__file__)
+        if base_folder==0:
+            base_folder=loc_folder+'/calibrations/'
+
+        internal_station=Station(self)
+        
+        originaldatafmt=DataSet.location_provider.fmt
+
+        if channel_list==0:
+            channel_list=[i+1 for i in range(24)]
+        print('Calibrating '+str(self.name)+', with serial number '+self.serial+'. Channels '+str(channel_list))
+        print('Ensure nothing is connected to these outputs! Outputs will sweep +/- 10 V')
+        
+        print('Saving initial configuration')
+        initialconfig=self.snapshot()
+        
+        for i,channel in enumerate(channel_list):
+            channel_list[i]=str(channel_list[i]).zfill(2)
+        
+        print('Setting all outputs to zero, with high output range and filter')
+        for i,channel in enumerate(channel_list):
+            self.channel(channel).dc_mode('FIX')
+            self.channel(channel).volt(0)
+            self.channel(channel).output_range('HIGH')
+            self.channel(channel).output_filter('HIGH')
+            self.channel(channel).measurement_count(1)
+            self.channel(channel).measurement_nplc(nplc)
+
+        def set_qdac_multiple(val):
+            for channel in channel_list:
+                self.channel(channel).volt(val)
+        def get_qdac_multiple():
+            return self.channel(channel_list[0]).volt()
+        qdac_multiple=Parameter(name='qdac_multiple',label='Voltage',unit='V',set_cmd=set_qdac_multiple,get_cmd=get_qdac_multiple)
+
+        print('Started calibration: '+time.asctime())
+
+        internal_station.set_measurement(*[self.channel(channel).curr_ucal for channel in channel_list])
+
+        if lowcurrent==True:
+            set_data_format(fmt=base_folder+'serial'+self.serial+'/{date}/low/#{counter}_{name}_{date}_{time}')
+            fit_parameters_low={}
+            if plot_results==True:
+                pp_low=Plot()
+            print('Running calibration for low current range')
+            
+            param_move(qdac_multiple,-10,10)
+            time.sleep(10)
+            loop=Loop(qdac_multiple.sweep(-10,10,num=numdatapoints,print_warning=False),delay=self.channel(channel_list[0]).measurement_aperture_s()*2).each(*internal_station.measure())
+            data=loop.get_data_set(name='QDac#{} calibration low current'.format(self.serial,channel))
+
+            for i,channel in enumerate(channel_list):
+                self.channel(channel).curr_range('LOW')
+                if plot_results==True:
+                    data.publisher=pp_low
+                    pp_low.add(data.arrays[self.name+'_ch'+channel+'_curr_ucal'],name='low_curr_ucal',title='ch'+channel,subplot=i)
+
+            loop.run(station=internal_station,quiet=True,progress_interval=300)
+            param_move(qdac_multiple,0,10)
+
+            for channel in channel_list:
+                fit=np.polyfit(data.arrays['qdac_multiple_set'],data.arrays[self.name+'_ch'+channel+'_curr_ucal'], fitindex)
+                fit=fit.tolist()
+                fit_parameters_low[channel]={}
+                fit_parameters_low[channel]['fit_params']=fit
+                fit_parameters_low[channel]['calibration_date']=str(date.today())
+            
+            filename=base_folder+'serial'+self.serial+'/'+str(date.today())+'/low/'+self.serial+'fit_params_low_'+str(date.today())
+            with open(filename+'.json','w') as f:
+                json_dump(fit_parameters_low, f, indent=4)
+            print('\nLow current calibration values saved to')
+            print(filename+'.json')
+            if overwrite_latest==True:
+                filename_latest=loc_folder+'\\'+self.serial+'fit_params_low_latest'
+                try: #makes a file if this is the first time calibration.
+                    with open(filename_latest+'.json', 'r') as f:
+                        loaded_data_low=json_load(f)
+                except:
+                    f=open(filename_latest+'.json', 'x')
+                    f.close()
+                    loaded_data_low={}
+                for channel in channel_list:
+                    loaded_data_low[channel]={}
+                    loaded_data_low[channel]['calibration_date']=fit_parameters_low[channel]['calibration_date']
+                    loaded_data_low[channel]['fit_params']=fit_parameters_low[channel]['fit_params']
+                with open(filename_latest+'.json','w') as f:
+                    json_dump(loaded_data_low, f, indent=4)
+                print('and '+filename_latest+' updated')
+                
+        if highcurrent==True:
+            set_data_format(fmt=base_folder+'serial'+self.serial+'/{date}/high/#{counter}_{name}_{date}_{time}')
+            fit_parameters_high={}
+            if plot_results==True:
+                pp_high=Plot()
+            print('Running calibration for high current range:')
+
+            param_move(qdac_multiple,-10,10)
+            time.sleep(10)
+            loop=Loop(qdac_multiple.sweep(-10,10,num=numdatapoints,print_warning=False),delay=self.channel(channel_list[0]).measurement_aperture_s()*2).each(*internal_station.measure())
+            data=loop.get_data_set(name='QDac#{} calibration high current'.format(self.serial,channel))
+
+            for i,channel in enumerate(channel_list):
+                self.channel(channel).curr_range('HIGH')
+                if plot_results==True:
+                    data.publisher=pp_high
+                    pp_high.add(data.arrays[self.name+'_ch'+channel+'_curr_ucal'],name='high_curr_ucal',title='ch'+channel,subplot=i)
+            loop.run(station=internal_station,quiet=True,progress_interval=300)
+            param_move(qdac_multiple,0,10)
+
+            for channel in channel_list:
+                fit=np.polyfit(data.arrays['qdac_multiple_set'],data.arrays[self.name+'_ch'+channel+'_curr_ucal'], fitindex)
+                fit=fit.tolist()
+                fit_parameters_high[channel]={}
+                fit_parameters_high[channel]['fit_params']=fit
+                fit_parameters_high[channel]['calibration_date']=str(date.today())
+
+            filename=base_folder+'serial'+self.serial+'/'+str(date.today())+'/high/'+self.serial+'fit_params_high_'+str(date.today())
+            with open(filename+'.json','w') as f:
+                json_dump(fit_parameters_high, f, indent=4)
+            print('\nHigh current calibration values saved to')
+            print(filename+'.json')
+            if overwrite_latest==True:
+                filename_latest=loc_folder+'\\'+self.serial+'fit_params_high_latest'
+                try: #makes a file if this is the first time calibration.
+                    with open(filename_latest+'.json', 'r') as f:
+                        loaded_data_high=json_load(f)
+                except:
+                    f=open(filename_latest+'.json', 'x')
+                    f.close()
+                    loaded_data_high={}
+                for channel in channel_list:
+                    loaded_data_high[channel]={}
+                    loaded_data_high[channel]['calibration_date']=fit_parameters_high[channel]['calibration_date']
+                    loaded_data_high[channel]['fit_params']=fit_parameters_high[channel]['fit_params']
+                with open(filename_latest+'.json','w') as f:
+                    json_dump(loaded_data_high, f, indent=4)
+                print('and '+filename_latest+' updated')
+            
+        print('Returning qdac to initial configuration')
+        for i,channel in enumerate(channel_list):
+            self.channel(channel).curr_range(initialconfig['submodules']['ch'+channel]['parameters']['curr_range']['raw_value'])
+            self.channel(channel).dc_mode(initialconfig['submodules']['ch'+channel]['parameters']['dc_mode']['raw_value'])
+            self.channel(channel).output_range(initialconfig['submodules']['ch'+channel]['parameters']['output_range']['raw_value'])
+            self.channel(channel).output_filter(initialconfig['submodules']['ch'+channel]['parameters']['output_filter']['raw_value'])
+            self.channel(channel).measurement_count(initialconfig['submodules']['ch'+channel]['parameters']['measurement_count']['raw_value'])
+            self.channel(channel).measurement_nplc(initialconfig['submodules']['ch'+channel]['parameters']['measurement_nplc']['raw_value'])
+
+        set_data_format(fmt=originaldatafmt)
+        print('Calibration complete at: '+time.asctime())
+
+    def linearity_test(self,channel_list=0,plot_raw=True,plot_calibrated=True,curr_range='LOW',output_range='HIGH',numdatapoints=201,nplc=2,base_folder=0):
+        
+        loc_folder=os.path.dirname(__file__)
+        if base_folder==0:
+            base_folder=loc_folder+'/calibrations/'
+        
+        internal_station=Station(self)
+        
+        initialconfig=self.snapshot()
+        originaldatafmt=DataSet.location_provider.fmt
+        set_data_format(fmt=originaldatafmt)
+        
+        if channel_list==0:
+            channel_list=[i+1 for i in range(24)]
+        
+        for i,channel in enumerate(channel_list):
+            channel_list[i]=str(channel_list[i]).zfill(2)
+            
+        qdaccurrents=[self.channel(channel).curr for channel in channel_list]
+
+        def set_qdac_multiple(val):
+            for channel in channel_list:
+                self.channel(channel).volt(val)
+        def get_qdac_multiple():
+            return self.channel(channel_list[0]).volt()
+        qdac_multiple=Parameter(name='qdac_multiple',label='Voltage',unit='V',set_cmd=set_qdac_multiple,get_cmd=get_qdac_multiple)
+        
+        if plot_raw==True or plot_calibrated==True:
+            pp=Plot()
+            plotting=True
+        else:
+            plotting=False
+        
+        set_data_format(fmt=base_folder+'serial'+self.serial+'/lin_tests/{date}/#{counter}_{name}_{date}_{time}')
+        
+        for i,channel in enumerate(channel_list):
+            self.channel(channel).curr_range(curr_range)
+            self.channel(channel).dc_mode('FIX')
+            self.channel(channel).volt(0)
+            self.channel(channel).measurement_nplc(nplc)
+            self.channel(channel).measurement_count(1)
+            self.channel(channel).output_range(output_range)
+            self.channel(channel).output_filter('HIGH')
+            
+        internal_station.set_measurement(*[self.channel(channel).curr_ucal for channel in channel_list],*qdaccurrents)
+
+        if output_range=='LOW':
+            start=-2
+            stop=2
+            param_move(qdac_multiple,-2,10)
+            time.sleep(10)
+        elif output_range=='HIGH':
+            start=-10
+            stop=10
+            param_move(qdac_multiple,-10,10)
+            time.sleep(10)
+        else:
+            print('Imporperly defined output range. Use output_range=\'LOW\' or \'HIGH\'' )
+
+        loop=Loop(qdac_multiple.sweep(start=start,stop=stop,num=numdatapoints,print_warning=False),delay=self.channel(channel_list[0]).measurement_aperture_s()*2).each(*internal_station.measure())
+        data=loop.get_data_set(name='QDac#{} lin_test output_range {}'.format(self.serial,channel,output_range))
+
+        if plotting==True:
+            data.publisher=pp
+            if plot_raw==True:
+                for i,channel in enumerate(channel_list):
+                    pp.add(data.arrays[self.name+'_ch'+channel+'_curr_ucal'],name='uncalibrated',title='ch'+channel,subplot=i)
+            if plot_calibrated==True:
+                for i,channel in enumerate(channel_list):
+                    pp.add(data.arrays[self.name+'_ch'+channel+'_curr'],name='calibrated',title='ch'+channel,subplot=i)
+
+        loop.run(station=internal_station,quiet=True,progress_interval=300)
+         
+        for channel in channel_list:   
+            self.channel(channel).curr_range(initialconfig['submodules']['ch'+channel]['parameters']['curr_range']['raw_value'])
+            self.channel(channel).dc_mode(initialconfig['submodules']['ch'+channel]['parameters']['dc_mode']['raw_value'])
+            self.channel(channel).output_range(initialconfig['submodules']['ch'+channel]['parameters']['output_range']['raw_value'])
+            self.channel(channel).output_filter(initialconfig['submodules']['ch'+channel]['parameters']['output_filter']['raw_value'])
+            self.channel(channel).measurement_count(initialconfig['submodules']['ch'+channel]['parameters']['measurement_count']['raw_value'])
+            self.channel(channel).measurement_nplc(initialconfig['submodules']['ch'+channel]['parameters']['measurement_nplc']['raw_value'])
+            #self.channel(channel).volt(initialconfig['submodules']['ch'+channel]['parameters']['volt']['raw_value'])
+        
+        set_data_format(fmt=originaldatafmt)
