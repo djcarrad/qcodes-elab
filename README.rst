@@ -70,8 +70,10 @@ Additionally...
 ---------------
 
 - If you are going to use VISA instruments (e.g. ones that communicate via GPIB, USB, RS232) you should install the NI VISA and GPIB(488.2) backends from the National Instruments website
-	https://www.ni.com/en/support/downloads/drivers/download.ni-visa.html
-	https://www.ni.com/en/support/downloads/drivers/download.ni-488-2.html
+
+https://www.ni.com/en/support/downloads/drivers/download.ni-visa.html
+
+https://www.ni.com/en/support/downloads/drivers/download.ni-488-2.html
 
 - If the qcodes install fails, you may need to install Visual Studio C++ build tools. https://visualstudio.microsoft.com/downloads/ --> Tools for Visual Studio --> Build Tools for Visual Studio.
 	
