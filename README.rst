@@ -65,6 +65,8 @@ You can now run qcodes in jupyter notebook or jupyter lab by opening the anacond
 or
 
 	jupyter lab
+
+Note: in the above, we created an Anaconda environment (and called it qcodes) where qcodes-elab will operate. Environments are in some sense distinct python installations. The advantage is you can have different versions of different packages/software in different environments. That means that if a package that qcodes relies on gets a major update, qcodes will not completely break. However, you likely want to keep your 'base' environment up-to-date. Therefore, it's usually best to install and use qcodes it its own environment.
 	
 Additionally...
 ---------------
