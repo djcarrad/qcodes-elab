@@ -65,11 +65,17 @@ You can now run qcodes in jupyter notebook or jupyter lab by opening the anacond
 or
 
 	jupyter lab
+
+Note: in the above, we created an Anaconda environment (and called it qcodes) where qcodes-elab will operate. Environments are in some sense distinct python installations. The advantage is you can have different versions of different packages/software in different environments. That means that if a package that qcodes relies on gets a major update, qcodes will not completely break. However, you likely want to keep your 'base' environment up-to-date. Therefore, it's usually best to install and use qcodes it its own environment.
 	
 Additionally...
 ---------------
 
 - If you are going to use VISA instruments (e.g. ones that communicate via GPIB, USB, RS232) you should install the NI VISA and GPIB(488.2) backends from the National Instruments website
+
+https://www.ni.com/en/support/downloads/drivers/download.ni-visa.html
+
+https://www.ni.com/en/support/downloads/drivers/download.ni-488-2.html
 
 - If the qcodes install fails, you may need to install Visual Studio C++ build tools. https://visualstudio.microsoft.com/downloads/ --> Tools for Visual Studio --> Build Tools for Visual Studio.
 	
