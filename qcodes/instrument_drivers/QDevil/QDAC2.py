@@ -2514,9 +2514,17 @@ class QDac2(VisaInstrument):
         for i in range(24):
             print('ch{:.0f}: {} A'.format(i+1,self.channels[i].curr()))
 
-    def set_multiple_channels(self,voltage,channel_list=[i+1 for i in range(24)],steps=1):
+    def set_multiple_voltages(self,voltage,channel_list=[i+1 for i in range(24)],steps=1):
         for channel_num in channel_list:
             param_move(self.channel(channel_num).volt,voltage,steps)
+
+    def set_multiple_channels(self,parameter,value,channel_list=[i+1 for i in range(24)]):
+        for channel_num in channel_list:
+            self.channel(channel_num).parameters[parameter](value)
+
+    def get_multiple_channels(self,parameter,channel_list=[i+1 for i in range(24)]):
+        for channel_num in channel_list:
+            print('ch'+str(channel_num).zfill(2)+': '+str(self.channel(channel_num).parameters[parameter]()))
 
     def calibrate_currents(self,channel_list=0,lowcurrent=True,highcurrent=True,nplc=2,numdatapoints=1001,fitindex=10,plot_results=False,overwrite_latest=True,base_folder=0):
     
