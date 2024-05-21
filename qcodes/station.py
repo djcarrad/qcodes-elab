@@ -291,3 +291,10 @@ class Station(Metadatable, DelegateAttributes):
         return self.components[key]
 
     delegate_attr_dicts = ['components']
+
+    def measurement_time(self,averages=1):
+        start=time.time()
+        for repeats in range(averages):
+            self.measurement()
+        end=time.time()
+        print('Average measurement time='+str((end-start)/averages)+'s')
