@@ -131,7 +131,8 @@ def load_data_num(number, datafolder="data", delimiter='_'):
     Returns:
         A new ``DataSet`` object loaded with pre-existing data.
     """
-    number=str(number).zfill(3)
+    number=str(number).split('_')[0].zfill(3) #Split included here to account for a potential fail point in backwards compatibility. 
+                                                #There were cases where the user had to explicitly include the delimiter.
     datapaths = [glob.glob('{}/#{}{}*/'.format(datafolder,number,delimiter))]
     if np.shape(datapaths[0])[0]>1:
         raise ValueError('Multiple data sets found! Check numbering or delimiter.')
@@ -158,9 +159,11 @@ def load_data_nums(listofnumbers, datafolder="data",delimiter='_'):
     Returns:
         An array containing ``DataSet`` objects loaded with pre-existing data.
     """
+
     data=[]
     for i,number in enumerate(listofnumbers):
-        number=str(number).zfill(3)
+        number=str(number).split('_')[0].zfill(3) #Split included here to account for a potential fail point in backwards compatibility. 
+                                                    #There were cases where the user had to explicitly include the delimiter.
         datapaths = [glob.glob('{}/#{}*/'.format(datafolder,number))]
         if np.shape(datapaths[0])[0]>1:
             raise ValueError('Multiple data sets with number {} found! check numbering or choice of delimiter.'.format(number))
