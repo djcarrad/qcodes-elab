@@ -114,64 +114,58 @@ def load_data(location=None, formatter=None, io=None):
     data.read()
     return data
 
-def load_data_num(number, datafolder="data"):
+def load_data_num(number, datafolder="data", delimiter='_'):
     """
     Loads data in the datafolder using only the data's number.
 
     Args:
-        number (str): the dataset's number, in the format used in the file 
-            name, e.g. "004". Problems will occur for folders with more than
-            999 datasets, since e.g. 1880 will be indistinguishable from 188.
-            In this case, use the character after the number in your filename,
-            e.g. '188_' or '188 ' to load 188.
+        number (str or int): the dataset's number
         datafolder (str, optional): the folder to load from. Default is the
             current live DataSet.
             Note that the full path to or physical location of the data is a
             combination of io + location. the default ``DiskIO`` sets the base
             directory, which this location is a relative path inside.
+        delimiter (str, optional): The character after the number. Almost always
+            underscore but may be specified if necessary.
 
     Returns:
         A new ``DataSet`` object loaded with pre-existing data.
     """
-    datapaths = [glob.glob('{}/#{}*/'.format(datafolder,number))]
+    number=str(number).zfill(3)
+    datapaths = [glob.glob('{}/#{}{}*/'.format(datafolder,number,delimiter))]
     if np.shape(datapaths[0])[0]>1:
-        raise ValueError('Multiple data sets found! check numbering. '
-                         'If you have more than 999 data sets try including '
-                         'the character/delimiter after the number')
+        raise ValueError('Multiple data sets found! Check numbering or delimiter.')
     elif np.shape(datapaths[0])[0]==0:
         raise ValueError('No dataset found!')
     else:
         data = load_data(datapaths[0][0])
         return data
 
-def load_data_nums(listofnumbers, datafolder="data"):
+def load_data_nums(listofnumbers, datafolder="data",delimiter='_'):
     """
     Loads numerous datasets from the datafolder by number alone.
 
     Args:
-        litsofnumbers (str): list of desired numbers, in the format used in
-            the file name, e.g. ['004','005','010,'145']. Problems will occur
-            for folders with more than 999 datasets, since e.g. 1880 will 
-            be indistinguishable from 188. In this case, include the character
-            after the number in your filename, e.g. '188_' or '188 '.
+        litsofnumbers (list of strings or ints): list of desired dataset numbers.
         datafolder (str, optional): the folder to load from. Default is the
             current live DataSet.
             Note that the full path to or physical location of the data is a
             combination of io + location. the default ``DiskIO`` sets the base
             directory, which this location is a relative path inside.
+        delimiter (str, optional): The character after the number. Almost always
+            underscore but may be specified if necessary.
 
     Returns:
         An array containing ``DataSet`` objects loaded with pre-existing data.
     """
     data=[]
-    for i in range (np.shape(listofnumbers)[0]):
-        datapaths = [glob.glob('{}/#{}*/'.format(datafolder,listofnumbers[i]))]
+    for i,number in enumerate(listofnumbers):
+        number=str(number).zfill(3)
+        datapaths = [glob.glob('{}/#{}*/'.format(datafolder,number))]
         if np.shape(datapaths[0])[0]>1:
-            raise ValueError('Multiple data sets with number {} found! check numbering. '
-                             'If you have more than 999 data sets try including '
-                             'the character/delimiter after the number'.format(listofnumbers[i]))
+            raise ValueError('Multiple data sets with number {} found! check numbering or choice of delimiter.'.format(number))
         elif np.shape(datapaths[0])[0]==0:
-            raise ValueError('No dataset with number {} found! check numbering. '.format(listofnumbers[i]))
+            raise ValueError('No dataset with number {} found! check numbering. '.format(number))
         else:
             data.append(load_data(datapaths[0][0]))
 

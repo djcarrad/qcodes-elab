@@ -297,4 +297,4 @@ class Station(Metadatable, DelegateAttributes):
         for repeats in range(averages):
             self.measurement()
         end=time.time()
-        print('Average measurement time='+str((end-start)/averages)+'s')
+        return (end-start)/averages

@@ -670,7 +670,7 @@ class ActiveLoop(Metadatable):
 
         return self.data_set
 
-    # def time_estimate(self,station=None,extra_delays=None):
+    # def time_estimate(self,station=None,extra_delay=None):
     #     """
     #     Give the user an estimate of how long their measurement will take
     #     """
@@ -681,10 +681,7 @@ class ActiveLoop(Metadatable):
     #         print('Note: Station not declared. Estimate does not include'
     #                 'an estimate of communication time.')
     #     else:
-    #         starttime=time.time()
-    #         station.measurement()
-    #         endtime=time.time()
-    #         commtime=endtime-starttime
+    #         commtime=station.measurement_time(averages=10)
 
     def run_temp(self, **kwargs):
         """
