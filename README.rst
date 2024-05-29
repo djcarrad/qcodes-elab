@@ -34,15 +34,18 @@ an instrument driver has, just open up the file! Or ask a friend
 Install
 =======
 
-- Install anaconda from anaconda website: if you want to be able to call python from the command line, you should add the anaconda PATH to environment variables during install
+- Install anaconda from anaconda website: if you want to be able to call python from the command line, you should add the anaconda PATH to environment variables during install. Anaconda is a suite of software can be used to manage a python installation. 
 
 - Install git: https://git-scm.com/download/win
+Git is versioning software that allows multiple developers to contribute to pieces of software. It's used when software is likely to be changing quickly and flexibility and collaboration is key.
 
-- Open the newly installed git bash, navigate to the desired folder (usually cd C:/git), and clone the repository
+- Open the newly installed git bash, navigate to the desired folder (usually C:/git. You may have to create this folder), and clone the repository
 
 	cd C:/git
 
 	git clone https://github.com/djcarrad/qcodes-elab.git qcodes-elab
+
+'cloning' the repository effectively downloads the latest version of the software, and tells git to keep track of changes you might make to it.
 
 - Now open the Anaconda prompt and type:
 
@@ -51,6 +54,8 @@ Install
 	activate qcodes
 	
 	pip install –e *path to repository*
+
+This does a couple of things; it creates an 'environment' that is effectively a separate python installation. qcodes requires that some packages are not updated to the latest version. Running qcodes in its own environment means your 'base' python installation can remain completely up-to-date, and that qcodes can run smoothly. Calling 'activate qcodes' puts you in the qcodes environment. You can 'deactivate qcodes' if you want to return to the base environment. The *path to repository* is usually just 'C:/git/qcodes-elab'
 
 - Optionally install useful packages from the anaconda prompt:
 
@@ -65,8 +70,6 @@ You can now run qcodes in jupyter notebook or jupyter lab by opening the anacond
 or
 
 	jupyter lab
-
-Note: in the above, we created an Anaconda environment (and called it qcodes) where qcodes-elab will operate. Environments are in some sense distinct python installations. The advantage is you can have different versions of different packages/software in different environments. That means that if a package that qcodes relies on gets a major update, qcodes will not completely break. However, you likely want to keep your 'base' environment up-to-date. Therefore, it's usually best to install and use qcodes it its own environment.
 	
 Additionally...
 ---------------
