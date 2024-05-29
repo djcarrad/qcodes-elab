@@ -37,6 +37,7 @@ Install
 - Install anaconda from anaconda website: if you want to be able to call python from the command line, you should add the anaconda PATH to environment variables during install. Anaconda is a suite of software can be used to manage a python installation. 
 
 - Install git: https://git-scm.com/download/win
+
 Git is versioning software that allows multiple developers to contribute to pieces of software. It's used when software is likely to be changing quickly and flexibility and collaboration is key.
 
 - Open the newly installed git bash, navigate to the desired folder (usually C:/git. You may have to create this folder), and clone the repository
