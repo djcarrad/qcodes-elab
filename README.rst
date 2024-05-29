@@ -46,7 +46,7 @@ Git is versioning software that allows multiple developers to contribute to piec
 
 	git clone https://github.com/djcarrad/qcodes-elab.git qcodes-elab
 
-'cloning' the repository effectively downloads the latest version of the software, and tells git to keep track of changes you might make to it.
+'cloning' the repository effectively downloads the latest version of the software, and tells git to keep track of changes you might make to it. If you prefer to use the git gui, use Source Location: https://github.com/djcarrad/qcodes-elab.git and Target Directory: C:/git/qcodes-elab (or the directory of your choice)
 
 - Now open the Anaconda prompt and type:
 
