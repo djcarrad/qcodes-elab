@@ -55,6 +55,7 @@ Git is versioning software that allows multiple developers to contribute to piec
 	activate qcodes
 	
 	pip install –e *path to repository* qcodes
+
 	(for example: pip install -e C:/git/qcodes-elab qcodes)
 
 This does a couple of things; it creates an 'environment' that is effectively a separate python installation. qcodes requires that some packages are not updated to the latest version. Running qcodes in its own environment means your 'base' python installation can remain completely up-to-date, and that qcodes can run smoothly. Calling 'activate qcodes' puts you in the qcodes environment. You can 'deactivate qcodes' if you want to return to the base environment. The *path to repository* is usually just 'C:/git/qcodes-elab'
