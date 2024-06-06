@@ -192,6 +192,37 @@ class MercuryiPS_120(SerialInstrument):
                            set_cmd=self._set_phi,
                            unit='rad')
 
+        self.add_parameter('radius_fixtp', #Set radius using values for theta and phi given by 'theta_fix' and 'phi_fix'
+                            get_cmd=self._get_r,
+                            set_cmd=self._set_rfixtp,
+                            unit='T')
+
+        self.add_parameter('theta_fixrp', #Set theta using values for radius and phi given by 'radius_fix' and 'phi_fix'
+                            get_cmd=self._get_theta,
+                            set_cmd=self._set_thetafixrp,
+                            unit='rad')
+
+        self.add_parameter('phi_fixrp', #Set phi using values for radius and theta given by 'radius_fix' and 'theta_fix'
+                            get_cmd=self._get_phi,
+                            set_cmd=self._set_phifixrt,
+                            unit='T')
+
+        self.add_parameter('radius_fix',
+                            initial_value=0,
+                            get_cmd=None,
+                            set_cmd=None,
+                           unit='T')
+        self.add_parameter('theta_fix',
+                            initial_value=0,
+                            get_cmd=None,
+                            set_cmd=None,
+                           unit='rad')
+        self.add_parameter('phi_fix',
+                            initial_value=0,
+                            get_cmd=None,
+                            set_cmd=None,
+                           unit='rad')
+
         for ax in self.axes:
             get_prefix = '@'+str(self.axes_map[ax])
 
@@ -576,8 +607,16 @@ class MercuryiPS_120(SerialInstrument):
         return self._radius
 
     def _set_r(self, val):
-        # self.rtp.get()
         self.rtp.set([val, self._theta, self._phi])
+
+    def _set_rfixtp(self, val):
+        self.rtp.set([val, self.theta_fix(), self.phi_fix()])
+
+    def _set_thetafixrp(self, val):
+        self.rtp.set([self.radius_fix(), val, self.phi_fix()])
+
+    def _set_phifixrt(self, val):
+        self.rtp.set([self.radius_fix(), self.theta_fix(), val])
 
     def _get_theta(self):
         self.rtp.get()
