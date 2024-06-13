@@ -5,16 +5,13 @@ from pyvisa.errors import VisaIOError
 
 from qcodes.instrument.visa import VisaInstrument
 from qcodes.instrument.channel import InstrumentChannel
-from qcodes.parameters import (
-    Group,
-    GroupParameter,
+from qcodes.instrument.group_parameter import (Group,GroupParameter)
+from qcodes.instrument.parameter import (
     ManualParameter,
-    MultiParameter,
-    ParamRawDataType,
-    create_on_off_val_mapping,
-)
-from qcodes.utils import convert_legacy_version_to_supported_version
-from qcodes.validators import Bool, Enum, Ints, Numbers
+    MultiParameter)
+from qcodes.instrument.val_mapping import create_on_off_val_mapping
+from qcodes.utils.installation_info import convert_legacy_version_to_supported_version
+from qcodes.utils.validators import Bool, Enum, Ints, Numbers
 
 
 class MeasurementPair(MultiParameter):
@@ -60,7 +57,7 @@ class MeasurementPair(MultiParameter):
         setattr(self, self.names[0], value[0])
         setattr(self, self.names[1], value[1])
 
-    def get_raw(self) -> Tuple[ParamRawDataType, ...]:
+    def get_raw(self):
         return self.value
 
 
