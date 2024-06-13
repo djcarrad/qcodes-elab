@@ -3,7 +3,7 @@ from typing import Any, Sequence, Tuple, Union, cast
 from packaging import version
 from pyvisa.errors import VisaIOError
 
-from qcodes.instrument import VisaInstrument
+from qcodes.instrument.visa import VisaInstrument
 from qcodes.instrument.channel import InstrumentChannel
 from qcodes.parameters import (
     Group,
