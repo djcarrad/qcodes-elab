@@ -8,7 +8,8 @@ from qcodes.instrument.channel import InstrumentChannel
 from qcodes.instrument.group_parameter import (Group,GroupParameter)
 from qcodes.instrument.parameter import (
     ManualParameter,
-    MultiParameter,ParamRawDataType)
+    ParamRawDataType)
+from qcodes.instrument.multi_parameter import MultiParameterNew as MultiParameter
 from qcodes.instrument.val_mapping import create_on_off_val_mapping
 from qcodes.utils.installation_info import convert_legacy_version_to_supported_version
 from qcodes.utils.validators import Bool, Enum, Ints, Numbers
