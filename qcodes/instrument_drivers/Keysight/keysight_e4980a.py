@@ -8,7 +8,7 @@ from qcodes.instrument.channel import InstrumentChannel
 from qcodes.instrument.group_parameter import (Group,GroupParameter)
 from qcodes.instrument.parameter import (
     ManualParameter,
-    MultiParameter)
+    MultiParameter,ParamRawDataType)
 from qcodes.instrument.val_mapping import create_on_off_val_mapping
 from qcodes.utils.installation_info import convert_legacy_version_to_supported_version
 from qcodes.utils.validators import Bool, Enum, Ints, Numbers
@@ -57,7 +57,7 @@ class MeasurementPair(MultiParameter):
         setattr(self, self.names[0], value[0])
         setattr(self, self.names[1], value[1])
 
-    def get_raw(self):
+    def get_raw(self) -> Tuple[ParamRawDataType, ...]:
         return self.value
 
 

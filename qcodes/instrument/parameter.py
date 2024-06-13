@@ -82,6 +82,8 @@ if TYPE_CHECKING:
 
 Number = Union[float, int]
 
+ParamRawDataType = Any
+
 
 class _SetParamContext:
     """
