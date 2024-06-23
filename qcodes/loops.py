@@ -64,9 +64,9 @@ from .actions import (_actions_snapshot, Task, Wait, _Measure, _Nest,
 log = logging.getLogger(__name__)
 
 
-def param_move(param_name,end_value,steps=100,step_time=0.03):
+def param_move(param_name,end_value,steps=101,step_time=0.03):
     start_value = param_name()
-    for i in range(0,steps+1):
+    for i in range(0,steps):
         param_name(start_value + (end_value - start_value)/steps * i)
         time.sleep(step_time)
 
