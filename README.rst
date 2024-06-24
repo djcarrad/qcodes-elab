@@ -93,9 +93,8 @@ Open git bash, navigate to the install folder (usually cd C:/git/qcodes-elab), a
 	git pull
 Status
 ======
-As of 18/10/2022, latest versions of all packages required by qcodes are working, except:
-Ipykernel must be version 6.9 if plot windows should stay open when restarting the kernel. 
-Documentation is non-existent so this would be very hard to fix as far as I can tell.
+As of 24/6/2024, latest versions of all packages required by qcodes are working, except:
+The current version of ipykernel closes all plot windows when the kernel is restarted. Will be difficult to fix given the lack of documentation for ipykernel.
 
 On the to-do list is improving analysis functions, such as tighter integration with InspectraGadget
 and incorporation of fitting tools.
