@@ -65,7 +65,7 @@ setup(name='qcodes',
           'pyqtgraph',
           'matplotlib',
           'PyQt5',
-          'ipykernel==6.9', #Required so plot windows do not close when restarting kernel. Documentation is non-existant so have no idea how to solve issue.
+          'ipykernel', #Older version no longer works. Have to live with plot windows closing on kernel restart until solution found
           'jupyter',
           'pyvisa',
           'h5py>=2.6',
