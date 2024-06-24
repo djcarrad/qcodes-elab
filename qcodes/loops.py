@@ -673,18 +673,27 @@ class ActiveLoop(Metadatable):
 
         return self.data_set
 
-    # def time_estimate(self,station=None,extra_delay=None):
-    #     """
-    #     Give the user an estimate of how long their measurement will take
-    #     """
-    #     if self.data_set is None:
-    #         raise RuntimeError('No DataSet yet defined for this loop')
-    #     station = station or self.station or Station.default
-    #     if station is None:
-    #         print('Note: Station not declared. Estimate does not include'
-    #                 'an estimate of communication time.')
-    #     else:
-    #         commtime=station.measurement_time(averages=10)
+    def time_estimate(self,station=None,extra_delay=[0,0]):
+        """
+        Give the user an estimate of how long their measurement will take
+        extra_delay must be an array with the same shape as the loop. Outerloop as 0, inner loop(s) as 1
+        Currently only works for 1D or 2D loops, including 2D loops with multiple subloops.
+        """
+        if self.data_set is None:
+            raise RuntimeError('No DataSet yet defined for this loop')
+        station = station or self.station or Station.default
+        if station is None:
+            print('Note: Station not declared. Estimate does not include'
+                    'an estimate of communication time.')
+        else:
+            commtime=station.measurement_time(averages=10)
+
+        estimate=self.sweep_values.snapshot()['values'][0]['num']*(commtime+self.delay+extra_delay[0])
+        for action in self.actions:
+            if isinstance(action, ActiveLoop):
+                estimate=estimate+self.sweep_values.snapshot()['values'][0]['num']*action.sweep_values.snapshot()['values'][0]['num']*(commtime+action.delay+extra_delay[1])
+
+        return estimate
 
     def run_temp(self, **kwargs):
         """
@@ -696,6 +705,7 @@ class ActiveLoop(Metadatable):
 
     def run(self, use_threads=False, quiet=False, station=None,
             progress_interval=False, set_active=True, publisher=None,
+            progress_bar=True,
             *args, **kwargs):
         """
         Execute this loop.
@@ -734,6 +744,7 @@ class ActiveLoop(Metadatable):
         returns:
             a DataSet object that we can use to plot
         """
+        self.progress_bar=progress_bar
         if progress_interval is not False:
             self.progress_interval = progress_interval
 
