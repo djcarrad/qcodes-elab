@@ -74,7 +74,8 @@ setup(name='qcodes',
           'pyzmq',
           'wrapt',
           'pyserial',
-          'pandas'
+          'pandas',
+          'tqdm'
       ],
 
       test_suite='qcodes.tests',

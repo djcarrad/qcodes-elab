@@ -50,6 +50,7 @@ from datetime import datetime
 import logging
 import time
 import numpy as np
+from tqdm.auto import tqdm
 
 from qcodes.station import Station
 from qcodes.data.data_set import new_data
@@ -110,7 +111,7 @@ class Loop(Metadatable):
     inside this one.
     """
     def __init__(self, sweep_values, delay=0, station=None,
-                 progress_interval=None):
+                 progress_interval=None,progress_bar=True):
         super().__init__()
         if delay < 0:
             raise ValueError('delay must be > 0, not {}'.format(repr(delay)))
@@ -125,6 +126,7 @@ class Loop(Metadatable):
         self.bg_final_task = None
         self.bg_min_delay = None
         self.progress_interval = progress_interval
+        self.progress_bar=progress_bar
 
     def __getitem__(self, item):
         """
@@ -358,7 +360,7 @@ class ActiveLoop(Metadatable):
 
     def __init__(self, sweep_values, delay, *actions, then_actions=(),
                  station=None, progress_interval=None, bg_task=None,
-                 bg_final_task=None, bg_min_delay=None):
+                 bg_final_task=None, bg_min_delay=None,progress_bar=True):
         super().__init__()
         self.sweep_values = sweep_values
         self.delay = delay
@@ -370,6 +372,7 @@ class ActiveLoop(Metadatable):
         self.bg_final_task = bg_final_task
         self.bg_min_delay = bg_min_delay
         self.data_set = None
+        self.progress_bar=progress_bar
 
         # if the first action is another loop, it changes how delays
         # happen - the outer delay happens *after* the inner var gets
@@ -856,7 +859,15 @@ class ActiveLoop(Metadatable):
         if 'timer' in self.data_set.arrays:
             station.timer.reset_clock()
 
-        for i, value in enumerate(self.sweep_values):
+        # If the parameter to be swept is the outermost loop it is the zeroth array element.
+        # Run tqdm in this instance to only give a progress bar for the outermost loop.
+        if self.progress_bar==True and list(self.data_set.arrays)[0]==self.sweep_values.parameter.full_name+'_set':
+            iterator=tqdm(self.sweep_values)
+        else:
+            iterator=self.sweep_values
+
+        i=0
+        for value in iterator:
             if self.progress_interval is not None:
                 tprint('loop %s: %d/%d (%.1f [s])' % (
                     self.sweep_values.name, i, imax, time.time() - t0),
@@ -932,7 +943,7 @@ class ActiveLoop(Metadatable):
                         log.exception("Failed to execute bg task")
 
                     last_task = t
-
+            i=i+1
         # run the background task one last time to catch the last setpoint(s)
         if self.bg_task is not None:
             log.debug('Running the background task one last time.')
