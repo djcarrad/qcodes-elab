@@ -35,10 +35,13 @@ qcodes/instrument/function.py
 qcodes/instrument/group_parameter.py
 qcodes/instrument/ip.py
 qcodes/instrument/ip_to_visa.py
+qcodes/instrument/multi_parameter.py
 qcodes/instrument/parameter.py
 qcodes/instrument/parameterbackup.py
+qcodes/instrument/sequence_helpers.py
 qcodes/instrument/serial.py
 qcodes/instrument/sweep_values.py
+qcodes/instrument/val_mapping.py
 qcodes/instrument/visa.py
 qcodes/instrument/visa_old.py
 qcodes/instrument/mockers/__init__.py
@@ -93,6 +96,7 @@ qcodes/instrument_drivers/Keysight/N5230C.py
 qcodes/instrument_drivers/Keysight/N5245A.py
 qcodes/instrument_drivers/Keysight/N52xx.py
 qcodes/instrument_drivers/Keysight/__init__.py
+qcodes/instrument_drivers/Keysight/keysight_e4980a.py
 qcodes/instrument_drivers/Lakeshore/Model_325.py
 qcodes/instrument_drivers/Lakeshore/Model_336.py
 qcodes/instrument_drivers/Lakeshore/Model_372.py
@@ -113,6 +117,7 @@ qcodes/instrument_drivers/QDev/QDac_channels_old.py
 qcodes/instrument_drivers/QDev/__init__.py
 qcodes/instrument_drivers/QDevil/QDAC2.py
 qcodes/instrument_drivers/QDevil/QDAC2_Array.py
+qcodes/instrument_drivers/QDevil/QDAC2_legacy.py
 qcodes/instrument_drivers/QDevil/__init__.py
 qcodes/instrument_drivers/QuTech/D4.py
 qcodes/instrument_drivers/QuTech/D5a.py
@@ -192,10 +197,12 @@ qcodes/instrument_drivers/tektronix/AWG70002A.py
 qcodes/instrument_drivers/tektronix/AWGFileParser.py
 qcodes/instrument_drivers/tektronix/Keithley_2000.py
 qcodes/instrument_drivers/tektronix/Keithley_2400.py
+qcodes/instrument_drivers/tektronix/Keithley_2450.py
 qcodes/instrument_drivers/tektronix/Keithley_2600.py
 qcodes/instrument_drivers/tektronix/Keithley_2600_channels.py
 qcodes/instrument_drivers/tektronix/Keithley_2600legacy.py
 qcodes/instrument_drivers/tektronix/Keithley_2700.py
+qcodes/instrument_drivers/tektronix/Keithley_2700legacy.py
 qcodes/instrument_drivers/tektronix/TPS2012.py
 qcodes/instrument_drivers/tektronix/__init__.py
 qcodes/instrument_drivers/weinschel/Weinschel_8320.py
@@ -306,6 +313,7 @@ qcodes/utils/deferred_operations.py
 qcodes/utils/delaykeyboardinterrupt.py
 qcodes/utils/deprecate.py
 qcodes/utils/helpers.py
+qcodes/utils/installation_info.py
 qcodes/utils/log_analysis.py
 qcodes/utils/magic.py
 qcodes/utils/metadata.py

@@ -2,7 +2,7 @@ numpy>=1.10
 pyqtgraph
 matplotlib
 PyQt5
-ipykernel==6.9
+ipykernel
 jupyter
 pyvisa
 h5py>=2.6
@@ -12,6 +12,7 @@ pyzmq
 wrapt
 pyserial
 pandas
+tqdm
 
 [MatPlot]
 matplotlib>=2.2.3
