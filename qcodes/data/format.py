@@ -69,7 +69,7 @@ class Formatter:
         """
         raise NotImplementedError
 
-    def read(self, data_set):
+    def read(self, data_set, include_metadata=True):
         """
         Read the entire ``DataSet``.
 
@@ -98,7 +98,8 @@ class Formatter:
             if array.ndarray is None:
                 array.init_data()
 
-        self.read_metadata(data_set)
+        if include_metadata==True:
+            self.read_metadata(data_set)
 
         ids_read = set()
         for fn in data_files:

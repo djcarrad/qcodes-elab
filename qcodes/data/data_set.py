@@ -82,7 +82,7 @@ def new_data(location=None, loc_record=None, name=None, overwrite=False,
     return DataSet(location=location, io=io, **kwargs)
 
 
-def load_data(location=None, formatter=None, io=None):
+def load_data(location=None, formatter=None, io=None, include_metadata=True):
     """
     Load an existing DataSet.
 
@@ -110,11 +110,14 @@ def load_data(location=None, formatter=None, io=None):
                          'which is incompatible with load_data')
 
     data = DataSet(location=location, formatter=formatter, io=io)
-    data.read_metadata()
-    data.read()
+    if include_metadata==True:
+        data.read_metadata()
+        data.read()
+    else:
+        data.read(include_metadata=False)
     return data
 
-def load_data_num(number, datafolder="data", delimiter='_',leadingzeros=3):
+def load_data_num(number, datafolder="data", delimiter='_',leadingzeros=3,include_metadata=True):
     """
     Loads data in the datafolder using only the data's number.
 
@@ -139,10 +142,10 @@ def load_data_num(number, datafolder="data", delimiter='_',leadingzeros=3):
     elif np.shape(datapaths[0])[0]==0:
         raise ValueError('No dataset found!')
     else:
-        data = load_data(datapaths[0][0])
+        data = load_data(datapaths[0][0],include_metadata=include_metadata)
         return data
 
-def load_data_nums(listofnumbers, datafolder="data",delimiter='_',leadingzeros=3):
+def load_data_nums(listofnumbers, datafolder="data",delimiter='_',leadingzeros=3,include_metadata=True):
     """
     Loads numerous datasets from the datafolder by number alone.
 
@@ -170,7 +173,7 @@ def load_data_nums(listofnumbers, datafolder="data",delimiter='_',leadingzeros=3
         elif np.shape(datapaths[0])[0]==0:
             raise ValueError('No dataset with number {} found! check numbering. '.format(number))
         else:
-            data.append(load_data(datapaths[0][0]))
+            data.append(load_data(datapaths[0][0],include_metadata=include_metadata))
 
     return data
 
@@ -552,11 +555,11 @@ class DataSet(DelegateAttributes):
         paramname = self.default_parameter_name(paramname=paramname)
         return getattr(self, paramname, None)
 
-    def read(self):
+    def read(self,include_metadata=True):
         """Read the whole DataSet from storage, overwriting the local data."""
         if self.location is False:
             return
-        self.formatter.read(self)
+        self.formatter.read(self,include_metadata)
 
     def read_metadata(self):
         """Read the metadata from storage, overwriting the local data."""
