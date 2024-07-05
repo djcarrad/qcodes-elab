@@ -114,7 +114,7 @@ def load_data(location=None, formatter=None, io=None):
     data.read()
     return data
 
-def load_data_num(number, datafolder="data", delimiter='_'):
+def load_data_num(number, datafolder="data", delimiter='_',leadingzeros=3):
     """
     Loads data in the datafolder using only the data's number.
 
@@ -131,7 +131,7 @@ def load_data_num(number, datafolder="data", delimiter='_'):
     Returns:
         A new ``DataSet`` object loaded with pre-existing data.
     """
-    number=str(number).split('_')[0].zfill(3) #Split included here to account for a potential fail point in backwards compatibility. 
+    number=str(number).split('_')[0].zfill(leadingzeros) #Split included here to account for a potential fail point in backwards compatibility. 
                                                 #There were cases where the user had to explicitly include the delimiter.
     datapaths = [glob.glob('{}/#{}{}*/'.format(datafolder,number,delimiter))]
     if np.shape(datapaths[0])[0]>1:
@@ -142,7 +142,7 @@ def load_data_num(number, datafolder="data", delimiter='_'):
         data = load_data(datapaths[0][0])
         return data
 
-def load_data_nums(listofnumbers, datafolder="data",delimiter='_'):
+def load_data_nums(listofnumbers, datafolder="data",delimiter='_',leadingzeros=3):
     """
     Loads numerous datasets from the datafolder by number alone.
 
@@ -162,9 +162,9 @@ def load_data_nums(listofnumbers, datafolder="data",delimiter='_'):
 
     data=[]
     for i,number in enumerate(listofnumbers):
-        number=str(number).split('_')[0].zfill(3) #Split included here to account for a potential fail point in backwards compatibility. 
+        number=str(number).split('_')[0].zfill(leadingzeros) #Split included here to account for a potential fail point in backwards compatibility. 
                                                     #There were cases where the user had to explicitly include the delimiter.
-        datapaths = [glob.glob('{}/#{}*/'.format(datafolder,number))]
+        datapaths = [glob.glob('{}/#{}{}*/'.format(datafolder,number,delimiter))]
         if np.shape(datapaths[0])[0]>1:
             raise ValueError('Multiple data sets with number {} found! check numbering or choice of delimiter.'.format(number))
         elif np.shape(datapaths[0])[0]==0:
