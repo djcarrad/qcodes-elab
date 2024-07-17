@@ -10,7 +10,7 @@ This magnet PS driver has been tested with:
 
 """
 
-import visa
+import pyvisa as visa
 import re
 import logging
 import time
@@ -123,6 +123,9 @@ class CryogenicSMS120C(VisaInstrument):
                            vals=Numbers(0,  # i.e. ~12T, calculated
                                         self._field_rating))
 
+        self.add_parameter(name='limit',
+                           get_cmd=self._get_limit)
+
         self.add_parameter(name='rampRate',
                            get_cmd=self._get_rampRate,
                            set_cmd=self._set_rampRate,
@@ -168,16 +171,23 @@ class CryogenicSMS120C(VisaInstrument):
             return None, None
 
     def _get_limit(self):  # Get voltage limits, returns a float
-        _, value = self.query('GET VL')
-        # extract number from string
-        m = re.match(r'({}) VOLTS'.format(
-            CryogenicSMS120C._re_float_exp), value)
-        limit = float(m[1])
-        return limit
+        # _, value = self.query('GET VL')
+        # # extract number from string
+        # m = re.match(r'({}) VOLTS'.format(
+        #     CryogenicSMS120C._re_float_exp), value)
+        # limit = float(m[1])
+        # return limit
+        try:
+            mes=self.ask('GET VL')
+            limit=mes.split('LIMIT: ')[1].split(' VOLTS')[0]
+            return float(limit)
+
+        except Exception as e:
+            raise e
 
     # get heater status, returns a boolean ON (1) or OFF (0)
     def _get_switchHeater(self):
-        _, value = self.query('HEATER')
+        value = self.ask('HEATER')
         if 'OFF' in value:
             switchHeater = 0
         elif 'ON' in value:
@@ -187,7 +197,7 @@ class CryogenicSMS120C(VisaInstrument):
     # check if magnet is in persistent mode, and if so return current in the
     # magnet
     def _get_persistentMode(self):
-        _, value = self.query('HEATER')
+        value = self.ask('HEATER')
         field = self._get_field()
         # check for switch heater OFF, and non-zero current
         if 'OFF' in value and abs(field <= 0.007):
@@ -226,8 +236,8 @@ class CryogenicSMS120C(VisaInstrument):
         return persistentField
 
     def _get_unit(self):  # get units, returns a boolean integer - Tesla (1) or Amps(0)
-        _, value = self.query('TESLA')
-        if value == 'TESLA':
+        value = self.ask('TESLA')
+        if 'TESLA' in value:
             unit = 1
         else:  # assume in Amps
             unit = 0
@@ -235,34 +245,38 @@ class CryogenicSMS120C(VisaInstrument):
 
     # get direction of current, returns a string - Positive (1) or Negative(0)
     def _get_polarity(self):
-        _, value = self.query('GET SIGN')
-        if value == 'POSITIVE':
+        value = self.ask('GET SIGN')
+        if 'POSITIVE' in value:
             polarity = '+'
-        elif value == 'NEGATIVE':  # assume Negative
+        elif 'NEGATIVE' in value:  # assume Negative
             polarity = '-'
         return polarity
 
     def _get_maxField(self):  # Get the maximum B field, returns a float (in Amps or Tesla)
-        _, value = self.query('GET MAX')
+        value = self.ask('GET MAX')
         units = self._get_unit()
         if units == 1:
-            m = re.match(r'({}) TESLA'.format(
-                CryogenicSMS120C._re_float_exp), value)
+            maxField = value.split('SETTING: ')[1].split(' TESLA')[0]
         elif units == 0:
-            m = re.match(r'({}) AMPS'.format(
-                CryogenicSMS120C._re_float_exp), value)
-        maxField = float(m[1])
-        return maxField
+            maxField = mes.split('SETTING: ')[1].split(' AMP')[0]
+        return float(maxField)
 
     # Get current magnetic field, returns a float (assume in Tesla)
     def _get_field(self):
-        _, value = self.query('GET OUTPUT')
-        m = re.match(r'({}) TESLA AT ({}) VOLTS'.format(CryogenicSMS120C._re_float_exp,CryogenicSMS120C._re_float_exp), value)
-        field = float(m[1])
-        return field
+        # _, value = self.query('GET OUTPUT')
+        # m = re.match(r'({}) TESLA AT ({}) VOLTS'.format(CryogenicSMS120C._re_float_exp,CryogenicSMS120C._re_float_exp), value)
+        # field = float(m[1])
+        # return field
+        try:
+            mes=self.ask('GET OUTPUT')
+            field=float(mes.split('OUTPUT: ')[1].split(' TESLA')[0])
+            return field
+        except Exception as e:
+            raise e
+        
 
     def _get_rampStatus(self):  # get current magnet status, returns an integer
-        _, value = self.query('RAMP STATUS')
+        value = self.ask('RAMP STATUS')
         if 'HOLDING' in value:  # holding on
             rampStatus = 0
         elif 'RAMPING' in value:  # magnet ramping
@@ -278,8 +292,8 @@ class CryogenicSMS120C(VisaInstrument):
     # checks if controller is paused (1) or active (0), returns a boolean
     # integer
     def _get_pauseRamp(self):
-        _, value = self.query('PAUSE')
-        if value == 'ON':
+        value = self.ask('PAUSE')
+        if 'ON' in value:
             pauseRamp = 1
         else:  # assume pause OFF
             pauseRamp = 0
@@ -288,10 +302,8 @@ class CryogenicSMS120C(VisaInstrument):
     # Get current magnet ramping rate, returns a float (in units of Amps/sec
     # only)
     def _get_rampRate(self):
-        _, value = self.query('GET RATE')
-        m = re.match(
-            r'({}) A/SEC'.format(CryogenicSMS120C._re_float_exp), value)
-        rampRate = float(m[1])
+        mes=self.ask('GET RATE')
+        rampRate=float(mes.split('RATE: ')[1].split(' A/SEC')[0])
         return rampRate
 
     # Set magnet sweep direction : "+" for positive B, "-" for negative B
