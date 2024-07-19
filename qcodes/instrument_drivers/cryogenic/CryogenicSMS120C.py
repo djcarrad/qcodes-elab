@@ -479,6 +479,8 @@ class CryogenicSMS120C(VisaInstrument):
                 else:
                     self.write('RAMP MID')
                     log.info('Ramping magnetic field...')
+                while self.rampStatus()=='RAMPING':
+                    time.sleep(0.1)
             else:
                 log.error(
                     'Target field is outside max. limits, please lower the target value.')
