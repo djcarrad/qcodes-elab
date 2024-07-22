@@ -111,17 +111,17 @@ class CryogenicSMS120C(VisaInstrument):
                            get_cmd=self._get_persistentField,
                            vals=Numbers(self._persistentField))
 
-        self.add_parameter(name='field',
-                           get_cmd=self._get_field,
-                           set_cmd=self._set_field,
-                           vals=Numbers(-self._field_rating,  # i.e. ~12T, calculated
-                                        self._field_rating))
-
         self.add_parameter(name='maxField',
                            get_cmd=self._get_maxField,
                            set_cmd=self._set_maxField,
                            vals=Numbers(0,  # i.e. ~12T, calculated
                                         self._field_rating))
+
+        self.add_parameter(name='field',
+                           get_cmd=self._get_field,
+                           set_cmd=self._set_field,
+                           vals=Numbers(-self.maxField(),
+                                        self.maxField()))
 
         self.add_parameter(name='limit',
                            get_cmd=self._get_limit)
