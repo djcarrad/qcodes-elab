@@ -698,7 +698,7 @@ class ActiveLoop(Metadatable):
         print(f'Done at: {time.asctime(time.localtime(time.time()+estimate))}')
 
 
-        return estimate
+        #return estimate
 
     def run_temp(self, **kwargs):
         """
