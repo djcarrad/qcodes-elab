@@ -18,7 +18,7 @@ from uuid import uuid4
 log = logging.getLogger(__name__)
 
 def new_data(location=None, loc_record=None, name=None, overwrite=False,
-             io=None, **kwargs):
+             io=None, backup_location=None, **kwargs):
     """
     Create a new DataSet.
 
@@ -79,7 +79,7 @@ def new_data(location=None, loc_record=None, name=None, overwrite=False,
     if location and (not overwrite) and io.list(location):
         raise FileExistsError('"' + location + '" already has data')
 
-    return DataSet(location=location, io=io, **kwargs)
+    return DataSet(location=location, io=io, backup_location=backup_location, **kwargs)
 
 
 def load_data(location=None, formatter=None, io=None, include_metadata=True):
@@ -243,12 +243,16 @@ class DataSet(DelegateAttributes):
     background_functions: Dict[str, Callable] = OrderedDict()
 
     def __init__(self, location=None, arrays=None, formatter=None, io=None,
-                 write_period=5):
+                 write_period=5, backup_location=None):
         if location is False or isinstance(location, str):
             self.location = location
         else:
             raise ValueError('unrecognized location ' + repr(location))
 
+        if backup_location is False or isinstance(backup_location,str):
+            self.backup_location=backup_location
+        else:
+            backup_location='C:/Qcodes_Data/temp'
         self.publisher = None
 
         # TODO: when you change formatter or io (and there's data present)
@@ -585,19 +589,34 @@ class DataSet(DelegateAttributes):
             return
 
         # Only the gnuplot formatter has a "filename" kwarg
-        if isinstance(self.formatter, GNUPlotFormat):
-            self.formatter.write(self,
-                                 self.io,
-                                 self.location,
-                                 write_metadata=write_metadata,
-                                 only_complete=only_complete,
-                                 filename=filename)
-        else:
-            self.formatter.write(self,
-                                 self.io,
-                                 self.location,
-                                 write_metadata=write_metadata,
-                                 only_complete=only_complete)
+        try:
+            if isinstance(self.formatter, GNUPlotFormat):
+                self.formatter.write(self,
+                                     self.io,
+                                     self.location,
+                                     write_metadata=write_metadata,
+                                     only_complete=only_complete,
+                                     filename=filename)
+            else:
+                self.formatter.write(self,
+                                     self.io,
+                                     self.location,
+                                     write_metadata=write_metadata,
+                                     only_complete=only_complete)
+        except:
+            if isinstance(self.formatter, GNUPlotFormat):
+                self.formatter.write(self,
+                                     self.io,
+                                     self.backup_location,
+                                     write_metadata=write_metadata,
+                                     only_complete=only_complete,
+                                     filename=filename)
+            else:
+                self.formatter.write(self,
+                                     self.io,
+                                     self.backup_location,
+                                     write_metadata=write_metadata,
+                                     only_complete=only_complete)
 
     def write_copy(self, path=None, io_manager=None, location=None):
         """

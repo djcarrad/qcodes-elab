@@ -70,6 +70,7 @@ def param_move(param_name,end_value,steps=101,step_time=0.03):
     for i in range(0,steps):
         param_name(start_value + (end_value - start_value)/steps * i)
         time.sleep(step_time)
+    param_name(end_value)
 
 def active_loop():
     return ActiveLoop.active_loop
