@@ -878,7 +878,7 @@ class ActiveLoop(Metadatable):
         # If the parameter to be swept is the outermost loop it is the zeroth array element.
         # Run tqdm in this instance to only give a progress bar for the outermost loop.
         if self.progress_bar==True and list(self.data_set.arrays)[0]==self.sweep_values.parameter.full_name+'_set':
-            iterator=tqdm(self.sweep_values)
+            iterator=tqdm(self.sweep_values, bar_format='{l_bar}{bar}{r_bar}. Estimated finish time: {eta}')
         else:
             iterator=self.sweep_values
 
