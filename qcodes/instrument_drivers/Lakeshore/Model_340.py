@@ -418,16 +418,19 @@ class Model_340(VisaInstrument):
     Lakeshore Model 340 Temperature Controller Driver
     """
 
-    def __init__(self, name: str, address: str, **kwargs) -> None:
+    def __init__(self, name: str, address: str, channel_names=['A', 'B', 'C1','C2','C3','C4','D1','D2'], **kwargs) -> None:
         super().__init__(name, address, terminator="\r\n", **kwargs)
+
+        if len(channel_names)!=8:
+            raise ValueError('Please specify 8 channel names')
 
         sensors = ChannelList(
             self, "sensor", Model_340_Sensor, snapshotable=False)
 
-        for inp in ['A', 'B', 'C1','C2','C3','C4','D1','D2']:
-            sensor = Model_340_Sensor(self, 'sensor_{}'.format(inp), inp)
+        for i,inp in enumerate(['A', 'B', 'C1','C2','C3','C4','D1','D2']):
+            sensor = Model_340_Sensor(self, 'sensor_{}'.format(channel_names[i]), inp)
             sensors.append(sensor)
-            self.add_submodule('sensor_{}'.format(inp), sensor)
+            self.add_submodule('sensor_{}'.format(channel_names[i]), sensor)
 
         sensors.lock()
         self.add_submodule("sensor", sensors)
