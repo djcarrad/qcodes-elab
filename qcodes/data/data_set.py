@@ -13,6 +13,7 @@ from .gnuplot_format import GNUPlotFormat
 from .io import DiskIO
 from .location import FormatLocation
 from qcodes.utils.helpers import DelegateAttributes, full_class, deep_update
+from os import getlogin
 
 from uuid import uuid4
 log = logging.getLogger(__name__)
@@ -249,10 +250,16 @@ class DataSet(DelegateAttributes):
         else:
             raise ValueError('unrecognized location ' + repr(location))
 
-        if backup_location is False or isinstance(backup_location,str):
+        if isinstance(backup_location,str):
             self.backup_location=backup_location
+        elif backup_location is None:
+            try:
+                self.backup_location='C:/Users/'+getlogin()+'/AppData/Local/qcodes-elab/data_backup'
+            except:
+                print(f'Default backup_location, C:/Users/'+getlogin()+'/AppData/Local/qcodes-elab/data_backup cannot be used. This usually is not a problem but you may like to specify one')
         else:
-            backup_location='C:/Qcodes_Data/temp'
+            print('No backup_location specified for data saving. This usually is not a problem but you may like to specify one')
+
         self.publisher = None
 
         # TODO: when you change formatter or io (and there's data present)
