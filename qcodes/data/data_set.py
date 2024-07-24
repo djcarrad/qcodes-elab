@@ -260,6 +260,8 @@ class DataSet(DelegateAttributes):
         else:
             print('No backup_location specified for data saving. This usually is not a problem but you may like to specify one')
 
+        self.backup_used=False
+
         self.publisher = None
 
         # TODO: when you change formatter or io (and there's data present)
@@ -624,6 +626,8 @@ class DataSet(DelegateAttributes):
                                      self.backup_location,
                                      write_metadata=write_metadata,
                                      only_complete=only_complete)
+
+            self.backup_used=True
 
     def write_copy(self, path=None, io_manager=None, location=None):
         """
