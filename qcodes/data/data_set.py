@@ -493,6 +493,10 @@ class DataSet(DelegateAttributes):
         for array_id, value in ids_values.items():
             self.arrays[array_id][loop_indices] = value
         self.last_store = time.time()
+
+        if self.publisher is not None:
+            self.publisher.store(loop_indices, ids_values, uuid=self.uuid)
+            
         if (self.write_period is not None and
                 time.time() > self.last_write + self.write_period):
             log.debug('Attempting to write')
@@ -502,10 +506,6 @@ class DataSet(DelegateAttributes):
         # step of the loop its too verbose even at debug
         # else:
         #     log.debug('.store method: This is not the right time to write')
-
-        if self.publisher is not None:
-            self.publisher.store(loop_indices, ids_values, uuid=self.uuid)
-
 
     def default_parameter_name(self, paramname='amplitude'):
         """ Return name of default parameter for plotting
