@@ -19,7 +19,7 @@ from uuid import uuid4
 log = logging.getLogger(__name__)
 
 def new_data(location=None, loc_record=None, name=None, overwrite=False,
-             io=None, backup_location=None, **kwargs):
+             io=None, backup_location=None, force_write=False, **kwargs):
     """
     Create a new DataSet.
 
@@ -80,7 +80,7 @@ def new_data(location=None, loc_record=None, name=None, overwrite=False,
     if location and (not overwrite) and io.list(location):
         raise FileExistsError('"' + location + '" already has data')
 
-    return DataSet(location=location, io=io, backup_location=backup_location, **kwargs)
+    return DataSet(location=location, io=io, backup_location=backup_location, force_write=force_write, **kwargs)
 
 
 def load_data(location=None, formatter=None, io=None, include_metadata=True):
@@ -244,7 +244,7 @@ class DataSet(DelegateAttributes):
     background_functions: Dict[str, Callable] = OrderedDict()
 
     def __init__(self, location=None, arrays=None, formatter=None, io=None,
-                 write_period=5, backup_location=None):
+                 write_period=5, backup_location=None,force_write=False):
         if location is False or isinstance(location, str):
             self.location = location
         else:
@@ -272,6 +272,7 @@ class DataSet(DelegateAttributes):
         self.write_period = write_period
         self.last_write = 0
         self.last_store = -1
+        self.force_write=force_write
 
         self.metadata = {}
         self.uuid = uuid4().hex
@@ -605,7 +606,8 @@ class DataSet(DelegateAttributes):
                                      self.location,
                                      write_metadata=write_metadata,
                                      only_complete=only_complete,
-                                     filename=filename)
+                                     filename=filename,
+                                     force_write=self.force_write)
             else:
                 self.formatter.write(self,
                                      self.io,
@@ -619,7 +621,8 @@ class DataSet(DelegateAttributes):
                                      self.backup_location,
                                      write_metadata=write_metadata,
                                      only_complete=only_complete,
-                                     filename=filename)
+                                     filename=filename,
+                                     force_write=self.force_write)
             else:
                 self.formatter.write(self,
                                      self.io,
