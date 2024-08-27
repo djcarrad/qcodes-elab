@@ -13,12 +13,13 @@ from .gnuplot_format import GNUPlotFormat
 from .io import DiskIO
 from .location import FormatLocation
 from qcodes.utils.helpers import DelegateAttributes, full_class, deep_update
+from os import getlogin
 
 from uuid import uuid4
 log = logging.getLogger(__name__)
 
 def new_data(location=None, loc_record=None, name=None, overwrite=False,
-             io=None, **kwargs):
+             io=None, backup_location=None, force_write=False, **kwargs):
     """
     Create a new DataSet.
 
@@ -79,10 +80,10 @@ def new_data(location=None, loc_record=None, name=None, overwrite=False,
     if location and (not overwrite) and io.list(location):
         raise FileExistsError('"' + location + '" already has data')
 
-    return DataSet(location=location, io=io, **kwargs)
+    return DataSet(location=location, io=io, backup_location=backup_location, force_write=force_write, **kwargs)
 
 
-def load_data(location=None, formatter=None, io=None):
+def load_data(location=None, formatter=None, io=None, include_metadata=True):
     """
     Load an existing DataSet.
 
@@ -110,70 +111,70 @@ def load_data(location=None, formatter=None, io=None):
                          'which is incompatible with load_data')
 
     data = DataSet(location=location, formatter=formatter, io=io)
-    data.read_metadata()
-    data.read()
+    if include_metadata==True:
+        data.read_metadata()
+        data.read()
+    else:
+        data.read(include_metadata=False)
     return data
 
-def load_data_num(number, datafolder="data"):
+def load_data_num(number, datafolder="data", delimiter='_',leadingzeros=3,include_metadata=True):
     """
     Loads data in the datafolder using only the data's number.
 
     Args:
-        number (str): the dataset's number, in the format used in the file 
-            name, e.g. "004". Problems will occur for folders with more than
-            999 datasets, since e.g. 1880 will be indistinguishable from 188.
-            In this case, use the character after the number in your filename,
-            e.g. '188_' or '188 ' to load 188.
+        number (str or int): the dataset's number
         datafolder (str, optional): the folder to load from. Default is the
             current live DataSet.
             Note that the full path to or physical location of the data is a
             combination of io + location. the default ``DiskIO`` sets the base
             directory, which this location is a relative path inside.
+        delimiter (str, optional): The character after the number. Almost always
+            underscore but may be specified if necessary.
 
     Returns:
         A new ``DataSet`` object loaded with pre-existing data.
     """
-    datapaths = [glob.glob('{}/#{}*/'.format(datafolder,number))]
+    number=str(number).split('_')[0].zfill(leadingzeros) #Split included here to account for a potential fail point in backwards compatibility. 
+                                                #There were cases where the user had to explicitly include the delimiter.
+    datapaths = [glob.glob('{}/#{}{}*/'.format(datafolder,number,delimiter))]
     if np.shape(datapaths[0])[0]>1:
-        raise ValueError('Multiple data sets found! check numbering. '
-                         'If you have more than 999 data sets try including '
-                         'the character/delimiter after the number')
+        raise ValueError('Multiple data sets found! Check numbering or delimiter.')
     elif np.shape(datapaths[0])[0]==0:
         raise ValueError('No dataset found!')
     else:
-        data = load_data(datapaths[0][0])
+        data = load_data(datapaths[0][0],include_metadata=include_metadata)
         return data
 
-def load_data_nums(listofnumbers, datafolder="data"):
+def load_data_nums(listofnumbers, datafolder="data",delimiter='_',leadingzeros=3,include_metadata=True):
     """
     Loads numerous datasets from the datafolder by number alone.
 
     Args:
-        litsofnumbers (str): list of desired numbers, in the format used in
-            the file name, e.g. ['004','005','010,'145']. Problems will occur
-            for folders with more than 999 datasets, since e.g. 1880 will 
-            be indistinguishable from 188. In this case, include the character
-            after the number in your filename, e.g. '188_' or '188 '.
+        litsofnumbers (list of strings or ints): list of desired dataset numbers.
         datafolder (str, optional): the folder to load from. Default is the
             current live DataSet.
             Note that the full path to or physical location of the data is a
             combination of io + location. the default ``DiskIO`` sets the base
             directory, which this location is a relative path inside.
+        delimiter (str, optional): The character after the number. Almost always
+            underscore but may be specified if necessary.
 
     Returns:
         An array containing ``DataSet`` objects loaded with pre-existing data.
     """
+
     data=[]
-    for i in range (np.shape(listofnumbers)[0]):
-        datapaths = [glob.glob('{}/#{}*/'.format(datafolder,listofnumbers[i]))]
+    for i,number in enumerate(listofnumbers):
+        number=str(number).split('_')[0].zfill(leadingzeros) #Split included here to account for a potential fail point in backwards compatibility. 
+                                                    #There were cases where the user had to explicitly include the delimiter.
+        datapaths = [glob.glob('{}/#{}{}*/'.format(datafolder,number,delimiter))]
         if np.shape(datapaths[0])[0]>1:
-            raise ValueError('Multiple data sets with number {} found! check numbering. '
-                             'If you have more than 999 data sets try including '
-                             'the character/delimiter after the number'.format(listofnumbers[i]))
+            raise ValueError('Multiple data sets with number {} found! check numbering or choice of delimiter.'.format(number))
         elif np.shape(datapaths[0])[0]==0:
-            raise ValueError('No dataset with number {} found! check numbering. '.format(listofnumbers[i]))
+            raise ValueError('No dataset with number {} found! check numbering. '.format(number))
         else:
-            data.append(load_data(datapaths[0][0]))
+            data.append(load_data(datapaths[0][0],include_metadata=include_metadata))
 
     return data
 
@@ -243,11 +244,23 @@ class DataSet(DelegateAttributes):
     background_functions: Dict[str, Callable] = OrderedDict()
 
     def __init__(self, location=None, arrays=None, formatter=None, io=None,
-                 write_period=5):
+                 write_period=5, backup_location=None,force_write=False):
         if location is False or isinstance(location, str):
             self.location = location
         else:
             raise ValueError('unrecognized location ' + repr(location))
+
+        if isinstance(backup_location,str):
+            self.backup_location=backup_location
+        elif backup_location is None:
+            try:
+                self.backup_location='C:/Users/'+getlogin()+'/AppData/Local/qcodes-elab/data_backup'
+            except:
+                print(f'Default backup_location, C:/Users/'+getlogin()+'/AppData/Local/qcodes-elab/data_backup cannot be used. This usually is not a problem but you may like to specify one')
+        else:
+            print('No backup_location specified for data saving. This usually is not a problem but you may like to specify one')
+
+        self.backup_used=False
 
         self.publisher = None
 
@@ -259,6 +272,7 @@ class DataSet(DelegateAttributes):
         self.write_period = write_period
         self.last_write = 0
         self.last_store = -1
+        self.force_write=force_write
 
         self.metadata = {}
         self.uuid = uuid4().hex
@@ -479,6 +493,10 @@ class DataSet(DelegateAttributes):
         for array_id, value in ids_values.items():
             self.arrays[array_id][loop_indices] = value
         self.last_store = time.time()
+
+        if self.publisher is not None:
+            self.publisher.store(loop_indices, ids_values, uuid=self.uuid)
+            
         if (self.write_period is not None and
                 time.time() > self.last_write + self.write_period):
             log.debug('Attempting to write')
@@ -488,10 +506,6 @@ class DataSet(DelegateAttributes):
         # step of the loop its too verbose even at debug
         # else:
         #     log.debug('.store method: This is not the right time to write')
-
-        if self.publisher is not None:
-            self.publisher.store(loop_indices, ids_values, uuid=self.uuid)
-
 
     def default_parameter_name(self, paramname='amplitude'):
         """ Return name of default parameter for plotting
@@ -555,11 +569,11 @@ class DataSet(DelegateAttributes):
         paramname = self.default_parameter_name(paramname=paramname)
         return getattr(self, paramname, None)
 
-    def read(self):
+    def read(self,include_metadata=True):
         """Read the whole DataSet from storage, overwriting the local data."""
         if self.location is False:
             return
-        self.formatter.read(self)
+        self.formatter.read(self,include_metadata)
 
     def read_metadata(self):
         """Read the metadata from storage, overwriting the local data."""
@@ -585,19 +599,38 @@ class DataSet(DelegateAttributes):
             return
 
         # Only the gnuplot formatter has a "filename" kwarg
-        if isinstance(self.formatter, GNUPlotFormat):
-            self.formatter.write(self,
-                                 self.io,
-                                 self.location,
-                                 write_metadata=write_metadata,
-                                 only_complete=only_complete,
-                                 filename=filename)
-        else:
-            self.formatter.write(self,
-                                 self.io,
-                                 self.location,
-                                 write_metadata=write_metadata,
-                                 only_complete=only_complete)
+        try:
+            if isinstance(self.formatter, GNUPlotFormat):
+                self.formatter.write(self,
+                                     self.io,
+                                     self.location,
+                                     write_metadata=write_metadata,
+                                     only_complete=only_complete,
+                                     filename=filename,
+                                     force_write=self.force_write)
+            else:
+                self.formatter.write(self,
+                                     self.io,
+                                     self.location,
+                                     write_metadata=write_metadata,
+                                     only_complete=only_complete)
+        except:
+            if isinstance(self.formatter, GNUPlotFormat):
+                self.formatter.write(self,
+                                     self.io,
+                                     self.backup_location,
+                                     write_metadata=write_metadata,
+                                     only_complete=only_complete,
+                                     filename=filename,
+                                     force_write=self.force_write)
+            else:
+                self.formatter.write(self,
+                                     self.io,
+                                     self.backup_location,
+                                     write_metadata=write_metadata,
+                                     only_complete=only_complete)
+
+            self.backup_used=True
 
     def write_copy(self, path=None, io_manager=None, location=None):
         """

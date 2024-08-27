@@ -35,10 +35,13 @@ qcodes/instrument/function.py
 qcodes/instrument/group_parameter.py
 qcodes/instrument/ip.py
 qcodes/instrument/ip_to_visa.py
+qcodes/instrument/multi_parameter.py
 qcodes/instrument/parameter.py
 qcodes/instrument/parameterbackup.py
+qcodes/instrument/sequence_helpers.py
 qcodes/instrument/serial.py
 qcodes/instrument/sweep_values.py
+qcodes/instrument/val_mapping.py
 qcodes/instrument/visa.py
 qcodes/instrument/visa_old.py
 qcodes/instrument/mockers/__init__.py
@@ -93,6 +96,7 @@ qcodes/instrument_drivers/Keysight/N5230C.py
 qcodes/instrument_drivers/Keysight/N5245A.py
 qcodes/instrument_drivers/Keysight/N52xx.py
 qcodes/instrument_drivers/Keysight/__init__.py
+qcodes/instrument_drivers/Keysight/keysight_e4980a.py
 qcodes/instrument_drivers/Lakeshore/Model_325.py
 qcodes/instrument_drivers/Lakeshore/Model_336.py
 qcodes/instrument_drivers/Lakeshore/Model_372.py
@@ -309,6 +313,7 @@ qcodes/utils/deferred_operations.py
 qcodes/utils/delaykeyboardinterrupt.py
 qcodes/utils/deprecate.py
 qcodes/utils/helpers.py
+qcodes/utils/installation_info.py
 qcodes/utils/log_analysis.py
 qcodes/utils/magic.py
 qcodes/utils/metadata.py

@@ -2514,9 +2514,17 @@ class QDac2(VisaInstrument):
         for i in range(24):
             print('ch{:.0f}: {} A'.format(i+1,self.channels[i].curr()))
 
-    def set_multiple_channels(self,voltage,channel_list=[i+1 for i in range(24)],steps=1):
+    def set_multiple_voltages(self,voltage,channel_list=[i+1 for i in range(24)],steps=1):
         for channel_num in channel_list:
             param_move(self.channel(channel_num).volt,voltage,steps)
+
+    def set_multiple_channels(self,parameter,value,channel_list=[i+1 for i in range(24)]):
+        for channel_num in channel_list:
+            self.channel(channel_num).parameters[parameter](value)
+
+    def get_multiple_channels(self,parameter,channel_list=[i+1 for i in range(24)]):
+        for channel_num in channel_list:
+            print('ch'+str(channel_num).zfill(2)+': '+str(self.channel(channel_num).parameters[parameter]()))
 
     def calibrate_currents(self,channel_list=0,lowcurrent=True,highcurrent=True,nplc=2,numdatapoints=1001,fitindex=10,plot_results=False,overwrite_latest=True,base_folder=0):
     
@@ -2534,7 +2542,7 @@ class QDac2(VisaInstrument):
 
         if channel_list==0:
             channel_list=[i+1 for i in range(24)]
-        print('Calibrating '+str(self.name)+', with serial number '+self.serial+'. Channels '+str(channel_list))
+        print('Calibrating '+str(self.name)+', a QDacII with serial number '+self.serial+'. Channels '+str(channel_list))
         print('Ensure nothing is connected to these outputs! Outputs will sweep +/- 10 V')
         
         print('Saving initial configuration')
@@ -2670,6 +2678,7 @@ class QDac2(VisaInstrument):
             self.channel(channel).output_filter(initialconfig['submodules']['ch'+channel]['parameters']['output_filter']['raw_value'])
             self.channel(channel).measurement_count(initialconfig['submodules']['ch'+channel]['parameters']['measurement_count']['raw_value'])
             self.channel(channel).measurement_nplc(initialconfig['submodules']['ch'+channel]['parameters']['measurement_nplc']['raw_value'])
+            self.channel(channel).volt(initialconfig['submodules']['ch'+channel]['parameters']['volt']['value'])
 
         set_data_format(fmt=originaldatafmt)
         print('Calibration complete at: '+time.asctime())
@@ -2754,6 +2763,6 @@ class QDac2(VisaInstrument):
             self.channel(channel).output_filter(initialconfig['submodules']['ch'+channel]['parameters']['output_filter']['raw_value'])
             self.channel(channel).measurement_count(initialconfig['submodules']['ch'+channel]['parameters']['measurement_count']['raw_value'])
             self.channel(channel).measurement_nplc(initialconfig['submodules']['ch'+channel]['parameters']['measurement_nplc']['raw_value'])
-            #self.channel(channel).volt(initialconfig['submodules']['ch'+channel]['parameters']['volt']['raw_value'])
+            self.channel(channel).volt(initialconfig['submodules']['ch'+channel]['parameters']['volt']['value'])
         
         set_data_format(fmt=originaldatafmt)

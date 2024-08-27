@@ -16,7 +16,11 @@ Requires-Dist: numpy>=1.10
 Requires-Dist: pyqtgraph
 Requires-Dist: matplotlib
 Requires-Dist: PyQt5
+<<<<<<< HEAD
 Requires-Dist: ipykernel==6.9
+=======
+Requires-Dist: ipykernel
+>>>>>>> ca31636593e6f6f21923bada903efc6827c700d5
 Requires-Dist: jupyter
 Requires-Dist: pyvisa
 Requires-Dist: h5py>=2.6
@@ -26,6 +30,10 @@ Requires-Dist: pyzmq
 Requires-Dist: wrapt
 Requires-Dist: pyserial
 Requires-Dist: pandas
+<<<<<<< HEAD
+=======
+Requires-Dist: tqdm
+>>>>>>> ca31636593e6f6f21923bada903efc6827c700d5
 Provides-Extra: matplot
 Requires-Dist: matplotlib>=2.2.3; extra == "matplot"
 Provides-Extra: qtplot
@@ -71,15 +79,19 @@ an instrument driver has, just open up the file! Or ask a friend
 Install
 =======
 
-- Install anaconda from anaconda website: if you want to be able to call python from the command line, you should add the anaconda PATH to environment variables during install
+- Install anaconda from anaconda website: if you want to be able to call python from the command line, you should add the anaconda PATH to environment variables during install. Anaconda is a suite of software can be used to manage a python installation. 
 
 - Install git: https://git-scm.com/download/win
 
-- Open the newly installed git bash, navigate to the desired folder (usually cd C:/git), and clone the repository
+Git is versioning software that allows multiple developers to contribute to pieces of software. It's used when software is likely to be changing quickly and flexibility and collaboration is key.
+
+- Open the newly installed git bash, navigate to the desired folder (usually C:/git. You may have to create this folder), and clone the repository
 
 	cd C:/git
 
 	git clone https://github.com/djcarrad/qcodes-elab.git qcodes-elab
+
+'cloning' the repository effectively downloads the latest version of the software, and tells git to keep track of changes you might make to it. If you prefer to use the git gui, use Source Location: https://github.com/djcarrad/qcodes-elab.git and Target Directory: C:/git/qcodes-elab (or the directory of your choice)
 
 - Now open the Anaconda prompt and type:
 
@@ -87,7 +99,11 @@ Install
 	
 	activate qcodes
 	
-	pip install â€“e *path to repository*
+	pip install â€“e *path to repository* qcodes
+
+	(for example: pip install -e C:/git/qcodes-elab qcodes)
+
+This does a couple of things; it creates an 'environment' that is effectively a separate python installation. qcodes requires that some packages are not updated to the latest version. Running qcodes in its own environment means your 'base' python installation can remain completely up-to-date, and that qcodes can run smoothly. Calling 'activate qcodes' puts you in the qcodes environment. You can 'deactivate qcodes' if you want to return to the base environment. The *path to repository* is usually just 'C:/git/qcodes-elab'
 
 - Optionally install useful packages from the anaconda prompt:
 
@@ -108,6 +124,10 @@ Additionally...
 
 - If you are going to use VISA instruments (e.g. ones that communicate via GPIB, USB, RS232) you should install the NI VISA and GPIB(488.2) backends from the National Instruments website
 
+https://www.ni.com/en/support/downloads/drivers/download.ni-visa.html
+
+https://www.ni.com/en/support/downloads/drivers/download.ni-488-2.html
+
 - If the qcodes install fails, you may need to install Visual Studio C++ build tools. https://visualstudio.microsoft.com/downloads/ --> Tools for Visual Studio --> Build Tools for Visual Studio.
 	
 	
@@ -118,9 +138,8 @@ Open git bash, navigate to the install folder (usually cd C:/git/qcodes-elab), a
 	git pull
 Status
 ======
-As of 18/10/2022, latest versions of all packages required by qcodes are working, except:
-Ipykernel must be version 6.9 if plot windows should stay open when restarting the kernel. 
-Documentation is non-existent so this would be very hard to fix as far as I can tell.
+As of 24/6/2024, latest versions of all packages required by qcodes are working, except:
+The current version of ipykernel closes all plot windows when the kernel is restarted. Will be difficult to fix given the lack of documentation for ipykernel.
 
 On the to-do list is improving analysis functions, such as tighter integration with InspectraGadget
 and incorporation of fitting tools.

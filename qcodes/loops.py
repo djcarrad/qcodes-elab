@@ -50,6 +50,7 @@ from datetime import datetime
 import logging
 import time
 import numpy as np
+from tqdm.auto import tqdm
 
 from qcodes.station import Station
 from qcodes.data.data_set import new_data
@@ -64,11 +65,12 @@ from .actions import (_actions_snapshot, Task, Wait, _Measure, _Nest,
 log = logging.getLogger(__name__)
 
 
-def param_move(param_name,end_value,steps=100,step_time=0.03):
+def param_move(param_name,end_value,steps=101,step_time=0.03):
     start_value = param_name()
-    for i in range(0,steps+1):
+    for i in range(0,steps):
         param_name(start_value + (end_value - start_value)/steps * i)
         time.sleep(step_time)
+    param_name(end_value)
 
 def active_loop():
     return ActiveLoop.active_loop
@@ -110,7 +112,7 @@ class Loop(Metadatable):
     inside this one.
     """
     def __init__(self, sweep_values, delay=0, station=None,
-                 progress_interval=None):
+                 progress_interval=None,progress_bar=True):
         super().__init__()
         if delay < 0:
             raise ValueError('delay must be > 0, not {}'.format(repr(delay)))
@@ -125,6 +127,7 @@ class Loop(Metadatable):
         self.bg_final_task = None
         self.bg_min_delay = None
         self.progress_interval = progress_interval
+        self.progress_bar=progress_bar
 
     def __getitem__(self, item):
         """
@@ -358,7 +361,7 @@ class ActiveLoop(Metadatable):
 
     def __init__(self, sweep_values, delay, *actions, then_actions=(),
                  station=None, progress_interval=None, bg_task=None,
-                 bg_final_task=None, bg_min_delay=None):
+                 bg_final_task=None, bg_min_delay=None,progress_bar=True):
         super().__init__()
         self.sweep_values = sweep_values
         self.delay = delay
@@ -370,6 +373,7 @@ class ActiveLoop(Metadatable):
         self.bg_final_task = bg_final_task
         self.bg_min_delay = bg_min_delay
         self.data_set = None
+        self.progress_bar=progress_bar
 
         # if the first action is another loop, it changes how delays
         # happen - the outer delay happens *after* the inner var gets
@@ -670,21 +674,31 @@ class ActiveLoop(Metadatable):
 
         return self.data_set
 
-    # def time_estimate(self,station=None,extra_delays=None):
-    #     """
-    #     Give the user an estimate of how long their measurement will take
-    #     """
-    #     if self.data_set is None:
-    #         raise RuntimeError('No DataSet yet defined for this loop')
-    #     station = station or self.station or Station.default
-    #     if station is None:
-    #         print('Note: Station not declared. Estimate does not include'
-    #                 'an estimate of communication time.')
-    #     else:
-    #         starttime=time.time()
-    #         station.measurement()
-    #         endtime=time.time()
-    #         commtime=endtime-starttime
+    def time_estimate(self,station=None,extra_delay=[0,0]):
+        """
+        Give the user an estimate of how long their measurement will take
+        extra_delay must be an array with the same shape as the loop. Outerloop as 0, inner loop(s) as 1
+        Currently only works for 1D or 2D loops, including 2D loops with multiple subloops.
+        """
+        if self.data_set is None:
+            raise RuntimeError('No DataSet yet defined for this loop')
+        station = station or self.station or Station.default
+        if station is None:
+            print('Note: Station not declared. Estimate does not include'
+                    'an estimate of communication time.')
+        else:
+            commtime=station.measurement_time(averages=10)
+
+        estimate=self.sweep_values.snapshot()['values'][0]['num']*(commtime+self.delay+extra_delay[0])
+        for action in self.actions:
+            if isinstance(action, ActiveLoop):
+                estimate=estimate+self.sweep_values.snapshot()['values'][0]['num']*action.sweep_values.snapshot()['values'][0]['num']*(commtime+action.delay+extra_delay[1])
+        
+        print(f'Estimated time: {estimate} s, {estimate/60} mins, {estimate/3600} hours')
+        print(f'Done at: {time.asctime(time.localtime(time.time()+estimate))}')
+
+
+        #return estimate
 
     def run_temp(self, **kwargs):
         """
@@ -696,6 +710,7 @@ class ActiveLoop(Metadatable):
 
     def run(self, use_threads=False, quiet=False, station=None,
             progress_interval=False, set_active=True, publisher=None,
+            progress_bar=True,
             *args, **kwargs):
         """
         Execute this loop.
@@ -734,6 +749,7 @@ class ActiveLoop(Metadatable):
         returns:
             a DataSet object that we can use to plot
         """
+        self.progress_bar=progress_bar
         if progress_interval is not False:
             self.progress_interval = progress_interval
 
@@ -859,7 +875,15 @@ class ActiveLoop(Metadatable):
         if 'timer' in self.data_set.arrays:
             station.timer.reset_clock()
 
-        for i, value in enumerate(self.sweep_values):
+        # If the parameter to be swept is the outermost loop it is the zeroth array element.
+        # Run tqdm in this instance to only give a progress bar for the outermost loop.
+        if self.progress_bar==True and list(self.data_set.arrays)[0]==self.sweep_values.parameter.full_name+'_set':
+            iterator=tqdm(self.sweep_values, bar_format='{l_bar}{bar}{r_bar}. Estimated finish time: {eta}')
+        else:
+            iterator=self.sweep_values
+
+        i=0
+        for value in iterator:
             if self.progress_interval is not None:
                 tprint('loop %s: %d/%d (%.1f [s])' % (
                     self.sweep_values.name, i, imax, time.time() - t0),
@@ -935,7 +959,7 @@ class ActiveLoop(Metadatable):
                         log.exception("Failed to execute bg task")
 
                     last_task = t
-
+            i=i+1
         # run the background task one last time to catch the last setpoint(s)
         if self.bg_task is not None:
             log.debug('Running the background task one last time.')
