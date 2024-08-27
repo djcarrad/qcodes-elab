@@ -11,11 +11,29 @@ Classifier: Intended Audience :: Science/Research
 Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Programming Language :: Python :: 3.6
 Classifier: Topic :: Scientific/Engineering
-Provides-Extra: MatPlot
-Provides-Extra: QtPlot
-Provides-Extra: coverage tests
-Provides-Extra: Slack
 License-File: LICENSE.rst
+Requires-Dist: numpy>=1.10
+Requires-Dist: pyqtgraph
+Requires-Dist: matplotlib
+Requires-Dist: PyQt5
+Requires-Dist: ipykernel==6.9
+Requires-Dist: jupyter
+Requires-Dist: pyvisa
+Requires-Dist: h5py>=2.6
+Requires-Dist: websockets>=3.2
+Requires-Dist: jsonschema
+Requires-Dist: pyzmq
+Requires-Dist: wrapt
+Requires-Dist: pyserial
+Requires-Dist: pandas
+Provides-Extra: matplot
+Requires-Dist: matplotlib>=2.2.3; extra == "matplot"
+Provides-Extra: qtplot
+Requires-Dist: pyqtgraph>=0.10.0; extra == "qtplot"
+Provides-Extra: coverage-tests
+Requires-Dist: coverage>=4.0; extra == "coverage-tests"
+Provides-Extra: slack
+Requires-Dist: slacker>=0.9.42; extra == "slack"
 
 QCoDeS-elab version
 ===================================

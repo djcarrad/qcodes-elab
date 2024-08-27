@@ -113,6 +113,7 @@ qcodes/instrument_drivers/QDev/QDac_channels_old.py
 qcodes/instrument_drivers/QDev/__init__.py
 qcodes/instrument_drivers/QDevil/QDAC2.py
 qcodes/instrument_drivers/QDevil/QDAC2_Array.py
+qcodes/instrument_drivers/QDevil/QDAC2_legacy.py
 qcodes/instrument_drivers/QDevil/__init__.py
 qcodes/instrument_drivers/QuTech/D4.py
 qcodes/instrument_drivers/QuTech/D5a.py
@@ -192,10 +193,12 @@ qcodes/instrument_drivers/tektronix/AWG70002A.py
 qcodes/instrument_drivers/tektronix/AWGFileParser.py
 qcodes/instrument_drivers/tektronix/Keithley_2000.py
 qcodes/instrument_drivers/tektronix/Keithley_2400.py
+qcodes/instrument_drivers/tektronix/Keithley_2450.py
 qcodes/instrument_drivers/tektronix/Keithley_2600.py
 qcodes/instrument_drivers/tektronix/Keithley_2600_channels.py
 qcodes/instrument_drivers/tektronix/Keithley_2600legacy.py
 qcodes/instrument_drivers/tektronix/Keithley_2700.py
+qcodes/instrument_drivers/tektronix/Keithley_2700legacy.py
 qcodes/instrument_drivers/tektronix/TPS2012.py
 qcodes/instrument_drivers/tektronix/__init__.py
 qcodes/instrument_drivers/weinschel/Weinschel_8320.py
