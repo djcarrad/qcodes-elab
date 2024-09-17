@@ -78,8 +78,10 @@ class ZIMFLI(Instrument):
     def __init__(self, name, serial, server="local",digi=False, **kwargs):
         begin_time=time.time()
         global daq
+        
         if server == "internal":
-            self.daq = ziDAQServer('mf-{}'.format(serial), 8004, 6)  # Unlike the HF2 where the server runs on the computer, on MF instruments the server runs on the instrument, so the host is the instrument not "localhost"
+            self.daq = ziDAQServer('mf-{}'.format(serial), 8004, 6)  
+            # Option to run the LabOne server either the instrument, ('internal') or on the computer ('local'). Local usually preferred.
         elif server == "local":
             self.daq = ziDAQServer('localhost', 8004, 6)
         else:
