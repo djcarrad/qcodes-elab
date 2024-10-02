@@ -374,6 +374,7 @@ class ActiveLoop(Metadatable):
         self.bg_min_delay = bg_min_delay
         self.data_set = None
         self.progress_bar=progress_bar
+        self.was_broken=False
 
         # if the first action is another loop, it changes how delays
         # happen - the outer delay happens *after* the inner var gets
@@ -936,6 +937,7 @@ class ActiveLoop(Metadatable):
                     # after the first action, no delay is inherited
                     delay = 0
             except _QcodesBreak:
+                self.was_broken=True
                 break
 
             # after the first setpoint, delay reverts to the loop delay

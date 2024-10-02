@@ -92,17 +92,6 @@ class ZIMFLI(Instrument):
         self.serial = serial
         self.digi = digi #Set to true if digi option installed.
 
-        # Check if additional options installed
-        self.options = self.daq.getString("/{}/features/options".format(self.serial))
-        if "MD" in self.options:
-            self.LI["numOscs"] = 4
-            self.LI["numDemods"] = 4
-
-        if "DIG" in self.options:
-            self.digi = True
-
-
-
         # Register clock source
         self.add_parameter(name='clock_src',
                            label='Clock_source',
@@ -155,28 +144,28 @@ class ZIMFLI(Instrument):
             self.add_parameter(name='demod{}_X'.format(n),
                                label='X',
                                unit='V',
-                               get_cmd= partial(self._getX,'/{}/demods/{}/sample'.format(self.serial,n)),
+                               get_cmd= partial(self.getX,'/{}/demods/{}/sample'.format(self.serial,n)),
                                get_parser = float)
 
             #Demod Y
             self.add_parameter(name='demod{}_Y'.format(n),
                                label='Y',
                                unit='V',
-                               get_cmd= partial(self._getY,'/{}/demods/{}/sample'.format(self.serial,n)),
+                               get_cmd= partial(self.getY,'/{}/demods/{}/sample'.format(self.serial,n)),
                                get_parser = float)
 
             #Demod R
             self.add_parameter(name='demod{}_R'.format(n),
                                label='R',
                                unit='V',
-                               get_cmd= partial(self._getR,'/{}/demods/{}/sample'.format(self.serial,n)),
+                               get_cmd= partial(self.getR,'/{}/demods/{}/sample'.format(self.serial,n)),
                                get_parser = float)
 
             # Demod phase
             self.add_parameter(name='demod{}_phase'.format(n),
                                label='Phase',
                                unit='deg',
-                               get_cmd= partial(self._getP,'/{}/demods/{}/sample'.format(self.serial,n)),
+                               get_cmd= partial(self.getP,'/{}/demods/{}/sample'.format(self.serial,n)),
                                get_parser = float)
 
             # Demod on or off
@@ -260,27 +249,14 @@ class ZIMFLI(Instrument):
                                get_parser= float,
                                vals = Numbers(min_value=0, max_value=1))
 
-            
-
             # output amplitude
-            if "MD" in self.options:
-                for o in range(self.LI["numOscs"]):
-                    self.add_parameter(name='out{}_amp{}'.format(n, o),
-                                   label='out{}_amplitude{}'.format(n, o),
-                                   unit='V',
-                                   set_cmd=partial(self._setAmplitude,'/{}/sigouts/{}/amplitudes/{}'.format(self.serial, n, o)),
-                                   get_cmd=partial(self._getAmplitude,'/{}/sigouts/{}/amplitudes/{}'.format(self.serial, n, o)),
-                                   get_parser = float,
-                                   vals = Numbers(min_value=0, max_value=10))
-
-            else:
-                self.add_parameter(name='out{}_amp'.format(n),
-                                   label='out{}_amplitude'.format(n),
-                                   unit='V',
-                                   set_cmd=partial(self._setAmplitude,'/{}/sigouts/{}/amplitudes/1'.format(self.serial, n)),
-                                   get_cmd=partial(self._getAmplitude,'/{}/sigouts/{}/amplitudes/1'.format(self.serial, n)),
-                                   get_parser = float,
-                                   vals = Numbers(min_value=0, max_value=10))
+            self.add_parameter(name='out{}_amp'.format(n),
+                               label='out{}_amplitude'.format(n),
+                               unit='V',
+                               set_cmd=partial(self.setAmplitude,'/{}/sigouts/{}/amplitudes/1'.format(self.serial, n)),
+                               get_cmd=partial(self.getAmplitude,'/{}/sigouts/{}/amplitudes/1'.format(self.serial, n)),
+                               get_parser = float,
+                               vals = Numbers(min_value=0, max_value=10))
 
 
             # output impedance set to 50 Ohm true or false
@@ -560,18 +536,15 @@ class ZIMFLI(Instrument):
                                 set_parser=self._scope_setrate_parser,
                                 vals= Enum(60000000,30000000,15000000,7500000,3750000,1880000,936000,469000,
                                             234000,117000,58600,29300,14600,7320,3660,1830,916))
-
             if self.digi==True: #The following will only work for instruments with the DIGI option installed.
                 self.add_parameter(name='scope{}_data'.format(n),
                                     get_cmd=self._getScope)
-
             self.add_parameter(name='scope{}_trigsource'.format(n),
                                 label='scope{}_trigsource'.format(n),
                                 get_cmd=partial(self.daq.getInt,'/{}/scopes/{}/trigchannel'.format(self.serial,n)),
                                 get_parser=self._scope_chaninput_parser,
                                 set_cmd=partial(self.daq.setInt,'/{}/scopes/{}/trigchannel'.format(self.serial,n)),
                                 vals= Enum(0,1,2,3,4,5,6,7,8,9,10,11,14,15,16,17,32,33,48,49,64,65))
-
             for chan in range(2):
                 self.add_parameter(name='scope{}_ch{}_input'.format(n,chan+1),
                                 label='scope{}_ch{}_input'.format(n,chan+1),
@@ -585,7 +558,7 @@ class ZIMFLI(Instrument):
         print('Connected to: Zurich Instruments MFLI (serial:{}, firmware:{}) as {} in {:.2f}s'.format(self.serial,self.fwrevision,self.name,t))
     ## commands
 
-    def _setAmplitude(self,path,val):
+    def setAmplitude(self,path,val):
         """
         The lock-in sets amplitude as fraction of output range, the command here converts it such that you can input actual voltage as a normal person.
         DC 2022-08-17. Not true, at least for MFLI. Removed output range, changed it to be rms
@@ -604,7 +577,7 @@ class ZIMFLI(Instrument):
         else:
             raise ValueError("Value {} is outside the output range".format(val))
 
-    def _getAmplitude(self,path):
+    def getAmplitude(self,path):
         idx = path.find('dev')
         serial = path[idx:idx+7]
         sig = path[path.find('outs')+5]
@@ -615,46 +588,26 @@ class ZIMFLI(Instrument):
 
         return out
 
-    def _getX(self,path):
-        if self.daq.getInt(path.rpartition("/")[0]+"/enable") != 1:
-            print("Tried to get value of disabled channel " + path)
-            x = 0
-        else:
-            data = self.daq.getSample(path)
-            x = float(data['x'])
-
+    def getX(self,path):
+        data = self.daq.getSample(path)
+        x = float(data['x'])
         return x
 
-    def _getY(self,path):
-        if self.daq.getInt(path.rpartition("/")[0]+"/enable") != 1:
-            print("Tried to get value of disabled channel " + path)
-            y = 0
-        else:
-            data = self.daq.getSample(path)
-            y = float(data['y'])
-
+    def getY(self,path):
+        data = self.daq.getSample(path)
+        y = float(data['y'])
         return y
 
-    def _getR(self,path):
-        if self.daq.getInt(path.rpartition("/")[0]+"/enable") != 1:
-            print("Tried to get value of disabled channel " + path)
-            R = 0
-        else:
-            data = self.daq.getSample(path)
-            x = float(data['x'])
-            y = float(data['y'])
-            R = np.sqrt(x**2+y**2)
-
+    def getR(self,path):
+        data = self.daq.getSample(path)
+        x = float(data['x'])
+        y = float(data['y'])
+        R = np.sqrt(x**2+y**2)
         return R
         
-    def _getP(self,path):
-        if self.daq.getInt(path.rpartition("/")[0]+"/enable") != 1:
-            print("Tried to get value of disabled channel " + path)
-            P = 0
-        else:
-            data = self.daq.getSample(path)
-            P = float(data['phase'])
-
+    def getP(self,path):
+        data = self.daq.getSample(path)
+        P = float(data['phase'])
         return P
 
     def _get_aux_sample0(self,reading):
@@ -685,10 +638,6 @@ class ZIMFLI(Instrument):
         return self.scopechaninputs[str(val)]
 
     def _getScope(self):
-        if self.daq.getInt('/{}/scopes/0/enable'.format(self.serial)) != 1:
-            print("Tried to get value of disabled channel /{}/scopes/0/".format(self.serial))
-            return 0
-
         scope=self.daq.scopeModule()
 
         #At the moment assuming only one scope to simplify code. Not sure if possible to have more scopes with add-ons
