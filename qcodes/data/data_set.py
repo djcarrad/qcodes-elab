@@ -468,7 +468,6 @@ class DataSet(DelegateAttributes):
         # strip off as many leading equal indices as possible
         # and append the rest to the back of the name with underscores
         param_action_indices = [list(array.action_indices) for array in arrays]
-        print(param_action_indices)
         while all(len(ai) for ai in param_action_indices):
             if len(set(ai[0] for ai in param_action_indices)) == 1:
                 for ai in param_action_indices:
