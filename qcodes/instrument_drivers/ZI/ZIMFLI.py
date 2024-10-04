@@ -17,17 +17,6 @@ class ZIMFLI(Instrument):
     TODO: everything
 
     """
-    LI = {
-            "numSigouts": 1,   # number of signal outputs
-            "numOscs": 1,      # number of oscillators
-            "numDemods": 1,    # number of demodulators
-            "numVins": 1,      # number of voltage inputs
-            "numIins": 1,      # number of current inputs
-            "numAUXouts": 4,   # number of AUX outputs
-            "numAUXins": 2,     # number of AUX inputs
-            "numscopes": 1
-        }
-
     scoperates = {
             0: 60e6,
             1: 30e6,
@@ -76,6 +65,18 @@ class ZIMFLI(Instrument):
         print(self.scopechaninputs)
 
     def __init__(self, name, serial, server="local",digi=False, **kwargs):
+
+        self.LI = {
+            "numSigouts": 1,   # number of signal outputs
+            "numOscs": 1,      # number of oscillators
+            "numDemods": 1,    # number of demodulators
+            "numVins": 1,      # number of voltage inputs
+            "numIins": 1,      # number of current inputs
+            "numAUXouts": 4,   # number of AUX outputs
+            "numAUXins": 2,     # number of AUX inputs
+            "numscopes": 1
+        }
+
         begin_time=time.time()
         global daq
         
@@ -97,9 +98,14 @@ class ZIMFLI(Instrument):
         if "MD" in self.options:
             self.LI["numOscs"] = 4
             self.LI["numDemods"] = 4
+        else:
+            self.LI["numOscs"] = 1
+            self.LI["numDemods"] = 1
 
         if "DIG" in self.options:
             self.digi = True
+        else:
+            self.digi = False
 
 
 
