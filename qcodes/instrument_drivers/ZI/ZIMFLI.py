@@ -107,8 +107,6 @@ class ZIMFLI(Instrument):
         else:
             self.digi = False
 
-
-
         # Register clock source
         self.add_parameter(name='clock_src',
                            label='Clock_source',
@@ -132,8 +130,6 @@ class ZIMFLI(Instrument):
                                get_cmd= partial(self.daq.getDouble,'/{}/oscs/{}/freq'.format(self.serial, n)),
                                get_parser = float,
                                vals = Numbers(min_value=0, max_value=5E6)) # IMPORTANT! VALIDATOR FOR FREQUENCY RANGE
-
-
 
         # Register Demodulators
         for n in range(self.LI["numDemods"]):
@@ -160,21 +156,21 @@ class ZIMFLI(Instrument):
             #Demod X
             self.add_parameter(name='demod{}_X'.format(n),
                                label='X',
-                               unit='V',
+                               unit=self._demod_unit(n),
                                get_cmd= partial(self._getX,'/{}/demods/{}/sample'.format(self.serial,n)),
                                get_parser = float)
 
             #Demod Y
             self.add_parameter(name='demod{}_Y'.format(n),
                                label='Y',
-                               unit='V',
+                               unit=self._demod_unit(n),
                                get_cmd= partial(self._getY,'/{}/demods/{}/sample'.format(self.serial,n)),
                                get_parser = float)
 
             #Demod R
             self.add_parameter(name='demod{}_R'.format(n),
                                label='R',
-                               unit='V',
+                               unit=self._demod_unit(n),
                                get_cmd= partial(self._getR,'/{}/demods/{}/sample'.format(self.serial,n)),
                                get_parser = float)
 
@@ -590,6 +586,13 @@ class ZIMFLI(Instrument):
         t = time.time() - (begin_time or self._t0)
         print('Connected to: Zurich Instruments MFLI (serial:{}, firmware:{}) as {} in {:.2f}s'.format(self.serial,self.fwrevision,self.name,t))
     ## commands
+
+
+    def _demod_unit(self,n):
+        if partial(self.daq.getInt,'/{}/demods/{}/adcselect'.format(self.serial, n))()==1:
+            return 'A'
+        else:
+            return 'V'
 
     def _setAmplitude(self,path,val):
         """
