@@ -290,15 +290,13 @@ class DataSet(DelegateAttributes):
                 array.init_data()
 
         if self.name is not None and isinstance(self.formatter,GNUPlotFormat):
-            pathlengths=[]
             for group in self.formatter.group_arrays(self.arrays):
-                pathlengths.append(len(self.io.base_location+'/'+self.location+'/'+group.name+self.formatter.extension))
-            for pathlength in pathlengths:
-                if pathlength>250:
+                pathlength=len(self.io.base_location+'/'+self.location+'/'+group.name+self.formatter.extension)
+                if pathlength>246:
                     loc_record={}
-                    loc_record['name'] = self.name[:-(pathlength-250)]
+                    loc_record['name'] = self.name[:-(pathlength-246)]
                     self.location = self.location_provider(io, record=loc_record)
-                    print('Dataset filename has been automatically shortened to avoid Windows maximum character limit')
+                    print('DataSet filename has been automatically shortened to avoid Windows maximum character limit')
 
     def sync(self):
         """
