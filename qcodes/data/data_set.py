@@ -66,13 +66,13 @@ def new_data(location=None, loc_record=None, name=None, overwrite=False,
     if io is None:
         io = DataSet.default_io
 
+    if location is None:
+        location = DataSet.location_provider
+
     if name is not None:
         if not loc_record:
             loc_record = {}
         loc_record['name'] = name
-
-    if location is None:
-        location = DataSet.location_provider
 
     if callable(location):
         location = location(io, record=loc_record)
@@ -80,7 +80,7 @@ def new_data(location=None, loc_record=None, name=None, overwrite=False,
     if location and (not overwrite) and io.list(location):
         raise FileExistsError('"' + location + '" already has data')
 
-    return DataSet(location=location, io=io, backup_location=backup_location, force_write=force_write, **kwargs)
+    return DataSet(location=location, io=io, backup_location=backup_location, force_write=force_write, name=name, **kwargs)
 
 
 def load_data(location=None, formatter=None, io=None, include_metadata=True):
@@ -244,7 +244,7 @@ class DataSet(DelegateAttributes):
     background_functions: Dict[str, Callable] = OrderedDict()
 
     def __init__(self, location=None, arrays=None, formatter=None, io=None,
-                 write_period=5, backup_location=None,force_write=False):
+                 write_period=5, backup_location=None,force_write=False,name=None):
         if location is False or isinstance(location, str):
             self.location = location
         else:
@@ -263,6 +263,8 @@ class DataSet(DelegateAttributes):
         self.backup_used=False
 
         self.publisher = None
+
+        self.name=name
 
         # TODO: when you change formatter or io (and there's data present)
         # make it all look unsaved
@@ -286,6 +288,17 @@ class DataSet(DelegateAttributes):
         if self.arrays:
             for array in self.arrays.values():
                 array.init_data()
+
+        if self.name is not None and isinstance(self.formatter,GNUPlotFormat):
+            pathlengths=[]
+            for group in self.formatter.group_arrays(self.arrays):
+                pathlengths.append(len(self.io.base_location+'/'+self.location+'/'+group.name+self.formatter.extension))
+            for pathlength in pathlengths:
+                if pathlength>250:
+                    loc_record={}
+                    loc_record['name'] = self.name[:-(pathlength-250)]
+                    self.location = self.location_provider(io, record=loc_record)
+                    print('Dataset filename has been automatically shortened to avoid Windows maximum character limit')
 
     def sync(self):
         """
