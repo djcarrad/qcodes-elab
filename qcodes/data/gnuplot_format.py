@@ -279,8 +279,10 @@ class GNUPlotFormat(Formatter):
             #log.debug('containing {}'.format(group))
 
             if filename:
+                self.filename=filename
                 fn = io_manager.join(location, filename + self.extension)
             else:
+                self.filename=group.name
                 fn = io_manager.join(location, group.name + self.extension)
 
             written_files.add(fn)
