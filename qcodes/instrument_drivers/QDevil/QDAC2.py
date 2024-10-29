@@ -5,7 +5,7 @@ import warnings
 from time import sleep as sleep_s
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
-from qcodes import param_move, Station, Plot, DataSet,set_data_format,Loop, Parameter
+from qcodes.instrument.parameter import GetLatest
 from datetime import date
 import time
 from json import dump as json_dump
@@ -16,6 +16,9 @@ from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import Version, parse
 import abc
 import os
+import tkinter as tk
+import threading
+from tqdm import tqdm
 
 # Version 1.2.0
 #
@@ -1119,13 +1122,6 @@ class QDac2Channel(InstrumentChannel):
         self._channum = channum
 
         self.add_parameter(
-            name='measurement_range',
-            label='range',
-            set_cmd='sens{1}:rang {0}'.format('{}', channum),
-            get_cmd=f'sens{channum}:rang?',
-            vals=validators.Enum('LOW', 'HIGH')
-        )
-        self.add_parameter(
             name='measurement_aperture_s',
             label='aperture',
             unit='s',
@@ -1170,7 +1166,7 @@ class QDac2Channel(InstrumentChannel):
             label='last',
             unit='A',
             get_cmd=f'sens{channum}:data:last?',
-            get_parser=float
+            get_parser=self._get_calibrated_current
         )
         self.add_parameter(
             name='n_measurements_available',
@@ -1287,7 +1283,8 @@ class QDac2Channel(InstrumentChannel):
             label=f'ch{channum}',
             unit='A',
             get_cmd=f'read{channum}?',
-            get_parser=self._get_calibrated_current
+            get_parser=self._get_calibrated_current,
+            max_val_age = 1
         )
         self.add_parameter(
             name='curr_range',
@@ -1295,6 +1292,7 @@ class QDac2Channel(InstrumentChannel):
             set_cmd='sens{1}:rang {0}'.format('{}', channum),
             get_cmd=f'sens{channum}:rang?',
             vals=validators.Enum('LOW', 'HIGH')
+
         )
         self.add_parameter(
             name='fetch_current_A',
@@ -1324,6 +1322,7 @@ class QDac2Channel(InstrumentChannel):
             call_cmd=f'sour{channum}:all:abor'
         )
 
+        #Load current calibrations into memory
         self.loc_folder=os.path.dirname(__file__)
 
         try:
@@ -1333,7 +1332,7 @@ class QDac2Channel(InstrumentChannel):
                 self.fit_params_low=self.loaded_data_low['fit_params']
             f.close()
         except:
-            warnings.warn(f'Calibration for channel {self._channum} low current range not found. Calibrated current will not work.\nYou can use curr_ucal but it will be highly inaccurate for large resistive loads.')
+            warnings.warn(f'Calibration for channel {self._channum} low current range not found. Current measurement via curr() will not work.\nRun calibrate_currents() to calibrate the currents now.\nYou can use curr_ucal but it will be highly inaccurate for large resistive loads.')
         try:
             with open(self.loc_folder+'\\'+self._parent.serial+'fit_params_high_latest.json','r') as f:
                 self.loaded_data_high=json_load(f)[str(self._channum).zfill(2)]
@@ -1341,13 +1340,17 @@ class QDac2Channel(InstrumentChannel):
                 self.fit_params_high=self.loaded_data_high['fit_params']
             f.close()
         except:
-            warnings.warn(f'Calibration for channel {self._channum} high current range not found. Calibrated current will not work.\nYou can use curr_ucal but it will be highly inaccurate for large resistive loads.')
+            warnings.warn(f'Calibration for channel {self._channum} high current range not found. Current measurement via curr() will not work.\nRun calibrate_currents() to calibrate the currents now.\nYou can use curr_ucal but it will be highly inaccurate for large resistive loads.')
+
+        #Read volt and curr_range to ensure these are populated for get_latest. Needed for _get_calibrated_current
+        self._init_volt=self.volt()
+        self._init_curr_range=self.curr_range()
 
     def _get_calibrated_current(self,val) -> float:
         curr_raw=comma_sequence_to_single_float(val)
-        volt = self.volt()
+        volt = self.volt.get_latest()
 
-        if self.curr_range()=='LOW':
+        if self.curr_range.get_latest()=='LOW':
             fitindex=np.shape(self.fit_params_low)[0]
             value=curr_raw-sum(self.fit_params_low[i]*volt**(fitindex-1-i) for i in range(fitindex))
         else:
@@ -1355,7 +1358,6 @@ class QDac2Channel(InstrumentChannel):
             value=curr_raw-sum(self.fit_params_high[i]*volt**(fitindex-1-i) for i in range(fitindex))
 
         return value
-
     @property
     def number(self) -> int:
         """Channel number"""
@@ -1916,7 +1918,7 @@ class Arrangement_Context:
         return f'(@{channels_str})'
 
     def currents_A(self, nplc: int = 1, current_range: str = "low") -> Sequence[float]:
-        """Measure currents on all contacts
+        """Measure currents on all contacts. Note: uncalibrated current! Large error if high resistive load
 
         Args:
             nplc (int, optional): Number of powerline cycles to average over
@@ -2146,6 +2148,8 @@ class QDac2(VisaInstrument):
         self._check_for_wrong_model()
         self._check_for_incompatiable_firmware()
         self._set_up_manual_triggers()
+        self._gui_open = False
+        self._snapped = False
 
 
     def n_channels(self) -> int:
@@ -2514,9 +2518,14 @@ class QDac2(VisaInstrument):
         for i in range(24):
             print('ch{:.0f}: {} A'.format(i+1,self.channels[i].curr()))
 
-    def set_multiple_voltages(self,voltage,channel_list=[i+1 for i in range(24)],steps=1):
+    def set_multiple_voltages(self,voltage,channel_list=[i+1 for i in range(24)],steps=1,step_time=0.03):
         for channel_num in channel_list:
-            param_move(self.channel(channel_num).volt,voltage,steps)
+            if steps>1:
+                start_value = self.channel(channel_num).volt()
+                for i in range(0,steps):
+                    self.channel(channel_num).volt(start_value + (voltage - start_value)/steps * i)
+                    time.sleep(step_time)
+            self.channel(channel_num).volt(voltage) #Leave this redundancy, since it absolutely ensures output arrives at final value
 
     def set_multiple_channels(self,parameter,value,channel_list=[i+1 for i in range(24)]):
         for channel_num in channel_list:
@@ -2526,27 +2535,26 @@ class QDac2(VisaInstrument):
         for channel_num in channel_list:
             print('ch'+str(channel_num).zfill(2)+': '+str(self.channel(channel_num).parameters[parameter]()))
 
-    def calibrate_currents(self,channel_list=0,lowcurrent=True,highcurrent=True,nplc=2,numdatapoints=1001,fitindex=10,plot_results=False,overwrite_latest=True,base_folder=0):
+    def calibrate_currents(self,channel_list=0,lowcurrent=True,highcurrent=True,nplc=2,numdatapoints=1001,fitindex=10,update_latest=True,datafolder=0):
     
         #This procedure calibrates the open circuit current of a QDevil QDac-II. 
-        #Due to common mode error, each channel measures a unique, voltage dependent current in open circuit which must be corrected for.
+        #Due to common mode error, each channel measures a unique, voltage dependent current in open circuit
+        #The calibration procedure measures the uncalibrated I vs V for each channel and corrects for it when using curr().
         #Before running the calibration, remove all loads from the outputs.
-        #
-        loc_folder=os.path.dirname(__file__)
-        if base_folder==0:
-            base_folder=loc_folder+'/calibrations/'
 
-        internal_station=Station(self)
-        
-        originaldatafmt=DataSet.location_provider.fmt
+        loc_folder=os.path.dirname(__file__)
+        if datafolder==0:
+            datafolder='C:/Users/'+os.getlogin()+'/AppData/Local/qcodes-elab/qdac_calibrations'
+        if os.path.exists(datafolder)==False:
+            os.makedirs(datafolder,exist_ok=True)
 
         if channel_list==0:
             channel_list=[i+1 for i in range(24)]
-        print('Calibrating '+str(self.name)+', a QDacII with serial number '+self.serial+'. Channels '+str(channel_list))
+        print('Calibrating currents on QDacII serial number '+self.serial+'.\nChannels '+str(channel_list))
         print('Ensure nothing is connected to these outputs! Outputs will sweep +/- 10 V')
         
         print('Saving initial configuration')
-        initialconfig=self.snapshot()
+        initialconfig=self.snapshot(update=True)
         
         for i,channel in enumerate(channel_list):
             channel_list[i]=str(channel_list[i]).zfill(2)
@@ -2560,115 +2568,98 @@ class QDac2(VisaInstrument):
             self.channel(channel).measurement_count(1)
             self.channel(channel).measurement_nplc(nplc)
 
-        def set_qdac_multiple(val):
-            for channel in channel_list:
-                self.channel(channel).volt(val)
-        def get_qdac_multiple():
-            return self.channel(channel_list[0]).volt()
-        qdac_multiple=Parameter(name='qdac_multiple',label='Voltage',unit='V',set_cmd=set_qdac_multiple,get_cmd=get_qdac_multiple)
+        def calibration_procedure(curr_range):
+            capsdic={'low':'LOW',
+                    'high':'HIGH'}
 
+            print(f'Running calibration for {curr_range} current range:')
+
+            #Get the channels set-up for the starting point
+            for channel in channel_list:
+                self.channel(channel).curr_range(capsdic[curr_range])
+            self.set_multiple_voltages(-10,channel_list)
+            time.sleep(5)
+
+            #Measure uncalibrated currents as a function of output voltage from -10 to 10 with resolution specified in numdatapoints
+            setpoints=np.linspace(-10,10,num=numdatapoints)
+            measure_array=np.zeros((np.shape(channel_list)[0]+1,numdatapoints))
+            measure_array[0,:]=setpoints
+            wait_time=self.channel(channel_list[0]).measurement_aperture_s()*2 #Ensures the measurement doesn't run faster than the aperture
+            for j in tqdm(range(numdatapoints), bar_format='{l_bar}{bar}{r_bar}. Estimated finish time: {eta}'):
+                st=time.time()
+                self.set_multiple_voltages(setpoints[j],channel_list)
+                elap=time.time()-st
+                if elap<wait_time: #Skips waiting for aperture if it already took longer to set all the voltages
+                    time.sleep(wait_time-elap)
+                for i, param in enumerate([self.channel(channel).curr_ucal for channel in channel_list]):
+                    measure_array[i+1,j]=param()
+
+            self.set_multiple_voltages(0,channel_list)
+
+            #Save the measured currents to file
+            now=time.localtime()
+            datestring=f'{now.tm_year}-{now.tm_mon}-{now.tm_mday}_{now.tm_hour}-{now.tm_min}-{now.tm_sec}'
+            filename=f'{datafolder}/{self.serial}measuredcurr_{curr_range}_{datestring}.dat'
+            header='Output_V '
+            for channel_num in channel_list:
+                header=header+f'Curr_ch{channel_num}_A '
+
+            try:
+                np.savetxt(filename,measure_array,header=header)
+                print(f'\nMeasured values for {curr_range} current range saved to')
+                print(filename)
+            except:
+                print('\nCould not save measured values to')
+                print(filename)
+
+            #Perform polynomial fits and save to dictionary
+            fit_parameters={}
+            for i,channel in enumerate(channel_list):
+                fit=np.polyfit(setpoints,measure_array[i+1], fitindex)
+                fit=fit.tolist()
+                fit_parameters[channel]={}
+                fit_parameters[channel]['fit_params']=fit
+                fit_parameters[channel]['calibration_date']=time.asctime()
+            
+            #Save the fit values dictionary to an archive file. This will NOT be used by the driver, 
+            #since in principle one can calibrate only a subset of channels
+            filename=f'{datafolder}/{self.serial}fit_params_{curr_range}_{datestring}'
+            try:
+                with open(filename+'.json','w') as f:
+                    json_dump(fit_parameters, f, indent=4)
+                print(f'\nCalibration values for {curr_range} current range saved to')
+                print(filename+'.json')
+            except:
+                print('\nCould not save calibration values to')
+                print(filename+'.json')
+
+            if update_latest==True:
+                #Update the 'latest' archive. These are the values that WILL be used by the driver, 
+                #since it preserves the values from previous calibrations if not all channels are calibrated this time
+                filename_latest=f'{loc_folder}/{self.serial}fit_params_{curr_range}_latest'
+                try: #makes a file if this is the first time calibration.
+                    with open(filename_latest+'.json', 'r') as f:
+                        loaded_data=json_load(f)
+                except:
+                    f=open(filename_latest+'.json', 'x')
+                    f.close()
+                    loaded_data={}
+                for channel in channel_list:
+                    loaded_data[channel]={}
+                    loaded_data[channel]['calibration_date']=fit_parameters[channel]['calibration_date']
+                    loaded_data[channel]['fit_params']=fit_parameters[channel]['fit_params']
+                with open(filename_latest+'.json','w') as f:
+                    json_dump(loaded_data, f, indent=4)
+                    f.close()
+                print('Calibration file '+filename_latest+'.json successfully updated')
+                
         print('Started calibration: '+time.asctime())
 
-        internal_station.set_measurement(*[self.channel(channel).curr_ucal for channel in channel_list])
-
         if lowcurrent==True:
-            set_data_format(fmt=base_folder+'serial'+self.serial+'/{date}/low/#{counter}_{name}_{date}_{time}')
-            fit_parameters_low={}
-            if plot_results==True:
-                pp_low=Plot()
-            print('Running calibration for low current range')
-            
-            param_move(qdac_multiple,-10,10)
-            time.sleep(10)
-            loop=Loop(qdac_multiple.sweep(-10,10,num=numdatapoints,print_warning=False),delay=self.channel(channel_list[0]).measurement_aperture_s()*2).each(*internal_station.measure())
-            data=loop.get_data_set(name='QDac#{} calibration low current'.format(self.serial,channel))
+            calibration_procedure('low')
 
-            for i,channel in enumerate(channel_list):
-                self.channel(channel).curr_range('LOW')
-                if plot_results==True:
-                    data.publisher=pp_low
-                    pp_low.add(data.arrays[self.name+'_ch'+channel+'_curr_ucal'],name='low_curr_ucal',title='ch'+channel,subplot=i)
-
-            loop.run(station=internal_station,quiet=True,progress_interval=300)
-            param_move(qdac_multiple,0,10)
-
-            for channel in channel_list:
-                fit=np.polyfit(data.arrays['qdac_multiple_set'],data.arrays[self.name+'_ch'+channel+'_curr_ucal'], fitindex)
-                fit=fit.tolist()
-                fit_parameters_low[channel]={}
-                fit_parameters_low[channel]['fit_params']=fit
-                fit_parameters_low[channel]['calibration_date']=str(date.today())
-            
-            filename=base_folder+'serial'+self.serial+'/'+str(date.today())+'/low/'+self.serial+'fit_params_low_'+str(date.today())
-            with open(filename+'.json','w') as f:
-                json_dump(fit_parameters_low, f, indent=4)
-            print('\nLow current calibration values saved to')
-            print(filename+'.json')
-            if overwrite_latest==True:
-                filename_latest=loc_folder+'\\'+self.serial+'fit_params_low_latest'
-                try: #makes a file if this is the first time calibration.
-                    with open(filename_latest+'.json', 'r') as f:
-                        loaded_data_low=json_load(f)
-                except:
-                    f=open(filename_latest+'.json', 'x')
-                    f.close()
-                    loaded_data_low={}
-                for channel in channel_list:
-                    loaded_data_low[channel]={}
-                    loaded_data_low[channel]['calibration_date']=fit_parameters_low[channel]['calibration_date']
-                    loaded_data_low[channel]['fit_params']=fit_parameters_low[channel]['fit_params']
-                with open(filename_latest+'.json','w') as f:
-                    json_dump(loaded_data_low, f, indent=4)
-                print('and '+filename_latest+' updated')
-                
         if highcurrent==True:
-            set_data_format(fmt=base_folder+'serial'+self.serial+'/{date}/high/#{counter}_{name}_{date}_{time}')
-            fit_parameters_high={}
-            if plot_results==True:
-                pp_high=Plot()
-            print('Running calibration for high current range:')
-
-            param_move(qdac_multiple,-10,10)
-            time.sleep(10)
-            loop=Loop(qdac_multiple.sweep(-10,10,num=numdatapoints,print_warning=False),delay=self.channel(channel_list[0]).measurement_aperture_s()*2).each(*internal_station.measure())
-            data=loop.get_data_set(name='QDac#{} calibration high current'.format(self.serial,channel))
-
-            for i,channel in enumerate(channel_list):
-                self.channel(channel).curr_range('HIGH')
-                if plot_results==True:
-                    data.publisher=pp_high
-                    pp_high.add(data.arrays[self.name+'_ch'+channel+'_curr_ucal'],name='high_curr_ucal',title='ch'+channel,subplot=i)
-            loop.run(station=internal_station,quiet=True,progress_interval=300)
-            param_move(qdac_multiple,0,10)
-
-            for channel in channel_list:
-                fit=np.polyfit(data.arrays['qdac_multiple_set'],data.arrays[self.name+'_ch'+channel+'_curr_ucal'], fitindex)
-                fit=fit.tolist()
-                fit_parameters_high[channel]={}
-                fit_parameters_high[channel]['fit_params']=fit
-                fit_parameters_high[channel]['calibration_date']=str(date.today())
-
-            filename=base_folder+'serial'+self.serial+'/'+str(date.today())+'/high/'+self.serial+'fit_params_high_'+str(date.today())
-            with open(filename+'.json','w') as f:
-                json_dump(fit_parameters_high, f, indent=4)
-            print('\nHigh current calibration values saved to')
-            print(filename+'.json')
-            if overwrite_latest==True:
-                filename_latest=loc_folder+'\\'+self.serial+'fit_params_high_latest'
-                try: #makes a file if this is the first time calibration.
-                    with open(filename_latest+'.json', 'r') as f:
-                        loaded_data_high=json_load(f)
-                except:
-                    f=open(filename_latest+'.json', 'x')
-                    f.close()
-                    loaded_data_high={}
-                for channel in channel_list:
-                    loaded_data_high[channel]={}
-                    loaded_data_high[channel]['calibration_date']=fit_parameters_high[channel]['calibration_date']
-                    loaded_data_high[channel]['fit_params']=fit_parameters_high[channel]['fit_params']
-                with open(filename_latest+'.json','w') as f:
-                    json_dump(loaded_data_high, f, indent=4)
-                print('and '+filename_latest+' updated')
+            calibration_procedure('high')
             
         print('Returning qdac to initial configuration')
         for i,channel in enumerate(channel_list):
@@ -2678,91 +2669,438 @@ class QDac2(VisaInstrument):
             self.channel(channel).output_filter(initialconfig['submodules']['ch'+channel]['parameters']['output_filter']['raw_value'])
             self.channel(channel).measurement_count(initialconfig['submodules']['ch'+channel]['parameters']['measurement_count']['raw_value'])
             self.channel(channel).measurement_nplc(initialconfig['submodules']['ch'+channel]['parameters']['measurement_nplc']['raw_value'])
-            self.channel(channel).volt(initialconfig['submodules']['ch'+channel]['parameters']['volt']['value'])
+            self.channel(channel).volt(float(initialconfig['submodules']['ch'+channel]['parameters']['volt']['raw_value']))
 
-        set_data_format(fmt=originaldatafmt)
+        #to ensure newest calibrations used immediately
+        del self.submodules['channels']
+        for i in range(1, 24 + 1):
+            del self.submodules[f'ch{i:02}']
+
+        self._set_up_channels()
+
         print('Calibration complete at: '+time.asctime())
 
-    def linearity_test(self,channel_list=0,plot_raw=True,plot_calibrated=True,curr_range='LOW',output_range='HIGH',numdatapoints=201,nplc=2,base_folder=0):
+    def _createControlPanel(self):
+
+        # for n in range(24):
+        #     qdac.channel(n+1).curr()
+
+        root = tk.Tk()
+        root.title(f"QDac-II {self.serial} control")
+        root.geometry("1200x550")
+
+
+        controlFrame = tk.Frame(root)
+        controlFrame.pack(padx = 20, pady = 5, side = "bottom", anchor = "n")
+
+
+        #################################
+        # Create the all output quick controls menu
+        #################################
+
+        allControlsFrame = tk.Frame(controlFrame, highlightbackground = "black", highlightthickness = 1)
+        allControlsFrame.pack(padx = 20, pady = 20, side = "right", anchor = "e")
+
+
+        allControlsLabel = tk.Label(allControlsFrame, text = "All Channels", font = ("TkDefaultFont", 12, "bold"))
+        allControlsLabel.pack(anchor = "w")
+
+
+        ## Enable all current measuremnts
+        allEnableFrame = tk.Frame(allControlsFrame)
+        allEnableFrame.pack(anchor = "e")
+
+        allEnableLabel = tk.Label(allEnableFrame, text = "Enable/disable active current measurements")
+        allEnableLabel.pack(side = "left", anchor = "w")
+
+        def toggleAll():
+            for out in range(24):
+                outEnables[f"out{out+1}"].set(allEnableVar.get())
+
+        allEnableVar = tk.IntVar()
+        allEnableVar.set(0)
+        allEnableCheckButton = tk.Checkbutton(allEnableFrame, variable = allEnableVar, command = toggleAll)
+        allEnableCheckButton.pack(side = "left", anchor = "e")
+
+
+
+        ## Sweep all outputs to voltage
+
+        def threadSweep(val):
+            self.set_multiple_voltages(val, steps = 100)
+
+
+
+        def allVoltageSweep(event):
+            allEnableVar.set(0)
+            toggleAll()
+            _sweep_thread = threading.Thread(target = threadSweep, args = (allVoltageValue.get(),))
+            _sweep_thread.start()
+            # self.set_multiple_voltages(allVoltageValue.get(), steps = 100)
+            root.focus()
+
+        allVoltageFrame = tk.Frame(allControlsFrame)
+        allVoltageFrame.pack(anchor = "e")
+
+        allVoltageLabel = tk.Label(allVoltageFrame, text = "Sweep voltage to")
+        allVoltageLabel.pack(side = "left", anchor = "w")
+
+        allVoltageValue = tk.DoubleVar()
+        allVoltageEntry = tk.Entry(allVoltageFrame, textvariable = allVoltageValue)
+        allVoltageEntry.pack(side = "left", anchor = "e")
+
+        allVoltageUnitLabel = tk.Label(allVoltageFrame, text = "V")
+        allVoltageUnitLabel.pack(side = "left", anchor = "e")
+
+        allVoltageEntry.bind("<Return>", allVoltageSweep)
+
+
+
+        ## Set the integration time of the current measurement for all channels
+        def setAllMeasAperture(event):
+            aperture = allMeasApertureValue.get()
+            nplc = round(aperture * 50)
+            self.set_multiple_channels("measurement_nplc", nplc)
+            root.focus()
         
-        loc_folder=os.path.dirname(__file__)
-        if base_folder==0:
-            base_folder=loc_folder+'/calibrations/'
+        allMeasApertureFrame = tk.Frame(allControlsFrame)
+        allMeasApertureFrame.pack(anchor = "e")
+
+        allMeasApertureLabel = tk.Label(allMeasApertureFrame, text = "Measurement aperture:")
+        allMeasApertureLabel.pack(side = "left", anchor = "w")
+
+        allMeasApertureValue = tk.DoubleVar()
+        allMeasApertureEntry = tk.Entry(allMeasApertureFrame, textvariable = allMeasApertureValue)
+        allMeasApertureEntry.pack(side = "left", anchor = "e")
+
+        allMeasApertureUnitLabel = tk.Label(allMeasApertureFrame, text = "s")
+        allMeasApertureUnitLabel.pack(side = "left", anchor = "e")
+
+        allMeasApertureEntry.bind("<Return>", setAllMeasAperture)
+
+
+
+        ## Set the measurement range of all outputs
+
+        def setAllCurrentRange(rnge):
+            self.set_multiple_channels("curr_range", rnge)
+
+
+        allRangeFrame = tk.Frame(allControlsFrame)
+        allRangeFrame.pack(anchor = "e")
+
+        allRangeLabel = tk.Label(allRangeFrame, text = "Set measurement range to:")
+        allRangeLabel.pack(side = "left", anchor = "w", padx = 5)
+
+        allRangeLowButton = tk.Button(allRangeFrame, text = "LOW", command = lambda r = "LOW": setAllCurrentRange(r))
+        allRangeLowButton.pack(side = "left", anchor = "e", padx = 5)
+
+        allRangeHighButton = tk.Button(allRangeFrame, text = "HIGH", command = lambda r = "HIGH": setAllCurrentRange(r))
+        allRangeHighButton.pack(side = "left", anchor = "e", padx = 5)
+
+
+        ## Set the output range of all outputs
+
+        def setAllVoltRange(rnge):
+            self.set_multiple_channels("output_range", rnge)
+
+
+        allOutputRangeFrame = tk.Frame(allControlsFrame)
+        allOutputRangeFrame.pack(anchor = "e")
+
+        allOutputRangeLabel = tk.Label(allOutputRangeFrame, text = "Set output range to:")
+        allOutputRangeLabel.pack(side = "left", anchor = "w", padx = 5)
+
+        allOutputRangeLowButton = tk.Button(allOutputRangeFrame, text = "LOW", command = lambda r = "LOW": setAllVoltRange(r))
+        allOutputRangeLowButton.pack(side = "left", anchor = "e", padx = 5)
+
+        allOutputRangeHighButton = tk.Button(allOutputRangeFrame, text = "HIGH", command = lambda r = "HIGH": setAllVoltRange(r))
+        allOutputRangeHighButton.pack(side = "left", anchor = "e", padx = 5)
+
+
+        ## Set the filter of all outputs
+
+        def setAllFilter(fltr):
+            self.set_multiple_channels("output_filter", fltr)
+
+
+        allFilterFrame = tk.Frame(allControlsFrame)
+        allFilterFrame.pack(anchor = "e")
+
+        allFilterLabel = tk.Label(allFilterFrame, text = "Set filter to:")
+        allFilterLabel.pack(side = "left", anchor = "w", padx = 5)
+
+        allFilterDCButton = tk.Button(allFilterFrame, text = "DC", command = lambda f = "DC": setAllFilter(f))
+        allFilterDCButton.pack(side = "left", anchor = "e", padx = 5)
+
+        allFilterMedButton = tk.Button(allFilterFrame, text = "MED", command = lambda f = "MED": setAllFilter(f))
+        allFilterMedButton.pack(side = "left", anchor = "e", padx = 5)
+
+        allFilterHighButton = tk.Button(allFilterFrame, text = "HIGH", command = lambda f = "HIGH": setAllFilter(f))
+        allFilterHighButton.pack(side = "left", anchor = "e", padx = 5)
+
+
+
+        #################################
+        # Create the output options menu
+        #################################
+
+        optionsFrame = tk.Frame(controlFrame, highlightbackground = "black", highlightthickness = 1)
+        optionsFrame.pack(padx = 20, pady = 20, side = "left", anchor = "w")
+
+
+        ## Select an output to view and edit parameters
+        selectedOut = tk.IntVar()
+
+        selectedOutStr = tk.StringVar()
+        selectedOutLabel = tk.Label(optionsFrame, textvariable = selectedOutStr, font = ("TkDefaultFont", 12, "bold"))
+        selectedOutLabel.pack(anchor = "w")
+
+
+
+        ## Set the output voltage of a channel
+
+        def setVoltage(event):
+            self.channel(selectedOut.get()).volt(voltOutValue.get())
+            root.focus()
         
-        internal_station=Station(self)
+        voltOutFrame = tk.Frame(optionsFrame)
+        voltOutFrame.pack(anchor = "w")
+
+        voltOutLabel = tk.Label(voltOutFrame, text = "Output voltage:")
+        voltOutLabel.pack(side = "left", anchor = "w")
+
+        voltOutValue = tk.DoubleVar()
+        voltOutEntry = tk.Entry(voltOutFrame, textvariable = voltOutValue)
+        voltOutEntry.pack(side = "left", anchor = "w")
+
+        voltOutUnitLabel = tk.Label(voltOutFrame, text = "V")
+        voltOutUnitLabel.pack(side = "left", anchor = "w")
+
+        voltOutEntry.bind("<Return>", setVoltage)
+
+
+
+        ## Set the integration time of the current measurement
+        def setMeasAperture(event):
+            aperture = measApertureValue.get()
+            nplc = round(aperture * 50)
+            self.channel(selectedOut.get()).measurement_nplc(nplc)
+            root.focus()
         
-        initialconfig=self.snapshot()
-        originaldatafmt=DataSet.location_provider.fmt
-        set_data_format(fmt=originaldatafmt)
+        measApertureFrame = tk.Frame(optionsFrame)
+        measApertureFrame.pack(anchor = "w")
+
+        measApertureLabel = tk.Label(measApertureFrame, text = "Measurement aperture:")
+        measApertureLabel.pack(side = "left", anchor = "w")
+
+        measApertureValue = tk.DoubleVar()
+        measApertureEntry = tk.Entry(measApertureFrame, textvariable = measApertureValue)
+        measApertureEntry.pack(side = "left", anchor = "w")
+
+        measApertureUnitLabel = tk.Label(measApertureFrame, text = "s")
+        measApertureUnitLabel.pack(side = "left", anchor = "w")
+
+        measApertureEntry.bind("<Return>", setMeasAperture)
+
+
+
+
+        ## Set current range option on selected output
+        def setCurrentRange(range):
+            self.channel(selectedOut.get()).curr_range(range)
+
+
+        currRangeFrame = tk.Frame(optionsFrame)
+        currRangeFrame.pack(anchor = "w")
+
+        currRangeLabel = tk.Label(currRangeFrame, text = "Current measurement range:")
+        currRangeLabel.pack(side = "left", anchor = "w")
+
+        currRange = tk.StringVar()
+        currRangeSelect = tk.OptionMenu(currRangeFrame, currRange, "HIGH", "LOW", command = lambda range: setCurrentRange(currRange.get()))
+        currRangeSelect.pack(anchor = "w")
+
+
+        ## Set voltage output range option on selected output
+        def setOutputRange(range):
+            self.channel(selectedOut.get()).output_range(range)
+
+            if outputRange.get() == "HIGH":
+                outputRangeInfoVar.set(u"\u00B1" + "10 V")
+            elif outputRange.get() == "LOW":
+                outputRangeInfoVar.set(u"\u00B1" + "2 V")
+
+
+        outputRangeFrame = tk.Frame(optionsFrame)
+        outputRangeFrame.pack(anchor = "w")
+
+        outputRangeLabel = tk.Label(outputRangeFrame, text = "Voltage output range:")
+        outputRangeLabel.pack(side = "left", anchor = "w")
+
+        outputRange = tk.StringVar()
+        outputRangeSelect = tk.OptionMenu(outputRangeFrame, outputRange, "HIGH", "LOW", command = lambda range: setOutputRange(outputRange.get()))
+        outputRangeSelect.pack(side = "left", anchor = "w")
+
+        outputRangeInfoVar = tk.StringVar()
+        outputRangeInfo = tk.Label(outputRangeFrame, textvariable = outputRangeInfoVar)
+        outputRangeInfo.pack(side = "left", anchor = "w")
+
+
+
+        ## Set output filter on the selected channel
+        def setOutputFilter(fltr):
+            self.channel(selectedOut.get()).output_filter(fltr)
+
+
+
+        outputFilterFrame = tk.Frame(optionsFrame)
+        outputFilterFrame.pack(anchor = "w")
+
+        outputFilterLabel = tk.Label(outputFilterFrame, text = "Output filter:")
+        outputFilterLabel.pack(side = "left", anchor = "w")
+
+        outputFilter = tk.StringVar()
+        filterVals = ["DC", "MED", "HIGH"] 
+        outputFilterSelect = tk.OptionMenu(outputFilterFrame, outputFilter, *filterVals, command = lambda fltr: setOutputFilter(outputFilter.get()))
+        outputFilterSelect.pack(side = "left", anchor = "w")
+
+    
+
+
+        ## Update the options panel with the selected output parameters
+        def outSelect(out):
+            selectedOut.set(out)
+            selectedOutStr.set(f"Out{selectedOut.get()}")
+            voltOutValue.set(self.channel(selectedOut.get()).volt._latest["value"])
+            measApertureValue.set(self.channel(selectedOut.get()).measurement_nplc._latest["value"]/50)
+            currRange.set(self.channel(selectedOut.get()).curr_range._latest["value"])
+            outputRange.set(self.channel(selectedOut.get()).output_range._latest["value"])
+            outputFilter.set(self.channel(selectedOut.get()).output_filter._latest["value"])
+
+            if outputRange.get() == "HIGH":
+                outputRangeInfoVar.set(u"\u00B1" + "10 V")
+            elif outputRange.get() == "LOW":
+                outputRangeInfoVar.set(u"\u00B1" + "2 V")
+
+
         
-        if channel_list==0:
-            channel_list=[i+1 for i in range(24)]
+
+        #################################
+        ## Create the output menu
+        #################################
+
+        outFrame = tk.Frame(root, bd = 3, highlightbackground = "black", highlightthickness = 1)
+        outFrame.pack(pady = 5)
         
-        for i,channel in enumerate(channel_list):
-            channel_list[i]=str(channel_list[i]).zfill(2)
+
+        outFrames = {}
+        outButtons = {}
+        outVolts = {}
+        outAmps = {}
+        outVoltsLabels = {}
+        outAmpsLabels = {}
+        outEnables = {}
+        outCheckButtons = {}
+
+        outAmpGetters = {}
+
+
+        
+        for out in range(24):
             
-        qdaccurrents=[self.channel(channel).curr for channel in channel_list]
-
-        def set_qdac_multiple(val):
-            for channel in channel_list:
-                self.channel(channel).volt(val)
-        def get_qdac_multiple():
-            return self.channel(channel_list[0]).volt()
-        qdac_multiple=Parameter(name='qdac_multiple',label='Voltage',unit='V',set_cmd=set_qdac_multiple,get_cmd=get_qdac_multiple)
-        
-        if plot_raw==True or plot_calibrated==True:
-            pp=Plot()
-            plotting=True
-        else:
-            plotting=False
-        
-        set_data_format(fmt=base_folder+'serial'+self.serial+'/lin_tests/{date}/#{counter}_{name}_{date}_{time}')
-        
-        for i,channel in enumerate(channel_list):
-            self.channel(channel).curr_range(curr_range)
-            self.channel(channel).dc_mode('FIX')
-            self.channel(channel).volt(0)
-            self.channel(channel).measurement_nplc(nplc)
-            self.channel(channel).measurement_count(1)
-            self.channel(channel).output_range(output_range)
-            self.channel(channel).output_filter('HIGH')
+            outFrames[f"out{out+1}"] = tk.Frame(outFrame)
             
-        internal_station.set_measurement(*[self.channel(channel).curr_ucal for channel in channel_list],*qdaccurrents)
-
-        if output_range=='LOW':
-            start=-2
-            stop=2
-            param_move(qdac_multiple,-2,10)
-            time.sleep(10)
-        elif output_range=='HIGH':
-            start=-10
-            stop=10
-            param_move(qdac_multiple,-10,10)
-            time.sleep(10)
-        else:
-            print('Imporperly defined output range. Use output_range=\'LOW\' or \'HIGH\'' )
-
-        loop=Loop(qdac_multiple.sweep(start=start,stop=stop,num=numdatapoints,print_warning=False),delay=self.channel(channel_list[0]).measurement_aperture_s()*2).each(*internal_station.measure())
-        data=loop.get_data_set(name='QDac#{} lin_test output_range {}'.format(self.serial,channel,output_range))
-
-        if plotting==True:
-            data.publisher=pp
-            if plot_raw==True:
-                for i,channel in enumerate(channel_list):
-                    pp.add(data.arrays[self.name+'_ch'+channel+'_curr_ucal'],name='uncalibrated',title='ch'+channel,subplot=i)
-            if plot_calibrated==True:
-                for i,channel in enumerate(channel_list):
-                    pp.add(data.arrays[self.name+'_ch'+channel+'_curr'],name='calibrated',title='ch'+channel,subplot=i)
-
-        loop.run(station=internal_station,quiet=True,progress_interval=300)
-         
-        for channel in channel_list:   
-            self.channel(channel).curr_range(initialconfig['submodules']['ch'+channel]['parameters']['curr_range']['raw_value'])
-            self.channel(channel).dc_mode(initialconfig['submodules']['ch'+channel]['parameters']['dc_mode']['raw_value'])
-            self.channel(channel).output_range(initialconfig['submodules']['ch'+channel]['parameters']['output_range']['raw_value'])
-            self.channel(channel).output_filter(initialconfig['submodules']['ch'+channel]['parameters']['output_filter']['raw_value'])
-            self.channel(channel).measurement_count(initialconfig['submodules']['ch'+channel]['parameters']['measurement_count']['raw_value'])
-            self.channel(channel).measurement_nplc(initialconfig['submodules']['ch'+channel]['parameters']['measurement_nplc']['raw_value'])
-            self.channel(channel).volt(initialconfig['submodules']['ch'+channel]['parameters']['volt']['value'])
+            outEnables[f"out{out+1}"] = tk.IntVar()
+            outEnables[f"out{out+1}"].set(0)
+            outCheckButtons[f"out{out+1}"] = tk.Checkbutton(outFrames[f"out{out+1}"], variable = outEnables[f"out{out+1}"])
         
-        set_data_format(fmt=originaldatafmt)
+            outButtons[f"out{out+1}"] = tk.Button(outFrames[f"out{out+1}"], text = f"Out{out+1}", command = lambda o=out+1: outSelect(o))
+
+            outVolts[f"out{out+1}"] = tk.StringVar()
+            outVolts[f"out{out+1}"].set(f"V: - V")
+            outVoltsLabels[f"out{out+1}"] = tk.Label(outFrames[f"out{out+1}"], textvariable = outVolts[f"out{out+1}"], width = 15, anchor = "n", justify = "center")
+
+            outAmps[f"out{out+1}"] = tk.StringVar()
+            outAmps[f"out{out+1}"].set(f"I: - uA")
+            outAmpsLabels[f"out{out+1}"] = tk.Label(outFrames[f"out{out+1}"], textvariable = outAmps[f"out{out+1}"], width = 15, anchor = "n", justify = "center")
+
+            outAmpGetters[f"out{out+1}"] = GetLatest(self.channel(out+1).curr, max_val_age = 0.3)
+
+            outCheckButtons[f"out{out+1}"].pack()
+            outButtons[f"out{out+1}"].pack()
+            outVoltsLabels[f"out{out+1}"].pack()
+            outAmpsLabels[f"out{out+1}"].pack()
+
+        for row in range(3):
+            for col in range(8):
+                outFrames[f"out{row*8 + col + 1}"].grid(row=row, column = col, padx = 5,  pady = 5, ipadx = 10, sticky = "n")
+
+    
+        outButtons["out1"].invoke() ## This just defaults the selected output to out 1 so I don't have to have initial values
+
+
+
+        #################################
+        ## Handle window closing. Kill thread and allow opening a new controlpanel without having to restart kernel
+        #################################
+        def windowClose():
+            self._gui_open = False
+            root.quit()
+            root.destroy()
+
+        root.protocol("WM_DELETE_WINDOW", windowClose)
+
+
+        #################################
+        ## Main update loop
+        #################################
+
+        while self._gui_open:
+
+            # Update options frame
+            if root.focus_get() != voltOutEntry:
+                voltOutValue.set(self.channel(selectedOut.get()).volt._latest["value"])
+
+            if root.focus_get() != measApertureEntry:    
+                measApertureValue.set(self.channel(selectedOut.get()).measurement_nplc._latest["value"]/50)
+
+            currRange.set(self.channel(selectedOut.get()).curr_range._latest["value"])
+            outputRange.set(self.channel(selectedOut.get()).output_range._latest["value"])
+            outputFilter.set(self.channel(selectedOut.get()).output_filter._latest["value"])
+
+            if outputRange.get() == "HIGH":
+                outputRangeInfoVar.set(u"\u00B1" + "10 V")
+            elif outputRange.get() == "LOW":
+                outputRangeInfoVar.set(u"\u00B1" + "2 V")
+            
+            # Update output frame
+            for out in range(24):
+                if outEnables[f"out{out+1}"].get() == 1:
+                    outVolts[f"out{out+1}"].set(f"V: {self.channel(out+1).volt.get_latest():.2f} V")
+                    # outAmps[f"out{out+1}"].set(f"I: {self.channel(out+1).current_last_A()*1E6:.2f} uA")
+                    outAmps[f"out{out+1}"].set(f"I: {outAmpGetters[f'out{out+1}']()*1E6:.2f} uA")
+                else:
+                    outVolts[f"out{out+1}"].set(f"V: {self.channel(out+1).volt.get_latest():.2f} V")
+                    # outAmps[f"out{out+1}"].set(f"I: - uA")
+                    outAmps[f"out{out+1}"].set("I: {:.2f} uA".format(self.channel(out+1).curr._latest["value"]*1E6))
+
+
+                root.after(0, root.update())
+
+
+
+        root.mainloop()
+
+        
+    def openControlPanel(self):
+        if not self._gui_open:
+            if not self._snapped:
+                self.snapshot(update = True)
+                self._snapped = True 
+                
+            self.gui_thread = threading.Thread(target = self._createControlPanel)
+            self.gui_thread.start()
+            self._gui_open = True
+        else:
+            raise RuntimeError("GUI already open. If it's not, set qdac._gui_open = False. I am not a real developer.")
