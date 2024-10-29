@@ -62,7 +62,7 @@ This does a couple of things; it creates an 'environment' that is effectively a 
 
 - Optionally install useful packages from the anaconda prompt:
 
-	pip install zhinst scipy jupyterlab tqdm
+	pip install scipy jupyterlab zhinst
 
 You can now run qcodes in jupyter notebook or jupyter lab by opening the anaconda prompt, and typing
 
