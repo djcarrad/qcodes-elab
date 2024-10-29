@@ -1,0 +1,27 @@
+numpy>=1.10
+pyqtgraph
+matplotlib
+PyQt5
+ipykernel
+jupyter
+pyvisa
+h5py>=2.6
+websockets>=3.2
+jsonschema
+pyzmq
+wrapt
+pyserial
+pandas
+tqdm
+
+[MatPlot]
+matplotlib>=2.2.3
+
+[QtPlot]
+pyqtgraph>=0.10.0
+
+[Slack]
+slacker>=0.9.42
+
+[coverage tests]
+coverage>=4.0

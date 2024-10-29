@@ -9,12 +9,6 @@ qcodes/loops.py
 qcodes/measure.py
 qcodes/station.py
 qcodes/version.py
-qcodes.egg-info/PKG-INFO
-qcodes.egg-info/SOURCES.txt
-qcodes.egg-info/dependency_links.txt
-qcodes.egg-info/not-zip-safe
-qcodes.egg-info/requires.txt
-qcodes.egg-info/top_level.txt
 qcodes/config/__init__.py
 qcodes/config/config.py
 qcodes/config/qcodesrc.json
@@ -326,3 +320,9 @@ qcodes/utils/slack.py
 qcodes/utils/threading.py
 qcodes/utils/validators.py
 qcodes/utils/zmq_helpers.py
+qcodes_elab.egg-info/PKG-INFO
+qcodes_elab.egg-info/SOURCES.txt
+qcodes_elab.egg-info/dependency_links.txt
+qcodes_elab.egg-info/not-zip-safe
+qcodes_elab.egg-info/requires.txt
+qcodes_elab.egg-info/top_level.txt

@@ -1,5 +1,5 @@
 Metadata-Version: 2.1
-Name: qcodes
+Name: qcodes-elab
 Version: 1.0.0
 Summary: Python-based data acquisition framework developed by the Copenhagen / Delft / Sydney / Microsoft quantum computing consortium. Forked for use in DTU elab
 Home-page: https://github.com/djcarrad/qcodes-elab
