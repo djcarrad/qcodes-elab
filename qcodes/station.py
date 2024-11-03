@@ -7,7 +7,7 @@ from qcodes.utils.metadata import Metadatable
 from qcodes.utils.helpers import make_unique, DelegateAttributes
 
 from qcodes.instrument.base import Instrument
-from qcodes.instrument.parameter import Parameter
+from qcodes.instrument.parameter import Parameter, MultiParameter, _BaseParameter
 from qcodes.instrument.parameter import ManualParameter
 from qcodes.instrument.parameter import StandardParameter
 from qcodes.instrument.parameter import ElapsedTimeParameter
@@ -113,9 +113,7 @@ class Station(Metadatable, DelegateAttributes):
                     snap['instruments'][name] = itm.snapshot(update=update)
                 else:
                     components_to_remove.append(name)
-            elif isinstance(itm, (Parameter,
-                                  ManualParameter,
-                                  StandardParameter
+            elif isinstance(itm, (_BaseParameter
                                   )):
                 snap['parameters'][name] = itm.snapshot(update=update)
             else:
@@ -152,12 +150,12 @@ class Station(Metadatable, DelegateAttributes):
         if add_parameters==True:
             if 'parameters' in self.snapshot_base():
                 for variable in variables:
-                    if isinstance(variables[variable],Parameter):
+                    if isinstance(variables[variable],_BaseParameter):
                         if variables[variable].name not in self.snapshot_base()['parameters']:
                             self.add_component(variables[variable],update_snapshot=update_snapshot)
             else:
                 for variable in variables:
-                    if isinstance(variables[variable],Parameter):
+                    if isinstance(variables[variable],_BaseParameter):
                         self.add_component(variables[variable],update_snapshot=update_snapshot)
 
             if 'parameters' not in self.snapshot_base():
