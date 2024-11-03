@@ -64,7 +64,7 @@ class ZIMFLI(Instrument):
     def print_scope_chaninputs(self):
         print(self.scopechaninputs)
 
-    def __init__(self, name, serial, server="local",digi=False, **kwargs):
+    def __init__(self, name, serial, server="local",digi=False,port=8004, **kwargs):
 
         self.LI = {
             "numSigouts": 1,   # number of signal outputs
@@ -79,12 +79,13 @@ class ZIMFLI(Instrument):
 
         begin_time=time.time()
         global daq
+        self.port=port
         
         if server == "internal":
-            self.daq = ziDAQServer('mf-{}'.format(serial), 8004, 6)  
+            self.daq = ziDAQServer('mf-{}'.format(serial), self.port, 6)  
             # Option to run the LabOne server either the instrument, ('internal') or on the computer ('local'). Local usually preferred.
         elif server == "local":
-            self.daq = ziDAQServer('localhost', 8004, 6)
+            self.daq = ziDAQServer('localhost', self.port, 6)
         else:
             raise ValueError('Server should be either internal or local')
         super().__init__(name, **kwargs)

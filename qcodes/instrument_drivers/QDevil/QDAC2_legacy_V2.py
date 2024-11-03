@@ -1752,37 +1752,6 @@ class Arrangement_Context:
         self._allocate_triggers(internal_triggers, output_triggers)
         self._correction = np.identity(self.shape)
 
-        #Load current calibrations into memory
-        self.loc_folder=os.path.dirname(__file__)
-
-        self.curr_fit_params_high={}
-        self.curr_fit_params_low={}
-        self.init_voltages={}
-        self.init_curr_ranges={}
-
-        try:
-            with open(self.loc_folder+'/'+self._qdac.serial+'fit_params_low_latest.json','r') as f:
-                self.loaded_data_low=json_load(f)
-                for channum in self.channel_numbers:
-                    self.curr_fit_params_low[f'ch{channum}_calibration_date_low']=self.loaded_data_low[str(channum).zfill(2)]['calibration_date']
-                    self.curr_fit_params_low[f'ch{channum}_fit_params_low']=self.loaded_data_low[str(channum).zfill(2)]['fit_params']
-            f.close()
-        except:
-            warnings.warn(f'Calibration files for low current range not found.\nRun calibrate_currents() to calibrate the currents now.\nYou can use curr_ucal but it will be highly inaccurate for large resistive loads.')
-        try:
-            with open(self.loc_folder+'/'+self._qdac.serial+'fit_params_high_latest.json','r') as f:
-                self.loaded_data_high=json_load(f)
-                for channum in self.channel_numbers:
-                    self.curr_fit_params_high[f'ch{channum}_calibration_date_high']=self.loaded_data_high[str(channum).zfill(2)]['calibration_date']
-                    self.curr_fit_params_high[f'ch{channum}_fit_params_high']=self.loaded_data_high[str(channum).zfill(2)]['fit_params']
-            f.close()
-        except:
-            warnings.warn(f'Calibration files for high current range not found.\nRun calibrate_currents() to calibrate the currents now.\nYou can use curr_ucal but it will be highly inaccurate for large resistive loads.')
-
-        for channum in self.channel_numbers:
-            self.init_voltages[f'{channum}_init_volt']=self._qdac.channel(channum).volt()
-            self.init_curr_ranges[f'{channum}_init_curr_range']=self._qdac.channel(channum).curr_range()
-
     def __enter__(self):
         return self
 
@@ -1948,28 +1917,8 @@ class Arrangement_Context:
         channels_str = ints_to_comma_separated_list(self.channel_numbers)
         return f'(@{channels_str})'
 
-    def currents_A(self) -> Sequence[float]:
-        """Measure currents on all contacts using calibration. Note: Assumes nplc and curr_range set properly previously.
 
-        """
-        channels_suffix = self._all_channels_as_suffix()
-        currents = self._qdac.ask(f'read? {channels_suffix}')
-        currents_raw=comma_sequence_to_list_of_floats(currents)
-        
-        calibrated_currents=[]
-
-        for k,channel in enumerate(self.channel_numbers):
-            volt = self._qdac.channel(channel).volt.get_latest()
-            if self._qdac.channel(channel).curr_range.get_latest()=='LOW':
-                fitindex=np.shape(self.curr_fit_params_low[f'ch{channel}_fit_params_low'])[0]
-                calibrated_currents.append(currents_raw[k]-sum(self.curr_fit_params_low[f'ch{channel}_fit_params_low'][i]*volt**(fitindex-1-i) for i in range(fitindex)))
-            else:
-                fitindex=np.shape(self.curr_fit_params_high[f'ch{channel}_fit_params_high'])[0]
-                calibrated_currents.append(currents_raw[k]-sum(self.curr_fit_params_high[f'ch{channel}_fit_params_high'][i]*volt**(fitindex-1-i) for i in range(fitindex)))
-        return calibrated_currents
-
-
-    def currents_A_ucal(self, nplc: int = 1, current_range: str = "low") -> Sequence[float]:
+    def currents_A(self, nplc: int = 1, current_range: str = "low") -> Sequence[float]:
         """Measure currents on all contacts. Note: uncalibrated current! Large error if high resistive load
 
         Args:
@@ -2168,35 +2117,6 @@ class Arrangement_Context:
         for trigger in self._internal_triggers.values():
             self._qdac.free_trigger(trigger)
 
-class MultiCurrents_Context(MultiParameter):
-    # Class to simplify the definition of measurements of multiple currents
-    def __init__(self,qdac:'QDac2',chans,name='qdac_currents'):
-        self._chans=chans
-        self._qdac=qdac
-        names=[]
-        shapes=[]
-        labels=[]
-        units=[]
-        arrdic={}
-
-        for channel in chans:
-            names.append(f'current_ch{channel:02d}')
-            shapes.append(())
-            labels.append(f'Current ch{channel:02d}')
-            units.append('A')
-            arrdic[str(channel)]=channel
-
-        self.arrangement=Arrangement_Context(self._qdac,arrdic,internal_triggers=None,output_triggers=None)
-        
-        super().__init__(name=name, names=tuple(names), shapes=tuple(shapes))
-
-        self._instrument = self._qdac
-
-        self.labels = tuple(labels)
-        self.units = tuple(units)
-
-    def get_raw(self):
-        return(tuple(self.arrangement.currents_A()))
 
 def forward_and_back(start: float, end: float, steps: int):
     forward = np.linspace(start, end, steps)
@@ -2423,9 +2343,6 @@ class QDac2(VisaInstrument):
         """
         return Arrangement_Context(self, contacts, output_triggers,
                                    internal_triggers)
-
-    def multi_currents(self,chans):
-        return MultiCurrents_Context(self,chans)
 
     # -----------------------------------------------------------------------
     # Instrument-wide functions
@@ -3163,11 +3080,11 @@ class QDac2(VisaInstrument):
                 if outEnables[f"out{out+1}"].get() == 1:
                     outVolts[f"out{out+1}"].set(f"V: {self.channel(out+1).volt.get_latest():.2f} V")
                     # outAmps[f"out{out+1}"].set(f"I: {self.channel(out+1).current_last_A()*1E6:.2f} uA")
-                    outAmps[f"out{out+1}"].set(f"I: {outAmpGetters[f'out{out+1}']()*1E6:.6f} uA")
+                    outAmps[f"out{out+1}"].set(f"I: {outAmpGetters[f'out{out+1}']()*1E6:.2f} uA")
                 else:
                     outVolts[f"out{out+1}"].set(f"V: {self.channel(out+1).volt.get_latest():.2f} V")
                     # outAmps[f"out{out+1}"].set(f"I: - uA")
-                    outAmps[f"out{out+1}"].set("I: {:.6f} uA".format(self.channel(out+1).curr._latest["value"]*1E6))
+                    outAmps[f"out{out+1}"].set("I: {:.2f} uA".format(self.channel(out+1).curr._latest["value"]*1E6))
 
 
                 root.after(0, root.update())
