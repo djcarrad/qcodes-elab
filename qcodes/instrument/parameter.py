@@ -922,6 +922,13 @@ class Parameter(_BaseParameter):
         """
         self.set(self.get() + value)
 
+    def move(self,end_value,steps=101,step_time=0.05):
+        start_value = self.get()
+        for i in range(0,steps):
+            self.set(start_value + (end_value - start_value)/steps * i)
+            time.sleep(step_time)
+        self.set(end_value)
+
     def sweep(self, start, stop, step=None, num=None, print_warning=True):
         """
         Create a collection of parameter values to be iterated over.
