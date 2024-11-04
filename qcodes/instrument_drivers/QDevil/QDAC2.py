@@ -3161,11 +3161,11 @@ class QDac2(VisaInstrument):
             # Update output frame
             for out in range(24):
                 if outEnables[f"out{out+1}"].get() == 1:
-                    outVolts[f"out{out+1}"].set(f"V: {self.channel(out+1).volt.get_latest():.2f} V")
+                    outVolts[f"out{out+1}"].set(f"V: {self.channel(out+1).volt.get_latest():.6f} V")
                     # outAmps[f"out{out+1}"].set(f"I: {self.channel(out+1).current_last_A()*1E6:.2f} uA")
                     outAmps[f"out{out+1}"].set(f"I: {outAmpGetters[f'out{out+1}']()*1E6:.6f} uA")
                 else:
-                    outVolts[f"out{out+1}"].set(f"V: {self.channel(out+1).volt.get_latest():.2f} V")
+                    outVolts[f"out{out+1}"].set(f"V: {self.channel(out+1).volt.get_latest():.6f} V")
                     # outAmps[f"out{out+1}"].set(f"I: - uA")
                     outAmps[f"out{out+1}"].set("I: {:.6f} uA".format(self.channel(out+1).curr._latest["value"]*1E6))
 
