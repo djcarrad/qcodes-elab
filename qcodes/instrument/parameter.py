@@ -1397,7 +1397,7 @@ class MultiParameter(_BaseParameter):
 class MultiParameterWrapper(MultiParameter):
     """
     Class to wrap MultiParameter in a human-friendly way that enables simple getting and setting.
-    In future, hopefully will enable sweeping
+    In future, hopefully will enable sweeping. For the moment, there are problems down the line in the dataset and loop
     """
     def __init__(self,params,name=None, instrument=None):
 
@@ -1430,11 +1430,10 @@ class MultiParameterWrapper(MultiParameter):
             raise ValueError('Number of start_vals must match number of parameters')
         if numpy.array(stop_vals).shape != numpy.array(self._params).shape:
             raise ValueError('Number of stop_vals must match number of parameters')
-        arrays=[]
-        for i,param in enumerate(self._params):
-            array=[start_vals[i] + (stop_vals[i] - start_vals[i])/(num-1) * j for j in range(num)]
-            arrays.append(array)
-        return (SweepFixedValues(self,start=0,stop=int(num-1),num=num),arrays)
+        setpointarray=[]
+        for j in range(num):
+            setpointarray.append([start_vals[i] + (stop_vals[i] - start_vals[i])/(num-1) * j for i in range(numpy.array(self._params).shape[0])])
+        return SweepFixedValues(self,setpointarray)
 
 class GetLatest(DelegateAttributes):
     """

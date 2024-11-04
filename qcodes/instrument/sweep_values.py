@@ -4,6 +4,8 @@ from qcodes.utils.helpers import (is_sequence, permissive_range, make_sweep,
                                   named_repr)
 from qcodes.utils.metadata import Metadatable
 
+import numpy as np
+
 
 class SweepValues(Metadatable):
     """
@@ -147,11 +149,11 @@ class SweepFixedValues(SweepValues):
             for key in keys:
                 if isinstance(key, slice):
                     self._add_slice(key)
-                elif is_sequence(key):
-                    # not sure if we really need to support this (and I'm not
-                    # going to recurse any more!) but we will get nested lists
-                    # if for example someone does `p[list1, list2]`
-                    self._values.extend(key)
+                # elif is_sequence(key):
+                #     # not sure if we really need to support this (and I'm not
+                #     # going to recurse any more!) but we will get nested lists
+                #     # if for example someone does `p[list1, list2]`
+                #     self._values.extend(key)
                 else:
                     # assume a single value
                     self._values.append(key)

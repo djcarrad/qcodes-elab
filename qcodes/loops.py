@@ -57,6 +57,7 @@ from qcodes.data.data_set import new_data
 from qcodes.data.data_array import DataArray
 from qcodes.utils.helpers import wait_secs, full_class, tprint
 from qcodes.utils.metadata import Metadatable
+from qcodes.instrument.parameter import MultiParameter
 
 from .actions import (_actions_snapshot, Task, Wait, _Measure, _Nest,
                       BreakIf, _QcodesBreak)
@@ -461,6 +462,10 @@ class ActiveLoop(Metadatable):
         new_actions = self.actions[:]
         if hasattr(self.sweep_values, "parameters"): # combined parameter
             for parameter in self.sweep_values.parameters:
+                new_actions.append(parameter)
+
+        elif isinstance(self.sweep_values.parameter,MultiParameter):
+            for parameter in self.sweep_values.parameter._params:
                 new_actions.append(parameter)
 
         for i, action in enumerate(new_actions):
@@ -913,6 +918,9 @@ class ActiveLoop(Metadatable):
                     set_index = action_indices + (j+n_callables, )
                     set_name = (self.data_set.action_id_map[set_index])
                     data_to_store[set_name] = val
+            if isinstance(self.sweep_values.parameter,MultiParameter):
+                set_name = self.data_set.action_id_map[action_indices]
+                data_to_store[set_name] = i
             else:
                 set_name = self.data_set.action_id_map[action_indices]
                 data_to_store[set_name] = value
