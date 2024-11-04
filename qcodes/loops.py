@@ -464,8 +464,8 @@ class ActiveLoop(Metadatable):
             for parameter in self.sweep_values.parameters:
                 new_actions.append(parameter)
 
-        elif isinstance(self.sweep_values.parameter,MultiParameter):
-            new_actions.append(self.sweep_values.parameter)
+        # elif isinstance(self.sweep_values.parameter,MultiParameter):
+        #     new_actions.append(self.sweep_values.parameter)
 
         for i, action in enumerate(new_actions):
             if hasattr(action, 'containers'):
@@ -920,9 +920,9 @@ class ActiveLoop(Metadatable):
             if isinstance(self.sweep_values.parameter,MultiParameter):
                 set_name = self.data_set.action_id_map[action_indices]
                 data_to_store[set_name] = i
-                for j,param in enumerate(self.sweep_values.parameter.parameters):
-                    set_name = param.full_name
-                    data_to_store[set_name] = value[j]
+                # for j,param in enumerate(self.sweep_values.parameter.parameters):
+                #     set_name = param.full_name
+                #     data_to_store[set_name] = value[j]
             else:
                 set_name = self.data_set.action_id_map[action_indices]
                 data_to_store[set_name] = value
