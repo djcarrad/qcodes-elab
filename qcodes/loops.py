@@ -192,8 +192,11 @@ class Loop(Metadatable):
         - another Loop or ActiveLoop
 
         """
-        actions = list(actions)
-
+        
+        if isinstance(self.sweep_values.parameter,MultiParameter):
+            actions=(self.sweep_values.parameter,)+actions
+        else:
+            actions = list(actions)
         # check for nested Loops, and activate them with default measurement
         for i, action in enumerate(actions):
             if isinstance(action, Loop):
