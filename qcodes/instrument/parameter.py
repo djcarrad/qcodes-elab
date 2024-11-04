@@ -1399,14 +1399,14 @@ class MultiParameterWrapper(MultiParameter):
     Class to wrap MultiParameter in a human-friendly way that enables simple getting and setting.
     In future, hopefully will enable sweeping. For the moment, there are problems down the line in the dataset and loop
     """
-    def __init__(self,params,name=None, instrument=None):
+    def __init__(self,parameters,name=None, instrument=None):
 
-        self._params=params
+        self.parameters=parameters
         names=[]
         shapes=[]
         labels=[]
         units=[]
-        for param in self._params:
+        for param in self.parameters:
             names.append(param.full_name)
             shapes.append(())
             labels.append(param.label)
@@ -1417,22 +1417,22 @@ class MultiParameterWrapper(MultiParameter):
         self.units=tuple(units)
 
     def get_raw(self):
-        return tuple([param.get() for param in self._params])
+        return tuple([param.get() for param in self.parameters])
 
     def set_raw(self, values):
-        if numpy.array(values).shape != numpy.array(self._params).shape:
+        if numpy.array(values).shape != numpy.array(self.parameters).shape:
             raise ValueError('Number of values to set must match number of parameters')
         for i,value in enumerate(values):
-            self._params[i].set(value)
+            self.parameters[i].set(value)
 
     def sweep(self, start_vals,stop_vals,num):
-        if numpy.array(start_vals).shape != numpy.array(self._params).shape:
+        if numpy.array(start_vals).shape != numpy.array(self.parameters).shape:
             raise ValueError('Number of start_vals must match number of parameters')
-        if numpy.array(stop_vals).shape != numpy.array(self._params).shape:
+        if numpy.array(stop_vals).shape != numpy.array(self.parameters).shape:
             raise ValueError('Number of stop_vals must match number of parameters')
         setpointarray=[]
         for j in range(num):
-            setpointarray.append([start_vals[i] + (stop_vals[i] - start_vals[i])/(num-1) * j for i in range(numpy.array(self._params).shape[0])])
+            setpointarray.append([start_vals[i] + (stop_vals[i] - start_vals[i])/(num-1) * j for i in range(numpy.array(self.parameters).shape[0])])
         return SweepFixedValues(self,setpointarray)
 
 class GetLatest(DelegateAttributes):
