@@ -925,7 +925,7 @@ class Parameter(_BaseParameter):
     def move(self,end_value,steps=101,step_time=0.05):
         start_value = self.get()
         for i in range(0,steps):
-            self.set(start_value + (end_value - start_value)/steps * i)
+            self.set(start_value + (end_value - start_value)/(steps-1) * i)
             time.sleep(step_time)
         self.set(end_value)
 
@@ -1190,7 +1190,6 @@ def _is_nested_sequence_or_none(obj, types, shapes):
 
     return True
 
-
 class MultiParameter(_BaseParameter):
     """
     A gettable parameter that returns multiple values with separate names,
@@ -1291,10 +1290,6 @@ class MultiParameter(_BaseParameter):
                  metadata: Optional[dict]=None) -> None:
         super().__init__(name, instrument, snapshot_get, metadata,
                          snapshot_value=snapshot_value)
-
-        if hasattr(self, 'set'):
-            # TODO (alexcjohnson): can we support, ala Combine?
-            warnings.warn('MultiParameters do not support set at this time.')
 
         self._meta_attrs.extend(['setpoint_names', 'setpoint_labels',
                                  'setpoint_units', 'names', 'labels', 'units'])
@@ -1399,6 +1394,47 @@ class MultiParameter(_BaseParameter):
         else:
             return self.setpoint_names
 
+class MultiParameterWrapper(MultiParameter):
+    """
+    Class to wrap MultiParameter in a human-friendly way that enables simple getting and setting.
+    In future, hopefully will enable sweeping
+    """
+    def __init__(self,params,name=None, instrument=None):
+
+        self._params=params
+        names=[]
+        shapes=[]
+        labels=[]
+        units=[]
+        for param in self._params:
+            names.append(param.full_name)
+            shapes.append(())
+            labels.append(param.label)
+            units.append(param.unit)
+        super().__init__(name=name, names=tuple(names),shapes=tuple(shapes))
+
+        self.labels=tuple(labels)
+        self.units=tuple(units)
+
+    def get_raw(self):
+        return tuple([param.get() for param in self._params])
+
+    def set_raw(self, values):
+        if numpy.array(values).shape != numpy.array(self._params).shape:
+            raise ValueError('Number of values to set must match number of parameters')
+        for i,value in enumerate(values):
+            self._params[i].set(value)
+
+    def sweep(self, start_vals,stop_vals,num):
+        if numpy.array(start_vals).shape != numpy.array(self._params).shape:
+            raise ValueError('Number of start_vals must match number of parameters')
+        if numpy.array(stop_vals).shape != numpy.array(self._params).shape:
+            raise ValueError('Number of stop_vals must match number of parameters')
+        arrays=[]
+        for i,param in enumerate(self._params):
+            array=[start_vals[i] + (stop_vals[i] - start_vals[i])/(num-1) * j for j in range(num)]
+            arrays.append(array)
+        return (SweepFixedValues(self,start=0,stop=int(num-1),num=num),arrays)
 
 class GetLatest(DelegateAttributes):
     """

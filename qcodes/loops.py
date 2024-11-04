@@ -68,7 +68,7 @@ log = logging.getLogger(__name__)
 def param_move(param_name,end_value,steps=101,step_time=0.03):
     start_value = param_name()
     for i in range(0,steps):
-        param_name(start_value + (end_value - start_value)/steps * i)
+        param_name(start_value + (end_value - start_value)/(steps-1) * i)
         time.sleep(step_time)
     param_name(end_value)
 
