@@ -192,7 +192,7 @@ class Loop(Metadatable):
         - another Loop or ActiveLoop
 
         """
-        
+
         if isinstance(self.sweep_values.parameter,MultiParameter):
             actions=(self.sweep_values.parameter,)+actions
         else:
@@ -463,12 +463,9 @@ class ActiveLoop(Metadatable):
         data_arrays = [loop_array]
         # hack set_data into actions
         new_actions = self.actions[:]
-        if hasattr(self.sweep_values, "parameters"): # combined parameter
+        if hasattr(self.sweep_values, "parameters"): # combined or multi parameter
             for parameter in self.sweep_values.parameters:
                 new_actions.append(parameter)
-
-        # elif isinstance(self.sweep_values.parameter,MultiParameter):
-        #     new_actions.append(self.sweep_values.parameter)
 
         for i, action in enumerate(new_actions):
             if hasattr(action, 'containers'):
