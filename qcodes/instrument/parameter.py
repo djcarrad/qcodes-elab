@@ -922,7 +922,7 @@ class Parameter(_BaseParameter):
         """
         self.set(self.get() + value)
 
-    def move(self,end_value,steps=101,step_time=0.05):
+    def move(self,end_value,steps=101,step_time=0.03):
         start_value = self.get()
         for i in range(0,steps):
             self.set(start_value + (end_value - start_value)/(steps-1) * i)
@@ -1426,6 +1426,14 @@ class MultiParameterWrapper(MultiParameter):
             raise ValueError('Number of values to set must match number of parameters')
         for i,value in enumerate(values):
             self.parameters[i].set(value)
+
+    def move(self,end_values,steps=101,step_time=0.03):
+        if type(end_values) is int or type(end_values) is float:
+            for i,param in enumerate(self.parameters):
+                param.move(end_values,steps,step_time)       
+        else:
+            for i,param in enumerate(self.parameters):
+                param.move(list(end_values)[i],steps,step_time)
 
     def sweep(self, start_vals,stop_vals,num):
         if numpy.array(start_vals).shape != numpy.array(self.parameters).shape:
