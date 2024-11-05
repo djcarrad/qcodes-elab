@@ -266,6 +266,11 @@ class DataSet(DelegateAttributes):
 
         self.name=name
 
+        forbiddenchars=['[',']','<','>',':','\"','/','\\','|','?','*']
+        for char in forbiddenchars:
+            if char in self.name:
+                raise ValueError(f'{char} cannot be used in a filename on Windows')
+
         # TODO: when you change formatter or io (and there's data present)
         # make it all look unsaved
         self.formatter = formatter or self.default_formatter

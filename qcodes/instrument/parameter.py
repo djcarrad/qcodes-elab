@@ -1280,6 +1280,7 @@ class MultiParameter(_BaseParameter):
                  instrument: Optional['Instrument']=None,
                  labels: Optional[Sequence[str]]=None,
                  units: Optional[Sequence[str]]=None,
+                 unit: Optional[str]=None,
                  setpoints: Optional[Sequence[Sequence]]=None,
                  setpoint_names: Optional[Sequence[Sequence[str]]]=None,
                  setpoint_labels: Optional[Sequence[Sequence[str]]]=None,
@@ -1301,6 +1302,7 @@ class MultiParameter(_BaseParameter):
         self.names = names
         self.labels = labels if labels is not None else names
         self.units = units if units is not None else [''] * len(names)
+        self.unit = units if units is not None else ''
 
         nt: Type[None] = type(None)
 
@@ -1411,7 +1413,7 @@ class MultiParameterWrapper(MultiParameter):
             shapes.append(())
             labels.append(param.label)
             units.append(param.unit)
-        super().__init__(name=name, names=tuple(names),shapes=tuple(shapes))
+        super().__init__(name=name, names=tuple(names),shapes=tuple(shapes),unit='')
 
         self.labels=tuple(labels)
         self.units=tuple(units)
