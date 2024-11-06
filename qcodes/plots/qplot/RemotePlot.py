@@ -215,8 +215,11 @@ class Plot():
                     uuid = arr.data_set.uuid
 
                     location = getattr(arr.data_set, 'location', None)
-                    unit = snap.get('unit', None) or snap.get('units', None)
                     label = snap.get('label', None)
+                    if snap.get('unit',None) is not None:
+                        unit = snap.get('unit', None)
+                    elif snap.get('units', None) is not None:
+                        unit = snap.get('units',None)
                     snap_name = snap.get('name', None)
                     shape = snap.get('shape', None)
                     array_id = arr.array_id

@@ -456,7 +456,17 @@ class ActiveLoop(Metadatable):
         """
         loop_size = len(self.sweep_values)
         data_arrays = []
-        loop_array = DataArray(parameter=self.sweep_values.parameter,
+        # For MultiParameter sweeps, make sure the setpoint array gets the correct labelling and units
+        if isinstance(self.sweep_values.parameter,MultiParameter):
+            if np.shape(np.shape(self.sweep_values))[0]==1:
+                loop_array = DataArray(parameter=self.sweep_values.parameter,
+                               is_setpoint=True,name=self.sweep_values.parameter.name,unit=self.sweep_values.parameter.parameters[0].unit)
+            else:
+                loop_array = DataArray(parameter=self.sweep_values.parameter,
+                               is_setpoint=True,name=self.sweep_values.parameter.name+'_index',unit='')
+        
+        else:    
+            loop_array = DataArray(parameter=self.sweep_values.parameter,
                                is_setpoint=True)
         loop_array.nest(size=loop_size)
 
@@ -919,7 +929,10 @@ class ActiveLoop(Metadatable):
                     data_to_store[set_name] = val
             if isinstance(self.sweep_values.parameter,MultiParameter):
                 set_name = self.data_set.action_id_map[action_indices]
-                data_to_store[set_name] = i
+                if type(value) is int or type(value) is float: #then the sweep is common values
+                    data_to_store[set_name] = value
+                else:
+                    data_to_store[set_name] = i
                 # for j,param in enumerate(self.sweep_values.parameter.parameters):
                 #     set_name = param.full_name
                 #     data_to_store[set_name] = value[j]
