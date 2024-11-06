@@ -918,9 +918,6 @@ class ActiveLoop(Metadatable):
                 set_name = self.data_set.action_id_map[action_indices]
                 if hasattr(self.sweep_values, 'aggregate'):
                     value = self.sweep_values.aggregate(*set_val)
-                # below is useful but too verbose even at debug
-                # log.debug('Calling .store method of DataSet because '
-                #           'sweep_values.parameters exist')
                 self.data_set.store(new_indices, {set_name: value})
                 # set_val list of values to set [param1_setpoint, param2_setpoint ..]
                 for j, val in enumerate(set_val):
@@ -933,15 +930,11 @@ class ActiveLoop(Metadatable):
                     data_to_store[set_name] = value
                 else:
                     data_to_store[set_name] = i
-                # for j,param in enumerate(self.sweep_values.parameter.parameters):
-                #     set_name = param.full_name
-                #     data_to_store[set_name] = value[j]
+
             else:
                 set_name = self.data_set.action_id_map[action_indices]
                 data_to_store[set_name] = value
-            # below is useful but too verbose even at debug
-            # log.debug('Calling .store method of DataSet because a sweep step'
-            #           ' was taken')
+
             self.data_set.store(new_indices, data_to_store)
 
             if not self._nest_first:

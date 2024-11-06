@@ -1439,13 +1439,13 @@ class MultiParameterWrapper(MultiParameter):
                 param.move(list(end_values)[i],steps,step_time)
 
     def sweep(self, start_vals,stop_vals,num):
-        #If the user is sweeping all params with the same values, the case is simple.
+        #If the user is sweeping all params with the same values, the case is the same as Parameter.sweep
         if numpy.array(start_vals).shape == ():
             if numpy.array(start_vals).shape != numpy.array(stop_vals).shape:
                 raise ValueError('Number of start values must match number of stop values')
             return SweepFixedValues(self, start=start_vals, stop=stop_vals,num=num)
         
-        #Otherwise, better be the right shape.
+        #Otherwise, check that the shapes are correct, and make a setpointarray of the appropriate size for SweepFixedValues
         elif numpy.array(start_vals).shape != numpy.array(self.parameters).shape:
             raise ValueError('Number of start_vals must match number of parameters')
         elif numpy.array(stop_vals).shape != numpy.array(self.parameters).shape:
