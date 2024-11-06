@@ -1398,8 +1398,7 @@ class MultiParameter(_BaseParameter):
 
 class MultiParameterWrapper(MultiParameter):
     """
-    Class to wrap MultiParameter in a human-friendly way that enables simple getting and setting.
-    In future, hopefully will enable sweeping. For the moment, there are problems down the line in the dataset and loop
+    Class to wrap multiple pre-existing parameters into MultiParameter. Enables getting, setting and sweeping.
     """
     def __init__(self,parameters,name=None, instrument=None):
 
@@ -1422,10 +1421,14 @@ class MultiParameterWrapper(MultiParameter):
         return tuple([param.get() for param in self.parameters])
 
     def set_raw(self, values):
-        if numpy.array(values).shape != numpy.array(self.parameters).shape:
+        if type(values) is int or type(values) is float:
+            for parameter in self.parameters:
+                parameter.set(values)
+        elif numpy.array(values).shape != numpy.array(self.parameters).shape:
             raise ValueError('Number of values to set must match number of parameters')
-        for i,value in enumerate(values):
-            self.parameters[i].set(value)
+        else:
+            for i,value in enumerate(values):
+                self.parameters[i].set(value)
 
     def move(self,end_values,steps=101,step_time=0.03):
         if type(end_values) is int or type(end_values) is float:
@@ -1436,9 +1439,16 @@ class MultiParameterWrapper(MultiParameter):
                 param.move(list(end_values)[i],steps,step_time)
 
     def sweep(self, start_vals,stop_vals,num):
-        if numpy.array(start_vals).shape != numpy.array(self.parameters).shape:
+        #If the user is sweeping all params with the same values, the case is simple.
+        if numpy.array(start_vals).shape == ():
+            if numpy.array(start_vals).shape != numpy.array(stop_vals).shape:
+                raise ValueError('Number of start values must match number of stop values')
+            return SweepFixedValues(self, start=start_vals, stop=stop_vals,num=num)
+        
+        #Otherwise, better be the right shape.
+        elif numpy.array(start_vals).shape != numpy.array(self.parameters).shape:
             raise ValueError('Number of start_vals must match number of parameters')
-        if numpy.array(stop_vals).shape != numpy.array(self.parameters).shape:
+        elif numpy.array(stop_vals).shape != numpy.array(self.parameters).shape:
             raise ValueError('Number of stop_vals must match number of parameters')
         setpointarray=[]
         for j in range(num):
