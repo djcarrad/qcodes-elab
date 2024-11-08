@@ -407,6 +407,13 @@ class ZIMFLI(Instrument):
                                            },
                                vals=Ints(min_value=0, max_value=1))
 
+            self.add_parameter(name='Iin{}_autorange'.format(n),
+                               label='Iin{}_autorange'.format(n),
+                               unit='I',
+                               set_cmd= partial(self.daq.setInt,'/{}/currins/{}/autorange'.format(self.serial, n)),
+                               get_cmd= partial(self.daq.getInt,'/{}/currins/{}/autorange'.format(self.serial, n)),
+                               get_parser = float)
+
 
 
         # Register AUX Outputs
