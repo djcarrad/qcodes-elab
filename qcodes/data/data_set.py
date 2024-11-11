@@ -1,6 +1,7 @@
 """DataSet class and factory functions."""
 
 import time
+from datetime import datetime
 import logging
 import glob
 import numpy as np
@@ -12,6 +13,7 @@ from typing import Dict, Callable
 from .gnuplot_format import GNUPlotFormat
 from .io import DiskIO
 from .location import FormatLocation
+from .data_array import DataArray
 from qcodes.utils.helpers import DelegateAttributes, full_class, deep_update
 from qcodes.station import Station
 from os import getlogin
@@ -94,6 +96,8 @@ def data_set_from_arrays(datasetname=None,arrays=None,arraynames=None,labels=Non
                                 arraynames=['time','input1','input2'],
                                 labels=['time','Voltage','Voltage']
                                 units=['s','V','V'])
+
+    TODO: Work out multi-dimensional, in case it one day becomes relevant
     """
 
     if arraynames is None:
@@ -103,22 +107,21 @@ def data_set_from_arrays(datasetname=None,arrays=None,arraynames=None,labels=Non
     if units is None:
         units=['' for array in arrays]
 
-    if np.shape(arraynames)!=np.shape(arrays) or np.shape(labels)!=np.shape(arrays) or np.shape(units)!=np.shape(arrays):
-        raise ValueError('Number of arraynames, labels and units must match number of arrays')
+    # if np.shape(arraynames)[0]!=np.shape(arrays)[0] or np.shape(labels)[0]!=np.shape(arrays)[0] or np.shape(units)[0]!=np.shape(arrays)[0]:
+    #     raise ValueError('Number of arraynames, labels and units must match number of arrays')
     
     data=new_data(name=datasetname)
     
-    xarray=DataArray(label=labels[0],unit=units[0],array_id=arraynames[0],name=arraynames[0],preset_data=arrays[0],is_setpoint=True)
-    data.add_array(xarray)
-    
-    yarrays=[]
-    for i in range(int(np.shape(arrays)[0]-1)):
-        yarrays.append(DataArray(label=labels[i+1],unit=units[i+1],array_id=arraynames[i+1],name=arraynames[i+1],preset_data=arrays[i+1],set_arrays=(xarray,)))
-        data.add_array(yarrays[-1])
+    for i,array in enumerate(arrays):
+        if i==0:
+            xarray=DataArray(label=labels[i],unit=units[i],array_id=arraynames[i],name=arraynames[i],preset_data=arrays[i],is_setpoint=True)
+            data.add_array(xarray)
+        else:
+            data.add_array(DataArray(label=labels[i],unit=units[i],array_id=arraynames[i],name=arraynames[i],preset_data=arrays[i],set_arrays=(xarray,)))
 
     station = station or Station.default
-        if station is not None:
-            data.add_metadata({'station': station.snapshot()})
+    if station is not None:
+        data.add_metadata({'station': station.snapshot()})
 
     ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     data.add_metadata({'measurement': {

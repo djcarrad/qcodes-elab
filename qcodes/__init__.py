@@ -14,26 +14,6 @@ config = Config() # type: Config
 
 from qcodes.version import __version__
 
-# Uncomment if you want to load qcodes plotting. It is inferior to qplot, but qplot does have some dependency issues.
-# plotlib = config.gui.plotlib
-# if plotlib in {'QT', 'all'}:
-#     try:
-#         from qcodes.plots.RemotePlot import Plot
-#         from qcodes.plots.pyqtgraph import QtPlot
-#     except Exception:
-#         print('pyqtgraph plotting not supported, '
-#               'try "from qcodes.plots.pyqtgraph import QtPlot" '
-#               'to see the full error')
-
-# if plotlib in {'matplotlib', 'all'}:
-#     try:
-#         from qcodes.plots.qcmatplotlib import MatPlot
-#     except Exception:
-#         print('matplotlib plotting not supported, '
-#               'try "from qcodes.plots.qcmatplotlib import MatPlot" '
-#               'to see the full error')
-
-
 from qcodes.station import Station
 from qcodes.loops import Loop, active_loop, active_data_set, param_move
 from qcodes.measure import Measure
@@ -48,7 +28,7 @@ if haswebsockets:
 
 from qcodes.plots import analysis_tools
 from qcodes.plots.qplot.RemotePlot import Plot
-from qcodes.data.data_set import DataSet, new_data, load_data, load_data_num, load_data_nums, set_data_format, set_data_folder
+from qcodes.data.data_set import DataSet, new_data, data_set_from_arrays, load_data, load_data_num, load_data_nums, set_data_format, set_data_folder
 from qcodes.data.location import FormatLocation
 from qcodes.data.data_array import DataArray
 from qcodes.data.format import Formatter
