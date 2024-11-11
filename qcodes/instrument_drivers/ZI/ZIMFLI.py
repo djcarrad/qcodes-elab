@@ -603,11 +603,6 @@ class ZIMFLI(Instrument):
             return 'V'
 
     def _setAmplitude(self,path,val):
-        """
-        The lock-in sets amplitude as fraction of output range, the command here converts it such that you can input actual voltage as a normal person.
-        DC 2022-08-17. Not true, at least for MFLI. Removed output range, changed it to be rms
-        """
-
 
         idx = path.find('dev')
         serial = path[idx:idx+7]

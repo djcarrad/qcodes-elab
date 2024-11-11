@@ -92,6 +92,7 @@ def data_set_from_arrays(datasetname=None,arrays=None,arraynames=None,labels=Non
     data=data_set_from_arrays(datasetname='Dev1 4pt scope measurement',
                                 arrays=[scope_time,scope_input1,scope_input2],
                                 arraynames=['time','input1','input2'],
+                                labels=['time','Voltage','Voltage']
                                 units=['s','V','V'])
     """
 
