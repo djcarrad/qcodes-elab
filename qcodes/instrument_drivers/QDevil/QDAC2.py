@@ -2180,7 +2180,7 @@ class MultiCurrents_Context(MultiParameter):
         arrdic={}
 
         for channel in chans:
-            names.append(f'current_ch{channel:02d}')
+            names.append(f'ch{channel:02d}_curr')
             shapes.append(())
             labels.append(f'Current ch{channel:02d}')
             units.append('A')
