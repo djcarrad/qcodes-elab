@@ -1,7 +1,7 @@
-from qcodes import DataArray, new_data, Plot
+from qcodes import DataArray, new_data, Plot, Station
 import numpy as np
 
-def arrays_to_data(arrays,labels,units,names,datasetname=None,plotting=False):
+def arrays_to_data(arrays,labels,units,names,station=None,datasetname=None,plotting=False):
     xarray=DataArray(label=labels[0],unit=units[0],array_id=names[0],name=names[0],preset_data=arrays[0],is_setpoint=True)
     data=new_data(name=datasetname)
     data.add_array(xarray)
@@ -9,6 +9,18 @@ def arrays_to_data(arrays,labels,units,names,datasetname=None,plotting=False):
     for i in range(int(np.shape(arrays)[0]-1)):
         yarrays.append(DataArray(label=labels[i+1],unit=units[i+1],array_id=names[i+1],name=names[i+1],preset_data=arrays[i+1],set_arrays=(xarray,)))
         data.add_array(yarrays[-1])
+
+    station = station or Station.default
+        if station is not None:
+            data.add_metadata({'station': station.snapshot()})
+
+
+    ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    data.add_metadata({'measurement': {
+        'timestamp': ts,
+    }})
+
+    data.save_metadata()
     data.finalize()
     if plotting==True:
         pp=Plot()
@@ -20,6 +32,17 @@ def qcarrays_to_data(arrays,datasetname=None,plotting=False):
     data=new_data(name=datasetname)
     for i in range(int(np.shape(arrays)[0])):
         data.add_array(arrays[i])
+    station = station or Station.default
+        if station is not None:
+            data.add_metadata({'station': station.snapshot()})
+
+
+    ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    data.add_metadata({'measurement': {
+        'timestamp': ts,
+    }})
+
+    data.save_metadata()
     data.finalize()
     if plotting==True:
         pp=Plot()

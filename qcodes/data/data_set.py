@@ -13,6 +13,7 @@ from .gnuplot_format import GNUPlotFormat
 from .io import DiskIO
 from .location import FormatLocation
 from qcodes.utils.helpers import DelegateAttributes, full_class, deep_update
+from qcodes.station import Station
 from os import getlogin
 
 from uuid import uuid4
@@ -82,6 +83,51 @@ def new_data(location=None, loc_record=None, name=None, overwrite=False,
 
     return DataSet(location=location, io=io, backup_location=backup_location, force_write=force_write, name=name, **kwargs)
 
+def data_set_from_arrays(datasetname=None,arrays=None,arraynames=None,labels=None,units=None,station=None):
+    """
+    Create and return a new DataSet filled with data from pre-existing python arrays. 
+    Typically used for recording arrays of time-coincident measurements from an instrument buffer.
+    Data is assumed to be one dimensional and first array in arrays is assumed to be the setpoint.
+    Example: 
+    data=data_set_from_arrays(datasetname='Dev1 4pt scope measurement',
+                                arrays=[scope_time,scope_input1,scope_input2],
+                                arraynames=['time','input1','input2'],
+                                units=['s','V','V'])
+    """
+
+    if arraynames is None:
+        arraynames=[f'array{i}' for i,array in enumerate(arrays)]
+    if labels is None:
+        labels=arraynames
+    if units is None:
+        units=['' for array in arrays]
+
+    if np.shape(arraynames)!=np.shape(arrays) or np.shape(labels)!=np.shape(arrays) or np.shape(units)!=np.shape(arrays):
+        raise ValueError('Number of arraynames, labels and units must match number of arrays')
+    
+    data=new_data(name=datasetname)
+    
+    xarray=DataArray(label=labels[0],unit=units[0],array_id=arraynames[0],name=arraynames[0],preset_data=arrays[0],is_setpoint=True)
+    data.add_array(xarray)
+    
+    yarrays=[]
+    for i in range(int(np.shape(arrays)[0]-1)):
+        yarrays.append(DataArray(label=labels[i+1],unit=units[i+1],array_id=arraynames[i+1],name=arraynames[i+1],preset_data=arrays[i+1],set_arrays=(xarray,)))
+        data.add_array(yarrays[-1])
+
+    station = station or Station.default
+        if station is not None:
+            data.add_metadata({'station': station.snapshot()})
+
+    ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    data.add_metadata({'measurement': {
+        'timestamp': ts,
+    }})
+
+    data.save_metadata()
+    data.finalize()
+
+    return data
 
 def load_data(location=None, formatter=None, io=None, include_metadata=True):
     """
