@@ -62,7 +62,7 @@ This does a couple of things; it creates an 'environment' that is effectively a 
 
 - Optionally install useful packages from the anaconda prompt:
 
-	pip install scipy jupyterlab zhinst
+	pip install scipy zhinst
 
 You can now run qcodes in jupyter notebook or jupyter lab by opening the anaconda prompt, and typing
 
@@ -91,6 +91,15 @@ Updating
 Open git bash, navigate to the install folder (usually cd C:/git/qcodes-elab), and use 
 
 	git pull
+
+Sometimes, git complains that you cannot pull due to non-committed changes. This can happen even though you have not changed anything, since some files in qcodes automatically backup/change but in totally unimportant ways. You can
+
+	git fetch --all
+
+	git reset --hard origin/master
+
+I will try to work out a fix for this soon.
+
 Status
 ======
 As of 24/6/2024, latest versions of all packages required by qcodes are working, except:
