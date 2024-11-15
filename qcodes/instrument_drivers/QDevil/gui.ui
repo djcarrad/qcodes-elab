@@ -1,0 +1,1354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1199</width>
+    <height>665</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QGroupBox" name="outOptionsBox">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>380</y>
+      <width>538</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Out1</string>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_42">
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_93">
+       <property name="text">
+        <string>Output filter:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QComboBox" name="outputFilterList">
+       <property name="currentText">
+        <string/>
+       </property>
+       <property name="maxVisibleItems">
+        <number>10</number>
+       </property>
+       <property name="placeholderText">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QLabel" name="label_88">
+       <property name="text">
+        <string>V</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QPushButton" name="outVoltSetButton">
+       <property name="text">
+        <string>Set</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_89">
+       <property name="text">
+        <string>Measurement aperture:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="outVoltEntry"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Output voltage:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2" colspan="3">
+      <widget class="QLabel" name="outRangeLabel">
+       <property name="text">
+        <string>10V</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QComboBox" name="measRangeList">
+       <property name="currentText">
+        <string/>
+       </property>
+       <property name="maxVisibleItems">
+        <number>10</number>
+       </property>
+       <property name="placeholderText">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLabel" name="label_90">
+       <property name="text">
+        <string>s</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="outputRangeList">
+       <property name="currentText">
+        <string/>
+       </property>
+       <property name="maxVisibleItems">
+        <number>10</number>
+       </property>
+       <property name="placeholderText">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="measApertEntry"/>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_94">
+       <property name="text">
+        <string>Measurement range:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="4">
+      <widget class="QPushButton" name="outVoltSweepButton">
+       <property name="text">
+        <string>Sweep</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_91">
+       <property name="text">
+        <string>Output range:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QCheckBox" name="outEnableCheckbox">
+       <property name="text">
+        <string>Enable current measurement</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QGroupBox" name="allOutOptionsBox">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>380</y>
+      <width>538</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>All outputs</string>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_43">
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="allOutVoltEntry"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_98">
+       <property name="text">
+        <string>Output voltage:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="allOutputFilterList">
+       <property name="currentText">
+        <string/>
+       </property>
+       <property name="maxVisibleItems">
+        <number>10</number>
+       </property>
+       <property name="placeholderText">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="QPushButton" name="allOutVoltSetButton">
+       <property name="text">
+        <string>Set</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_101">
+       <property name="text">
+        <string>Measurement range:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="label_96">
+       <property name="text">
+        <string>V</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2" colspan="3">
+      <widget class="QLabel" name="allOutRangeLabel">
+       <property name="text">
+        <string>10V</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QLabel" name="label_100">
+       <property name="text">
+        <string>s</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QComboBox" name="allMeasRangeList">
+       <property name="currentText">
+        <string/>
+       </property>
+       <property name="maxVisibleItems">
+        <number>10</number>
+       </property>
+       <property name="placeholderText">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="allMeasApertEntry"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_95">
+       <property name="text">
+        <string>Output filter:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="allOutputRangeList">
+       <property name="currentText">
+        <string/>
+       </property>
+       <property name="maxVisibleItems">
+        <number>10</number>
+       </property>
+       <property name="placeholderText">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="4">
+      <widget class="QPushButton" name="allOutVoltSweepButton">
+       <property name="text">
+        <string>Sweep</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_102">
+       <property name="text">
+        <string>Output range:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_97">
+       <property name="text">
+        <string>Measurement aperture:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QCheckBox" name="allOutEnableCheckbox">
+       <property name="text">
+        <string>Enable current measurements</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>20</y>
+      <width>1156</width>
+      <height>332</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_41">
+     <item row="2" column="7">
+      <widget class="QGroupBox" name="groupBox_22">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_38">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut24"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut24"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_82">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut24">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_83">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton24">
+          <property name="text">
+           <string>Out24</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut2"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut2"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut2">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton2">
+          <property name="text">
+           <string>Out2</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QGroupBox" name="groupBox_9">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_17">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut10"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut10"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_40">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut10">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_41">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton10">
+          <property name="text">
+           <string>Out10</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_12">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut4"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut4"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_30">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut4">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_31">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton4">
+          <property name="text">
+           <string>Out4</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QGroupBox" name="groupBox_23">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_39">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut20"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut20"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_84">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut20">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_85">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton20">
+          <property name="text">
+           <string>Out20</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="0" column="4">
+      <widget class="QGroupBox" name="groupBox_5">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_13">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut5"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut5"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_32">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut5">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_33">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton5">
+          <property name="text">
+           <string>Out5</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="2" column="5">
+      <widget class="QGroupBox" name="groupBox_20">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_36">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut22"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut22"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_78">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut22">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_79">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton22">
+          <property name="text">
+           <string>Out22</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QGroupBox" name="groupBox_3">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_11">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut3"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut3"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_28">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut3">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_29">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton3">
+          <property name="text">
+           <string>Out3</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QGroupBox" name="groupBox_21">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_37">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut19"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut19"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_80">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut19">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_81">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton19">
+          <property name="text">
+           <string>Out19</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="0" column="7">
+      <widget class="QGroupBox" name="groupBox_8">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_16">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut8"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut8"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_38">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut8">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_39">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton8">
+          <property name="text">
+           <string>Out8</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QGroupBox" name="groupBox_11">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_19">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut9"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_44">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut9">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_45">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton9">
+          <property name="text">
+           <string>Out9</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut9"/>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QGroupBox" name="groupBox_13">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_21">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut11"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut11"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_48">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut11">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_49">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton11">
+          <property name="text">
+           <string>Out11</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="0" column="6">
+      <widget class="QGroupBox" name="groupBox_7">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_15">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut7"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut17"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_36">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut7">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_37">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton7">
+          <property name="text">
+           <string>Out7</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="1" column="7">
+      <widget class="QGroupBox" name="groupBox_14">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_22">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut16"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut16"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_50">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut16">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_51">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton16">
+          <property name="text">
+           <string>Out16</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="2" column="4">
+      <widget class="QGroupBox" name="groupBox_18">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_34">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut21"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut21"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_74">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut21">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_75">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton21">
+          <property name="text">
+           <string>Out21</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QGroupBox" name="groupBox_19">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_35">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut17"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_76">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut17">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_77">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton17">
+          <property name="text">
+           <string>Out17</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut17_2"/>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="1" column="4">
+      <widget class="QGroupBox" name="groupBox_10">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_18">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut13"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut13"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_42">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut13">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_43">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton13">
+          <property name="text">
+           <string>Out13</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="1" column="5">
+      <widget class="QGroupBox" name="groupBox_12">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_20">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut14"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut14"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_46">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut14">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_47">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton14">
+          <property name="text">
+           <string>Out14</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="0" column="5">
+      <widget class="QGroupBox" name="groupBox_6">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_14">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut6"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut6"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_34">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut6">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_35">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton6">
+          <property name="text">
+           <string>Out6</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="QGroupBox" name="groupBox_15">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_23">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut12"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut12"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_52">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut12">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_53">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton12">
+          <property name="text">
+           <string>Out12</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QGroupBox" name="groupBox_17">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_33">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut18"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut18"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_72">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut18">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_73">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton18">
+          <property name="text">
+           <string>Out18</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut1"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut1">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton1">
+          <property name="text">
+           <string>Out1</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut1">
+          <property name="value" stdset="0">
+           <double>0.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="2" column="6">
+      <widget class="QGroupBox" name="groupBox_24">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_40">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut23"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut23"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_86">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut23">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_87">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton23">
+          <property name="text">
+           <string>Out23</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="1" column="6">
+      <widget class="QGroupBox" name="groupBox_16">
+       <property name="title">
+        <string/>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_24">
+        <item row="2" column="1">
+         <widget class="QLCDNumber" name="currDisplOut15"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLCDNumber" name="voltDisplOut15"/>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="label_54">
+          <property name="text">
+           <string>V</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="currEnableOut15">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_55">
+          <property name="text">
+           <string>uA</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="outButton15">
+          <property name="text">
+           <string>Out15</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1199</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
