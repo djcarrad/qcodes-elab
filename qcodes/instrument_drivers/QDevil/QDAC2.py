@@ -2810,8 +2810,8 @@ class QDac2(VisaInstrument):
 
         ## Sweep all outputs to voltage
 
-        def threadSweep(val):
-            self.set_multiple_voltages(val, steps = 100)
+        def threadSweep(val, channel_list=[i+1 for i in range(24)]):
+            self.set_multiple_voltages(val, channel_list=channel_list, steps = 100)
 
 
 
@@ -2944,8 +2944,18 @@ class QDac2(VisaInstrument):
 
         ## Set the output voltage of a channel
 
-        def setVoltage(event):
+        def setVoltageEvent(event):
+            setVoltage() 
+
+        def setVoltage():
             self.channel(selectedOut.get()).volt(voltOutValue.get())
+            root.focus()
+
+
+        def sweepVoltage():
+            _sweep_thread = threading.Thread(target = threadSweep, args = (voltOutValue.get(), [selectedOut.get()],))
+            _sweep_thread.start()
+            # self.set_multiple_voltages(allVoltageValue.get(), steps = 100)
             root.focus()
         
         voltOutFrame = tk.Frame(optionsFrame)
@@ -2961,12 +2971,18 @@ class QDac2(VisaInstrument):
         voltOutUnitLabel = tk.Label(voltOutFrame, text = "V")
         voltOutUnitLabel.pack(side = "left", anchor = "w")
 
-        voltOutEntry.bind("<Return>", setVoltage)
+        voltOutSetButton = tk.Button(voltOutFrame, text = "Set", command = setVoltage)
+        voltOutSetButton.pack(side = "left", anchor = "w", padx = 2)
+        
+        voltOutSweepButton = tk.Button(voltOutFrame, text = "Sweep", command = sweepVoltage)
+        voltOutSweepButton.pack(side = "left", anchor = "w", padx = 2)
+
+        voltOutEntry.bind("<Return>", setVoltageEvent)
 
 
 
         ## Set the integration time of the current measurement
-        def setMeasAperture(event):
+        def setMeasAperture():
             aperture = measApertureValue.get()
             nplc = round(aperture * 50)
             self.channel(selectedOut.get()).measurement_nplc(nplc)
@@ -3079,6 +3095,7 @@ class QDac2(VisaInstrument):
         
 
         outFrames = {}
+        outCurrFrames = {}
         outButtons = {}
         outVolts = {}
         outAmps = {}
@@ -3095,26 +3112,31 @@ class QDac2(VisaInstrument):
             
             outFrames[f"out{out+1}"] = tk.Frame(outFrame)
             
-            outEnables[f"out{out+1}"] = tk.IntVar()
-            outEnables[f"out{out+1}"].set(0)
-            outCheckButtons[f"out{out+1}"] = tk.Checkbutton(outFrames[f"out{out+1}"], variable = outEnables[f"out{out+1}"])
-        
             outButtons[f"out{out+1}"] = tk.Button(outFrames[f"out{out+1}"], text = f"Out{out+1}", command = lambda o=out+1: outSelect(o))
 
             outVolts[f"out{out+1}"] = tk.StringVar()
             outVolts[f"out{out+1}"].set(f"V: - V")
             outVoltsLabels[f"out{out+1}"] = tk.Label(outFrames[f"out{out+1}"], textvariable = outVolts[f"out{out+1}"], width = 15, anchor = "n", justify = "center")
 
+            outCurrFrames[f"out{out+1}"] = tk.Frame(outFrames[f"out{out+1}"])
             outAmps[f"out{out+1}"] = tk.StringVar()
             outAmps[f"out{out+1}"].set(f"I: - uA")
-            outAmpsLabels[f"out{out+1}"] = tk.Label(outFrames[f"out{out+1}"], textvariable = outAmps[f"out{out+1}"], width = 15, anchor = "n", justify = "center")
+            outAmpsLabels[f"out{out+1}"] = tk.Label(outCurrFrames[f"out{out+1}"], textvariable = outAmps[f"out{out+1}"], width = 15, anchor = "n", justify = "left")
+
+            outEnables[f"out{out+1}"] = tk.IntVar()
+            outEnables[f"out{out+1}"].set(0)
+            outCheckButtons[f"out{out+1}"] = tk.Checkbutton(outCurrFrames[f"out{out+1}"], variable = outEnables[f"out{out+1}"])
 
             outAmpGetters[f"out{out+1}"] = GetLatest(self.channel(out+1).curr, max_val_age = 0.3)
 
-            outCheckButtons[f"out{out+1}"].pack()
+            outCheckButtons[f"out{out+1}"].pack(side = "left", anchor = "w")
+            outAmpsLabels[f"out{out+1}"].pack(side = "left", anchor = "w")
+
+            
             outButtons[f"out{out+1}"].pack()
             outVoltsLabels[f"out{out+1}"].pack()
-            outAmpsLabels[f"out{out+1}"].pack()
+            outCurrFrames[f"out{out+1}"].pack()
+            
 
         for row in range(3):
             for col in range(8):
