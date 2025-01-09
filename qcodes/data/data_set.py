@@ -311,6 +311,7 @@ class DataSet(DelegateAttributes):
             print('No backup_location specified for data saving. This usually is not a problem but you may like to specify one')
 
         self.backup_used=False
+        self.writing_skipped=False
 
         self.publisher = None
 
@@ -667,7 +668,6 @@ class DataSet(DelegateAttributes):
         """
         if self.location is False:
             return
-
         # Only the gnuplot formatter has a "filename" kwarg
         try:
             if isinstance(self.formatter, GNUPlotFormat):
@@ -684,23 +684,31 @@ class DataSet(DelegateAttributes):
                                      self.location,
                                      write_metadata=write_metadata,
                                      only_complete=only_complete)
+            if self.writing_skipped==True:
+                print('Writing data to primary location resumed')
+                self.writing_skipped=False
         except:
-            if isinstance(self.formatter, GNUPlotFormat):
-                self.formatter.write(self,
-                                     self.io,
-                                     self.backup_location,
-                                     write_metadata=write_metadata,
-                                     only_complete=only_complete,
-                                     filename=filename,
-                                     force_write=self.force_write)
-            else:
-                self.formatter.write(self,
-                                     self.io,
-                                     self.backup_location,
-                                     write_metadata=write_metadata,
-                                     only_complete=only_complete)
+            try:
+                if isinstance(self.formatter, GNUPlotFormat):
+                    self.formatter.write(self,
+                                        self.io,
+                                        self.backup_location,
+                                        write_metadata=write_metadata,
+                                        only_complete=only_complete,
+                                        filename=filename,
+                                        force_write=self.force_write)
+                else:
+                    self.formatter.write(self,
+                                        self.io,
+                                        self.backup_location,
+                                        write_metadata=write_metadata,
+                                        only_complete=only_complete)
+                    
+                self.backup_used=True
 
-            self.backup_used=True
+            except:
+                print('Data could not be written to either primary or backup location.')
+                self.writing_skipped=True
 
     def write_copy(self, path=None, io_manager=None, location=None):
         """
