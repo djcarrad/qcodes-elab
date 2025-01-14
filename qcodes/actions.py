@@ -55,6 +55,8 @@ class Task:
 
         self.func(*eval_args, **eval_kwargs)
 
+        return 0 #This seems to stop spurious printing of self.func. Perhaps better way to do this.
+
     def snapshot(self, update=False):
         """
         Snapshots  task
