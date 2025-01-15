@@ -14,6 +14,7 @@ import pyvisa as visa
 import re
 import logging
 import time
+import numpy as np
 
 from qcodes.utils.validators import Numbers
 from qcodes import VisaInstrument
@@ -479,8 +480,10 @@ class CryogenicSMS120C(VisaInstrument):
                 else:
                     self.write('RAMP MID')
                     log.info('Ramping magnetic field...')
-                while self.rampStatus()=='RAMPING':
-                    time.sleep(0.1)
+                # while self.rampStatus()=='RAMPING': #Note: This seems to cause timeout errors
+                #     time.sleep(0.1)
+                while np.abs(self.field()-val)>0.00105:
+                    time.sleep(0.001)
             else:
                 log.error(
                     'Target field is outside max. limits, please lower the target value.')
