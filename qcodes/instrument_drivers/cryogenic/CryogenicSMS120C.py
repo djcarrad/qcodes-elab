@@ -463,6 +463,12 @@ class CryogenicSMS120C(VisaInstrument):
         if not self.switchHeater(): # If switch heater is OFF
             log.error('Unable to set field, switch heater is off, persistent mode may be active')
             return
+        #Check polarity is correct. Sometimes around zero the magnet will detect the wrong polarity
+        if np.abs(self.field.get_latest())<0.007:
+            if val>0 and self._get_polarity()=='-':
+                self.polarity('POSITIVE')
+            elif val<0 and self._get_polarity()=='+':
+                self.polarity('NEGATIVE')
         # check ramp status is OK
         if self._can_startRamping():
             # Check that field is not outside max.field limit
@@ -482,8 +488,8 @@ class CryogenicSMS120C(VisaInstrument):
                     log.info('Ramping magnetic field...')
                 # while self.rampStatus()=='RAMPING': #Note: This seems to cause timeout errors
                 #     time.sleep(0.1)
-                while np.abs(self.field()-val)>0.00105:
-                    time.sleep(0.001)
+                while np.abs(self.field()-val)>0.005:
+                    time.sleep(0.005)
             else:
                 log.error(
                     'Target field is outside max. limits, please lower the target value.')
