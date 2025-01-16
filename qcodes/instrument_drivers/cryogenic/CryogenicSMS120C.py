@@ -16,7 +16,7 @@ import logging
 import time
 import numpy as np
 
-from qcodes.utils.validators import Numbers
+from qcodes.utils.validators import Numbers, Enum
 from qcodes import VisaInstrument
 import pyvisa.constants as vi_const
 
@@ -130,6 +130,7 @@ class CryogenicSMS120C(VisaInstrument):
         self.add_parameter(name='rampRate',
                            get_cmd=self._get_rampRate,
                            set_cmd=self._set_rampRate,
+                           unit='A/s',
                            vals=Numbers(0,
                                         self._current_ramp_limit))
 
@@ -137,6 +138,16 @@ class CryogenicSMS120C(VisaInstrument):
                            set_cmd=self._set_pauseRamp,
                            get_cmd=self._get_pauseRamp,
                            val_mapping={False: 0, True: 1})
+
+        self.add_parameter('rampMode',
+                            initial_value='confirm',
+                            get_cmd=None,
+                            set_cmd=None,
+                            vals=Enum('confirm','wait','no wait'),
+                            docstring='Three possible modes for behaviour when setting the field:'
+                            '"confirm" checks that the setpoint has been reached. Since communication is limited to 200ms intervals, this can be undesirable'
+                            '"wait" calculates the time expected for the setpoint to be reached and simply waits that long. Coil constant MUST be entered correctly!'
+                            '"no wait" returns immediately; the user must wait long enough or check setpoint is reached manually.')
 
 
     def get_idn(self):
@@ -486,10 +497,13 @@ class CryogenicSMS120C(VisaInstrument):
                 else:
                     self.write('RAMP MID')
                     log.info('Ramping magnetic field...')
-                # while self.rampStatus()=='RAMPING': #Note: This seems to cause timeout errors
-                #     time.sleep(0.1)
-                while np.abs(self.field()-val)>0.005:
-                    time.sleep(0.005)
+                if self.rampMode()=='confirm': #Likely the best option for general use, but causes random timeout errors if waiting time <200ms
+                    while self._get_rampStatus()=='RAMPING':
+                        time.sleep(0.2)
+                elif self.rampMode()=='wait':
+                    stepsize=np.abs(self.field.get_latest()-val)
+                    teslarate=self._get_rampRate()*self._coil_constant
+                    time.sleep(stepsize/teslarate)
             else:
                 log.error(
                     'Target field is outside max. limits, please lower the target value.')
