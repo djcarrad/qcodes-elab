@@ -80,12 +80,12 @@ class CryogenicSMS120C(VisaInstrument):
         self._field_ramp_limit = coil_constant * current_ramp_limit
 
         self.add_parameter(name='unit',
-                           get_cmd=partial(self._param_getter,self._get_unit),
-                           set_cmd=partial(self._param_setter,self._set_unit),
+                           get_cmd=self._get_unit,
+                           set_cmd=self._set_unit,
                            val_mapping={'AMPS': 0, 'TESLA': 1})
 
         self.add_parameter('rampStatus',
-                           get_cmd=partial(self._param_getter,self._get_rampStatus),
+                           get_cmd=self._get_rampStatus,
                            val_mapping={'HOLDING': 0,
                                         'RAMPING': 1,
                                         'QUENCH DETECTED': 2,
@@ -94,49 +94,49 @@ class CryogenicSMS120C(VisaInstrument):
                                         })
 
         self.add_parameter('polarity',
-                           get_cmd=partial(self._param_getter,self._get_polarity),
-                           set_cmd=partial(self._param_setter,self._set_polarity),
+                           get_cmd=self._get_polarity,
+                           set_cmd=self._set_polarity,
                            val_mapping={'POSITIVE': '+', 'NEGATIVE': '-'})
 
         self.add_parameter(name='switchHeater',
-                           get_cmd=partial(self._param_getter,self._get_switchHeater),
-                           set_cmd=partial(self._param_setter,self._set_switchHeater),
+                           get_cmd=self._get_switchHeater,
+                           set_cmd=self._set_switchHeater,
                            val_mapping={False: 0, True: 1})
 
         self.add_parameter('persistentMode',
-                           get_cmd=partial(self._param_getter,self._get_persistentMode),
-                           set_cmd=partial(self._param_setter,self._set_persistentMode),
+                           get_cmd=self._get_persistentMode,
+                           set_cmd=self._set_persistentMode,
                            val_mapping={False: 0, True: 1})
 
         self.add_parameter(name='persistentField',
-                           get_cmd=partial(self._param_getter,self._get_persistentField),
+                           get_cmd=self._get_persistentField,
                            vals=Numbers(self._persistentField))
 
         self.add_parameter(name='maxField',
-                           get_cmd=partial(self._param_getter,self._get_maxField),
-                           set_cmd=partial(self._param_setter,self._set_maxField),
+                           get_cmd=self._get_maxField,
+                           set_cmd=self._set_maxField,
                            vals=Numbers(0,  # i.e. ~12T, calculated
                                         self._field_rating))
 
         self.add_parameter(name='field',
-                           get_cmd=partial(self._param_getter,self._get_field),
-                           set_cmd=partial(self._param_setter,self._set_field),
+                           get_cmd=self._get_field,
+                           set_cmd=self._set_field,
                            vals=Numbers(-self.maxField(),
                                         self.maxField()))
 
         self.add_parameter(name='limit',
-                           get_cmd=partial(self._param_getter,self._get_limit))
+                           get_cmd=self._get_limit)
 
         self.add_parameter(name='rampRate',
-                           get_cmd=partial(self._param_getter,self._get_rampRate),
-                           set_cmd=partial(self._param_setter,self._set_rampRate),
+                           get_cmd=self._get_rampRate,
+                           set_cmd=self._set_rampRate,
                            unit='A/s',
                            vals=Numbers(0,
                                         self._current_ramp_limit))
 
         self.add_parameter('pauseRamp',
-                           set_cmd=partial(self._param_setter,self._set_pauseRamp),
-                           get_cmd=partial(self._param_getter,self._get_pauseRamp),
+                           set_cmd=self._set_pauseRamp,
+                           get_cmd=self._get_pauseRamp,
                            val_mapping={False: 0, True: 1})
 
         self.add_parameter('rampMode',
@@ -182,36 +182,6 @@ class CryogenicSMS120C(VisaInstrument):
                 'Malformed message received from the magnet PS: "%s"' % value)
             return None, None
 
-    def _param_setter(self, set_cmd):
-        """
-        This is a helper function to set the value of a parameter.
-        The SMS120C times out a lot, causing the measurements to stop. This function should fix that
-        """
-        success=False
-        while success==False:
-            try:
-                return set_cmd()
-                success=True
-            except Exception as e:
-                log.error('Error in setting parameter: %s Trying again in 2 seconds' % e)
-                time.sleep(2)
-                success=False
-
-    def _param_getter(self, get_cmd):
-        """
-        This is a helper function to get the value of a parameter.
-        The SMS120C times out a lot, causing the measurements to stop. This function should fix that
-        """
-        success=False
-        while success==False:
-            try:
-                return get_cmd()
-                success=True
-            except Exception as e:
-                log.error('Error in getting parameter: %s. Trying again in 2 seconds' % e)
-                time.sleep(2)
-                success=False
-    
     def _get_limit(self):  # Get voltage limits, returns a float
         # _, value = self.query('GET VL')
         # # extract number from string
@@ -318,17 +288,27 @@ class CryogenicSMS120C(VisaInstrument):
         
 
     def _get_rampStatus(self):  # get current magnet status, returns an integer
-        value = self.ask('RAMP STATUS')
-        if 'HOLDING' in value:  # holding on
-            rampStatus = 0
-        elif 'RAMPING' in value:  # magnet ramping
-            rampStatus = 1
-        elif 'QUENCH' in value:  # detect magnet quench
-            rampStatus = 2
-        elif 'EXTERNAL' in value:  # detect external trip
-            rampStatus = 3
-        elif 'FAULT' in value:  # detect either controller or power fault
-            rampStatus = 4
+        success=False
+        allowedvalues=[0,1,2,3,4]
+        while success==False:
+            value = self.ask('RAMP STATUS')
+            if 'HOLDING' in value:  # holding on
+                rampStatus = 0
+            elif 'RAMPING' in value:  # magnet ramping
+                rampStatus = 1
+            elif 'QUENCH' in value:  # detect magnet quench
+                rampStatus = 2
+            elif 'EXTERNAL' in value:  # detect external trip
+                rampStatus = 3
+            elif 'FAULT' in value:  # detect either controller or power fault
+                rampStatus = 4
+            else:
+                rampStatus = 10
+            if rampStatus in allowedvalues:
+                success=True
+            else:
+                log.error('Ramp status not recognized, trying again in 2s')
+                time.sleep(2)
         return rampStatus
 
     # checks if controller is paused (1) or active (0), returns a boolean
