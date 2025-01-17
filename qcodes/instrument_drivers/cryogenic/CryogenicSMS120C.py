@@ -310,6 +310,7 @@ class CryogenicSMS120C(VisaInstrument):
                 log.error('Ramp status not recognized, trying again in 2s')
                 time.sleep(2)
         return rampStatus
+    
 
     # checks if controller is paused (1) or active (0), returns a boolean
     # integer
