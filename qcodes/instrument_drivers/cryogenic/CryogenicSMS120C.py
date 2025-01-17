@@ -199,11 +199,21 @@ class CryogenicSMS120C(VisaInstrument):
 
     # get heater status, returns a boolean ON (1) or OFF (0)
     def _get_switchHeater(self):
-        value = self.ask('HEATER')
-        if 'OFF' in value:
-            switchHeater = 0
-        elif 'ON' in value:
-            switchHeater = 1
+        allowedvalues=[0,1]
+        success=False
+        while success==False:
+            value = self.ask('HEATER')
+            if 'OFF' in value:
+                switchHeater = 0
+            elif 'ON' in value:
+                switchHeater = 1
+            else:
+                switchHeater=100
+            if switchHeater in allowedvalues:
+                success=True
+            else:
+                log.error('Ramp status not recognized, trying again in 2s')
+                time.sleep(2)
         return switchHeater
 
     # check if magnet is in persistent mode, and if so return current in the
@@ -257,20 +267,39 @@ class CryogenicSMS120C(VisaInstrument):
 
     # get direction of current, returns a string - Positive (1) or Negative(0)
     def _get_polarity(self):
-        value = self.ask('GET SIGN')
-        if 'POSITIVE' in value:
-            polarity = '+'
-        elif 'NEGATIVE' in value:  # assume Negative
-            polarity = '-'
+        success=False
+        allowedvalues=['+','-']
+        while success==False:
+            value = self.ask('GET SIGN')
+            if 'POSITIVE' in value:
+                polarity = '+'
+            elif 'NEGATIVE' in value:  # assume Negative
+                polarity = '-'
+            else:
+                polarity=='unsure'
+            if polarity in allowedvalues:
+                success=True
+            else:
+                log.error('Polarity not recognized, trying again in 2s')
+                time.sleep(2)
         return polarity
 
     def _get_maxField(self):  # Get the maximum B field, returns a float (in Amps or Tesla)
-        value = self.ask('GET MAX')
-        units = self._get_unit()
-        if units == 1:
-            maxField = value.split('SETTING: ')[1].split(' TESLA')[0]
-        elif units == 0:
-            maxField = mes.split('SETTING: ')[1].split(' AMP')[0]
+        success=False
+        while success==False:
+            value = self.ask('GET MAX')
+            units = self._get_unit()
+            if units == 1:
+                maxField = value.split('SETTING: ')[1].split(' TESLA')[0]
+            elif units == 0:
+                maxField = mes.split('SETTING: ')[1].split(' AMP')[0]
+            else:
+                maxField='undefined'
+            if maxField=='undefined':
+                log.error('Max field not recognized, trying again in 2s')
+                time.sleep(2)
+            else:
+                success=True              
         return float(maxField)
 
     # Get current magnetic field, returns a float (assume in Tesla)
@@ -279,12 +308,15 @@ class CryogenicSMS120C(VisaInstrument):
         # m = re.match(r'({}) TESLA AT ({}) VOLTS'.format(CryogenicSMS120C._re_float_exp,CryogenicSMS120C._re_float_exp), value)
         # field = float(m[1])
         # return field
-        try:
+        success=False
+        while success==False:
             mes=self.ask('GET OUTPUT')
-            field=float(mes.split('OUTPUT: ')[1].split(' TESLA')[0])
-            return field
-        except Exception as e:
-            raise e
+            try:
+                field=float(mes.split('OUTPUT: ')[1].split(' TESLA')[0])
+                return field
+                success=True
+            except Exception as e:
+                time.sleep(2)
         
 
     def _get_rampStatus(self):  # get current magnet status, returns an integer
@@ -325,8 +357,15 @@ class CryogenicSMS120C(VisaInstrument):
     # Get current magnet ramping rate, returns a float (in units of Amps/sec
     # only)
     def _get_rampRate(self):
-        mes=self.ask('GET RATE')
-        rampRate=float(mes.split('RATE: ')[1].split(' A/SEC')[0])
+        success=False
+        while success==False:
+            try:
+                mes=self.ask('GET RATE')
+                rampRate=float(mes.split('RATE: ')[1].split(' A/SEC')[0])
+                success=True
+            except:
+                success=False
+                time.sleep(2)
         return rampRate
 
     # Set magnet sweep direction : "+" for positive B, "-" for negative B
@@ -509,7 +548,7 @@ class CryogenicSMS120C(VisaInstrument):
                     self.write('RAMP MID')
                     log.info('Ramping magnetic field...')
                 if self.rampMode()=='confirm': #Likely the best option for general use, but causes random timeout errors if waiting time <200ms
-                    while self._get_rampStatus()=='RAMPING':
+                    while self._get_rampStatus()==1:
                         time.sleep(0.2)
                 elif self.rampMode()=='wait':
                     stepsize=np.abs(self.field.get_latest()-val)
