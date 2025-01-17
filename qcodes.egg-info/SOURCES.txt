@@ -35,15 +35,12 @@ qcodes/instrument/function.py
 qcodes/instrument/group_parameter.py
 qcodes/instrument/ip.py
 qcodes/instrument/ip_to_visa.py
-qcodes/instrument/multi_parameter.py
 qcodes/instrument/parameter.py
-qcodes/instrument/parameterbackup.py
 qcodes/instrument/sequence_helpers.py
 qcodes/instrument/serial.py
 qcodes/instrument/sweep_values.py
 qcodes/instrument/val_mapping.py
 qcodes/instrument/visa.py
-qcodes/instrument/visa_old.py
 qcodes/instrument/mockers/__init__.py
 qcodes/instrument/mockers/ami430.py
 qcodes/instrument/sims/AMI430.yaml
@@ -119,6 +116,8 @@ qcodes/instrument_drivers/QDev/QDac_channels_old.py
 qcodes/instrument_drivers/QDev/__init__.py
 qcodes/instrument_drivers/QDevil/QDAC2.py
 qcodes/instrument_drivers/QDevil/QDAC2_Array.py
+qcodes/instrument_drivers/QDevil/QDAC2_legacy.py
+qcodes/instrument_drivers/QDevil/QDAC2_legacy_V2.py
 qcodes/instrument_drivers/QDevil/__init__.py
 qcodes/instrument_drivers/QuTech/D4.py
 qcodes/instrument_drivers/QuTech/D5a.py
