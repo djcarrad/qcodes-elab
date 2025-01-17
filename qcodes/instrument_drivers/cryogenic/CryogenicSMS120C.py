@@ -276,7 +276,7 @@ class CryogenicSMS120C(VisaInstrument):
             elif 'NEGATIVE' in value:  # assume Negative
                 polarity = '-'
             else:
-                polarity=='unsure'
+                polarity='unsure'
             if polarity in allowedvalues:
                 success=True
             else:
@@ -316,6 +316,7 @@ class CryogenicSMS120C(VisaInstrument):
                 return field
                 success=True
             except Exception as e:
+                log.error('Field value not recognized, trying again in 2s')
                 time.sleep(2)
         
 
