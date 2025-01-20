@@ -38,7 +38,7 @@ from qcodes.data.io import DiskIO
 
 from qcodes.instrument.base import Instrument, find_or_create_instrument
 from qcodes.instrument.ip import IPInstrument
-from qcodes.instrument.visa import VisaInstrument
+from qcodes.instrument.visa import VisaInstrument, listVISAinstruments
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 
 from qcodes.instrument.function import Function
