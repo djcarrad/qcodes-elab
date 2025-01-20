@@ -48,14 +48,22 @@ class CryogenicSMS120C(VisaInstrument):
             for 50mK operation 0.0506A/s (5.737E-3 T/s, 0.34422T/min) - usually used
             for 4K operation 0.12A/s (0.013605 T/s, 0.8163 T/min) - not recommended
 
-    Note about timing : SMS120C needs a minimum of 200ms delay between commands being sent
+    Note about timing : SMS120C needs a minimum of 200ms delay between commands being sent.
+    The controller will send bad commands if asked too often. This driver tries to circumvent that.
+    If the controller sends a bad command, the code will wait for the 'timeout' time (default 5s)
+    before asking for the parameter again, and will keep asking until the controller sends something sensible.
+    The problem mainly occurs when getting parameters.
+    However, the problem is most prevalent when _setting_ the field, since the code has to continually/regularly
+    ask the controller whether the field has been reached. To get around this, you can set an appropriate 
+    querytime>0.2s (default 0.5s). However this limits the sweeprate to at least this value.
+    Alternatively, you can use one of the other rampModes (see description in parameter)
     """
 
     # Reg. exp. to match a float or exponent in a string
     _re_float_exp = r'[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?'
 
     def __init__(self, name, address, coil_constant=0.113375, current_rating=105.84,
-                 current_ramp_limit=0.0506, reset=False, timeout=5, terminator='\r\n', **kwargs):
+                 current_ramp_limit=0.0506, reset=False, querytime=0.5, timeout=5, log_timeouts=False, terminator='\r\n', **kwargs):
 
         log.debug('Initializing instrument')
         super().__init__(name, address, terminator=terminator, **kwargs)
@@ -78,6 +86,9 @@ class CryogenicSMS120C(VisaInstrument):
         self._field_rating = coil_constant * \
             current_rating  # corresponding max field based
         self._field_ramp_limit = coil_constant * current_ramp_limit
+        self._timeout=timeout
+        self._logging=log_timeouts
+        self._querytime=querytime
 
         self.add_parameter(name='unit',
                            get_cmd=self._get_unit,
@@ -212,8 +223,9 @@ class CryogenicSMS120C(VisaInstrument):
             if switchHeater in allowedvalues:
                 success=True
             else:
-                log.error('Ramp status not recognized, trying again in 2s')
-                time.sleep(2)
+                if self._logging==True:
+                    log.error(f'Switch heater status not recognized, trying again in {self._timeout}s')
+                time.sleep(self._timeout)
         return switchHeater
 
     # check if magnet is in persistent mode, and if so return current in the
@@ -280,8 +292,9 @@ class CryogenicSMS120C(VisaInstrument):
             if polarity in allowedvalues:
                 success=True
             else:
-                log.error('Polarity not recognized, trying again in 2s')
-                time.sleep(2)
+                if self._logging==True:
+                    log.error(f'Polarity not recognized, trying again in {self._timeout}s')
+                time.sleep(self._timeout)
         return polarity
 
     def _get_maxField(self):  # Get the maximum B field, returns a float (in Amps or Tesla)
@@ -292,12 +305,13 @@ class CryogenicSMS120C(VisaInstrument):
             if units == 1:
                 maxField = value.split('SETTING: ')[1].split(' TESLA')[0]
             elif units == 0:
-                maxField = mes.split('SETTING: ')[1].split(' AMP')[0]
+                maxField = value.split('SETTING: ')[1].split(' AMP')[0]
             else:
                 maxField='undefined'
             if maxField=='undefined':
-                log.error('Max field not recognized, trying again in 2s')
-                time.sleep(2)
+                if self._logging==True:
+                    log.error(f'Max field not recognized, trying again in {self._timeout}s')
+                time.sleep(self._timeout)
             else:
                 success=True              
         return float(maxField)
@@ -311,13 +325,16 @@ class CryogenicSMS120C(VisaInstrument):
         success=False
         while success==False:
             mes=self.ask('GET OUTPUT')
+            if 'AMPS' in mes:
+                raise AttributeError('Magnet in Amps mode, not Tesla mode')
             try:
                 field=float(mes.split('OUTPUT: ')[1].split(' TESLA')[0])
                 return field
                 success=True
             except Exception as e:
-                log.error('Field value not recognized, trying again in 2s')
-                time.sleep(2)
+                if self._logging==True:
+                    log.error(f'Field value not recognized, trying again in {self._timeout}s')
+                time.sleep(self._timeout)
         
 
     def _get_rampStatus(self):  # get current magnet status, returns an integer
@@ -340,8 +357,9 @@ class CryogenicSMS120C(VisaInstrument):
             if rampStatus in allowedvalues:
                 success=True
             else:
-                log.error('Ramp status not recognized, trying again in 2s')
-                time.sleep(2)
+                if self._logging==True:
+                    log.error(f'Ramp status not recognized, trying again in {self._timeout}s')
+                time.sleep(self._timeout)
         return rampStatus
     
 
@@ -365,8 +383,9 @@ class CryogenicSMS120C(VisaInstrument):
                 rampRate=float(mes.split('RATE: ')[1].split(' A/SEC')[0])
                 success=True
             except:
-                success=False
-                time.sleep(2)
+                if self._logging==True:
+                    log.error(f'Ramp rate not recognized, trying again in {self._timeout}s')
+                time.sleep(self._timeout)
         return rampRate
 
     # Set magnet sweep direction : "+" for positive B, "-" for negative B
@@ -550,7 +569,7 @@ class CryogenicSMS120C(VisaInstrument):
                     log.info('Ramping magnetic field...')
                 if self.rampMode()=='confirm': #Likely the best option for general use, but causes random timeout errors if waiting time <200ms
                     while self._get_rampStatus()==1:
-                        time.sleep(0.2)
+                        time.sleep(self._querytime)
                 elif self.rampMode()=='wait':
                     stepsize=np.abs(self.field.get_latest()-val)
                     teslarate=self._get_rampRate()*self._coil_constant
