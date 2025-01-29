@@ -60,6 +60,7 @@ qcodes/instrument/sims/lakeshore_model372.yaml
 qcodes/instrument_drivers/__init__.py
 qcodes/instrument_drivers/devices.py
 qcodes/instrument_drivers/test.py
+qcodes/instrument_drivers/timer.py
 qcodes/instrument_drivers/Advantech/PCIE_1751.py
 qcodes/instrument_drivers/Advantech/__init__.py
 qcodes/instrument_drivers/AlazarTech/ATS.py
@@ -118,6 +119,7 @@ qcodes/instrument_drivers/QDevil/QDAC2.py
 qcodes/instrument_drivers/QDevil/QDAC2_Array.py
 qcodes/instrument_drivers/QDevil/QDAC2_legacy.py
 qcodes/instrument_drivers/QDevil/QDAC2_legacy_V2.py
+qcodes/instrument_drivers/QDevil/QSwitch.py
 qcodes/instrument_drivers/QDevil/__init__.py
 qcodes/instrument_drivers/QuTech/D4.py
 qcodes/instrument_drivers/QuTech/D5a.py
@@ -198,6 +200,7 @@ qcodes/instrument_drivers/tektronix/AWG70002A.py
 qcodes/instrument_drivers/tektronix/AWGFileParser.py
 qcodes/instrument_drivers/tektronix/Keithley_2000.py
 qcodes/instrument_drivers/tektronix/Keithley_2000_Scan.py
+qcodes/instrument_drivers/tektronix/Keithley_2182a.py
 qcodes/instrument_drivers/tektronix/Keithley_2400.py
 qcodes/instrument_drivers/tektronix/Keithley_2450.py
 qcodes/instrument_drivers/tektronix/Keithley_2600.py
@@ -208,6 +211,7 @@ qcodes/instrument_drivers/tektronix/Keithley_2700legacy.py
 qcodes/instrument_drivers/tektronix/Keithley_6500.py
 qcodes/instrument_drivers/tektronix/TPS2012.py
 qcodes/instrument_drivers/tektronix/__init__.py
+qcodes/instrument_drivers/tektronix/sourcemeter.py
 qcodes/instrument_drivers/weinschel/Weinschel_8320.py
 qcodes/instrument_drivers/weinschel/__init__.py
 qcodes/instrument_drivers/yokogawa/GS200.py
@@ -324,4 +328,5 @@ qcodes/utils/plotting.py
 qcodes/utils/slack.py
 qcodes/utils/threading.py
 qcodes/utils/validators.py
+qcodes/utils/visa_subs.py
 qcodes/utils/zmq_helpers.py

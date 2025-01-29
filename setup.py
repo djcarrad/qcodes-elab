@@ -75,7 +75,8 @@ setup(name='qcodes',
           'wrapt',
           'pyserial',
           'pandas',
-          'tqdm'
+          'tqdm',
+          'lmfit'
       ],
 
       test_suite='qcodes.tests',
