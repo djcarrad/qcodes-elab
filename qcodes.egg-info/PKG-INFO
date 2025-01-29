@@ -27,6 +27,7 @@ Requires-Dist: wrapt
 Requires-Dist: pyserial
 Requires-Dist: pandas
 Requires-Dist: tqdm
+Requires-Dist: lmfit
 Provides-Extra: matplot
 Requires-Dist: matplotlib>=2.2.3; extra == "matplot"
 Provides-Extra: qtplot

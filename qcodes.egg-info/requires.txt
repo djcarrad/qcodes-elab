@@ -13,6 +13,7 @@ wrapt
 pyserial
 pandas
 tqdm
+lmfit
 
 [MatPlot]
 matplotlib>=2.2.3

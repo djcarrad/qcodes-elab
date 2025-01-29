@@ -26,7 +26,6 @@ except ImportError:
 if haswebsockets:
     from qcodes.monitor.monitor import Monitor
 
-from qcodes.plots import analysis_tools
 from qcodes.plots.qplot.RemotePlot import Plot
 from qcodes.data.data_set import DataSet, new_data, data_set_from_arrays, load_data, load_data_num, load_data_nums, set_data_format, set_data_folder
 from qcodes.data.location import FormatLocation

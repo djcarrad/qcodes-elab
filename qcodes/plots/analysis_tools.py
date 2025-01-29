@@ -3,6 +3,7 @@
 import numpy as np
 import glob
 import os
+import numpy as np
 from qcodes.data import data_set
 import matplotlib.pyplot as plt
 from matplotlib import cm    
@@ -62,32 +63,41 @@ def colourplot(data,figsize=0,cmap=0,labels=0,xlim=0,ylim=0,zlim=0,xmajor=0,xmin
     return (fig,ax1,cax)
 
 def fit_lorentzians(x,y,numofpeaks=None,rough_peak_positions=None,
-                    xrange=[0,-1],amplitudes=1e-5,sigmas=1e-4,
+                    amplitudes=None,sigmas=None,xrange=None,
                     plotname='plotname',savefig=False):
    
     #Fits x,y data with lorentzian functions using 'rough_peak_positions' as initial guess positions.
     #One can instead provide the number of peaks, and the fitter will start with an initial guess of evenly spaced peaks.
     #numofpeaks is ignored if rough_peak_positions provided
-    #If necessary, the range of the data can be limited by feeding the limiting indices to xrange.
+    #If necessary, the range of the data can be limited, in units of the x data.
     #Custom starting amplitudes (proportional to height) and sigmas (proportional to width) may also be given
     #Returns parameters for each of the peaks fitted, 'peak0' to 'peakN' where N is the number of peaks in rough_peak_positions
     #If savefig set to True, saves the figure with plotname, which should include the filetype.
-   
-    x_clip=x[xrange[0]:xrange[1]]
-    y_clip=y[xrange[0]:xrange[1]]
+
+    if x[0]>x[-1]:
+        x=x[::-1]
+        y=y[::-1]
+
+    if xrange==None:
+        x_clip=x
+        y_clip=y
+    else:
+        min_ind=(np.abs(x - xrange[0])).argmin()
+        max_ind=(np.abs(x - xrange[1])).argmin()
+        x_clip=x[min_ind:max_ind]
+        y_clip=y[min_ind:max_ind]
     
     if rough_peak_positions==None:
         if numofpeaks==None:
             raise ValueError('Please provide either rough_peak_positions or numofpeaks')
-        if x[xrange[1]]<x[xrange[0]]:
-            upperlimit=x[xrange[0]]
-            lowerlimit=x[xrange[1]]
-        else:
-            upperlimit=x[xrange[1]]
-            lowerlimit=x[xrange[0]]
-        peakspacing=(upperlimit-lowerlimit)/numofpeaks
-        rough_peak_positions=[i*peakspacing+peakspacing/2+lowerlimit for i in range(numofpeaks)]
-        print(rough_peak_positions)
+        peakspacing=(x_clip.max()-x_clip.min())/numofpeaks
+        rough_peak_positions=[i*peakspacing+peakspacing/2+x_clip.min() for i in range(numofpeaks)]
+        #print(rough_peak_positions)
+
+    if amplitudes==None: #Guess that the amplitudes will be close to the maximum value of the data
+        amplitudes=np.max(y_clip)
+    if sigmas==None: #Sigma = FWHM/2, so sigma should be roughly a fourth of the peak spacing
+        sigmas=np.abs(x_clip[-1]-x_clip[0])/(4*numofpeaks)
         
     peakpos0=rough_peak_positions[0]
     peakpositions=rough_peak_positions[1:]
@@ -128,32 +138,42 @@ def fit_lorentzians(x,y,numofpeaks=None,rough_peak_positions=None,
 
 
 def fit_gaussians(x,y,numofpeaks=None,rough_peak_positions=None,
-                    xrange=[0,-1],amplitudes=1e-5,sigmas=1e-4,
+                    amplitudes=None,sigmas=None,xrange=None,
                     plotname='plotname',savefig=False):
    
     #Fits x,y data with lorentzian functions using 'rough_peak_positions' as initial guess positions.
     #One can instead provide the number of peaks, and the fitter will start with an initial guess of evenly spaced peaks.
     #numofpeaks is ignored if rough_peak_positions provided
-    #If necessary, the range of the data can be limited by feeding the limiting indices to xrange.
+    #If necessary, the range of the data can be limited by xrange, in units of the data.
     #Custom starting amplitudes (proportional to height) and sigmas (proportional to width) may also be given
     #Returns parameters for each of the peaks fitted, 'peak0' to 'peakN' where N is the number of peaks in rough_peak_positions
     #If savefig set to True, saves the figure with plotname, which should include the filetype.
    
-    x_clip=x[xrange[0]:xrange[1]]
-    y_clip=y[xrange[0]:xrange[1]]
+    if x[0]>x[-1]:
+        x=x[::-1]
+        y=y[::-1]
+
+    if xrange==None:
+        x_clip=x
+        y_clip=y
+
+    else:
+        min_ind=(np.abs(x - xrange[0])).argmin()
+        max_ind=(np.abs(x - xrange[1])).argmin()
+        x_clip=x[min_ind:max_ind]
+        y_clip=y[min_ind:max_ind]
     
     if rough_peak_positions==None:
         if numofpeaks==None:
             raise ValueError('Please provide either rough_peak_positions or numofpeaks')
-        if x[xrange[1]]<x[xrange[0]]:
-            upperlimit=x[xrange[0]]
-            lowerlimit=x[xrange[1]]
-        else:
-            upperlimit=x[xrange[1]]
-            lowerlimit=x[xrange[0]]
-        peakspacing=(upperlimit-lowerlimit)/numofpeaks
-        rough_peak_positions=[i*peakspacing+peakspacing/2+lowerlimit for i in range(numofpeaks)]
-        print(rough_peak_positions)
+        peakspacing=(x_clip.max()-x_clip.min())/numofpeaks
+        rough_peak_positions=[i*peakspacing+peakspacing/2+x_clip.min() for i in range(numofpeaks)]
+        #print(rough_peak_positions)
+
+    if amplitudes==None: #Guess that the amplitudes will be close to the maximum value of the data
+        amplitudes=np.max(y_clip)
+    if sigmas==None: #Sigma = FWHM/2, so sigma should be roughly a fourth of the peak spacing
+        sigmas=np.abs(x_clip[-1]-x_clip[0])/(4*numofpeaks)
         
     peakpos0=rough_peak_positions[0]
     peakpositions=rough_peak_positions[1:]
