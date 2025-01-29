@@ -96,7 +96,7 @@ def fit_lorentzians(x,y,numofpeaks=None,rough_peak_positions=None,
 
     if amplitudes==None: #Guess that the amplitudes will be close to the maximum value of the data
         amplitudes=np.max(y_clip)
-    if sigmas==None: #Sigma = FWHM/2, so sigma should be roughly a fourth of the peak spacing
+    if sigmas==None: #Sigma = FWHM/2, so sigma should be roughly a fourth of the peak spacing. May be much less if peaks not overlapping
         sigmas=np.abs(x_clip[-1]-x_clip[0])/(4*numofpeaks)
         
     peakpos0=rough_peak_positions[0]
@@ -172,7 +172,7 @@ def fit_gaussians(x,y,numofpeaks=None,rough_peak_positions=None,
 
     if amplitudes==None: #Guess that the amplitudes will be close to the maximum value of the data
         amplitudes=np.max(y_clip)
-    if sigmas==None: #Sigma = FWHM/2, so sigma should be roughly a fourth of the peak spacing
+    if sigmas==None: #Sigma = FWHM/2, so sigma should be roughly a fourth of the peak spacing. May be much less if peaks not overlapping
         sigmas=np.abs(x_clip[-1]-x_clip[0])/(4*numofpeaks)
         
     peakpos0=rough_peak_positions[0]
