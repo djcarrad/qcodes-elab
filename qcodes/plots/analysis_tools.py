@@ -64,7 +64,7 @@ def colourplot(data,figsize=0,cmap=0,labels=0,xlim=0,ylim=0,zlim=0,xmajor=0,xmin
 
 def fit_lorentzians(x,y,numofpeaks=None,rough_peak_positions=None,
                     amplitudes=None,sigmas=None,xrange=None,
-                    plotname='plotname',savefig=False):
+                    plotlabels=['x', 'y'],plotname='plotname', savefig=False):
    
     #Fits x,y data with lorentzian functions using 'rough_peak_positions' as initial guess positions.
     #One can instead provide the number of peaks, and the fitter will start with an initial guess of evenly spaced peaks.
@@ -130,6 +130,8 @@ def fit_lorentzians(x,y,numofpeaks=None,rough_peak_positions=None,
     for i in range(np.shape(rough_peak_positions)[0]):
         plt.plot(x_clip, components['peak'+str(i)+'_'], '--', color='k')
     plt.legend(loc='upper right')
+    plt.xlabel(plotlabels[0])
+    plt.ylabel(plotlabels[1])
     if savefig==True:
         plt.savefig(plotname, dpi=300, bbox_inches='tight')
     plt.show()
@@ -139,7 +141,7 @@ def fit_lorentzians(x,y,numofpeaks=None,rough_peak_positions=None,
 
 def fit_gaussians(x,y,numofpeaks=None,rough_peak_positions=None,
                     amplitudes=None,sigmas=None,xrange=None,
-                    plotname='plotname',savefig=False):
+                    plotlabels=['x', 'y'],plotname='plotname',savefig=False):
    
     #Fits x,y data with lorentzian functions using 'rough_peak_positions' as initial guess positions.
     #One can instead provide the number of peaks, and the fitter will start with an initial guess of evenly spaced peaks.
@@ -205,6 +207,8 @@ def fit_gaussians(x,y,numofpeaks=None,rough_peak_positions=None,
     plt.plot(x_clip, result.best_fit, label='best fit')
     for i in range(np.shape(rough_peak_positions)[0]):
         plt.plot(x_clip, components['peak'+str(i)+'_'], '--', color='k')
+    plt.xlabel(plotlabels[0])
+    plt.ylabel(plotlabels[1])
     plt.legend(loc='upper right')
     if savefig==True:
         plt.savefig(plotname, dpi=300, bbox_inches='tight')
