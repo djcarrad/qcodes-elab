@@ -24,8 +24,8 @@ class ControlListener(threading.Thread):
 
         self.port = self.socket.bind_to_random_port('tcp://*',
                                                     min_port=port,
-                                                    max_port=port+100,
-                                                    max_tries=100)
+                                                    max_port=port+500,
+                                                    max_tries=500)
 
         self.socket.setsockopt(zmq.SUBSCRIBE, b'')
 

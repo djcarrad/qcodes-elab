@@ -33,7 +33,7 @@ class Triton(IPInstrument):
 
         self._heater_range_auto = False
         self._heater_range_temp = [0.03, 0.1, 0.3, 1, 12, 40]
-        self._heater_range_curr = [0.316, 1, 3.16, 10, 31.6, 100]
+        self._heater_range_curr = [0.316*1e-3, 1*1e-3, 3.16*1e-3, 10*1e-3, 31.6*1e-3, 100*1e-3]
         self._control_channel = 5
 
         self.add_parameter(name='time',
@@ -95,16 +95,28 @@ class Triton(IPInstrument):
                            label='PID heater range',
                            # TODO: The units in the software are mA, how to
                            # do this correctly?
-                           unit='mA',
+                           unit='A',
                            get_cmd=partial(self._get_control_param, 'RANGE'),
                            set_cmd=partial(self._set_control_param, 'RANGE'),
+                           get_parser=self._heater_current_parser,
+                           set_parser=self._heater_current_parser,
                            vals=Enum(*self._heater_range_curr))
+
+        self.add_parameter(name = 'heater_current',
+                           label = 'PID heater current',
+                           unit = 'A',
+                           get_cmd = partial(self._get_htr_control_param, 'CURR'),
+                           set_cmd = partial(self._set_htr_control_param,'CURR'),
+                            get_parser=self._heater_current_parser,
+                            set_parser=self._heater_current_parser)
 
         self.add_parameter(name = 'heater_power',
                            label = 'PID heater power',
-                           unit = 'uW',
+                           unit = 'W',
                            get_cmd = partial(self._get_htr_control_param, 'POWR'),
-                           set_cmd = partial(self._set_htr_control_param,'POWR'))
+                           set_cmd = partial(self._set_htr_control_param,'POWR'),
+                            get_parser=self._heater_power_parser,
+                            set_parser=self._heater_power_parser)
 
         self.add_parameter(name='magnet_status',
                            label='Magnet status',
@@ -256,6 +268,12 @@ class Triton(IPInstrument):
     def _get_htr_control_param(self, param):
         cmd = 'READ:DEV:H1:HTR:SIG:{}'.format(param)
         return self._get_response_value(self.ask(cmd))
+
+    def _heater_current_parser(self,value):
+        return value*1e-3
+
+    def _heater_power_parser(self,value):
+        return value*1e-6
 
     def _set_htr_control_param(self, param, value):
         cmd = 'SET:DEV:H1:HTR:SIG:{}:{}'.format(param, value)
