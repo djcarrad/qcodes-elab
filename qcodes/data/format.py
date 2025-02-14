@@ -2,6 +2,7 @@ from collections import namedtuple
 from traceback import format_exc
 from operator import attrgetter
 import logging
+from datetime import datetime
 
 log = logging.getLogger(__name__)
 
@@ -214,18 +215,18 @@ class Formatter:
 
         if last_saved_index is None or not file_exists:
             if last_saved_index is None and file_exists:
-                log.warning("Inconsistent file information. "
+                log.warning(f"{datetime.now().replace(microsecond=0)}: Inconsistent file information. "
                             "last_save_index is None but file exists. "
                             "Will overwrite")
             if last_saved_index is not None and not file_exists:
-                log.warning("Inconsistent file information. "
+                log.warning(f"{datetime.now().replace(microsecond=0)}: Inconsistent file information. "
                             "last_save_index is not None but file does not "
                             "exist. Will rewrite from scratch")
             return self._match_save_range_whole_file(
                 full_dim_data, only_complete)
         
         if force_rewrite:
-            log.warning("Writing to primary data file skipped: Will rewrite primary file from scratch")
+            #log.warning("Writing to primary data file skipped: Will rewrite primary file from scratch")
             return self._match_save_range_whole_file(
                 full_dim_data, only_complete)
 

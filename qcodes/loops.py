@@ -805,6 +805,7 @@ class ActiveLoop(Metadatable):
             
             # Check for NaNs in the data: this could be an indication that something wasn't
             # saved properly: the user then has a chance to rectify it.
+            start=time.time()
             writtendata=load_data(self.data_set.location)
             Nansfound=False
             for param in writtendata.arrays:
@@ -817,6 +818,7 @@ class ActiveLoop(Metadatable):
                             'If the data in memory is correct but the data on file is not, '
                             'overwrite the data on file using \n'
                             'data.write(force_rewrite=True)')
+            print(time.time()-start)
 
             # After normal loop execution we clear the data_set so we can run
             # again. But also if something went wrong during the loop execution

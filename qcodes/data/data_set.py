@@ -719,11 +719,11 @@ class DataSet(DelegateAttributes):
                                      write_metadata=write_metadata,
                                      only_complete=only_complete)
             if self._skipped_warning==True or self._backup_warning==True:
-                log.warning('Writing data to primary location resumed')
+                log.warning(f'{datetime.now().replace(microsecond=0)}: Writing data to primary location resumed')
                 self._skipped_warning=False
                 self._backup_warning=False
         except Exception as e:
-            log.warning('Data could not be written to primary location: '+str(e))
+            log.warning(f'{datetime.now().replace(microsecond=0)}: Data could not be written to primary location: '+str(e))
             try:
                 if isinstance(self.formatter, GNUPlotFormat):
                     self.formatter.write(self,
@@ -742,10 +742,10 @@ class DataSet(DelegateAttributes):
                     
                 self.backup_used=True
                 self._backup_warning=True
-                log.warning(f'Data written to backup location: {self.backup_location}')
+                log.warning(f'{datetime.now().replace(microsecond=0)}: Data written to backup location: {self.backup_location}')
 
             except Exception as e:
-                log.warning('Data could not be written to backup location: '+str(e))
+                log.warning(f'{datetime.now().replace(microsecond=0)}: Data could not be written to backup location: '+str(e))
                 self.writing_skipped=True
                 self._skipped_warning=True
 
