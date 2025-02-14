@@ -16,7 +16,8 @@ from .location import FormatLocation
 from .data_array import DataArray
 from qcodes.utils.helpers import DelegateAttributes, full_class, deep_update
 from qcodes.station import Station
-from os import getlogin
+from qcodes import config
+import os
 
 from uuid import uuid4
 log = logging.getLogger(__name__)
@@ -302,16 +303,44 @@ class DataSet(DelegateAttributes):
 
         if isinstance(backup_location,str):
             self.backup_location=backup_location
+        elif 'backup_location' in config['core'].keys():
+            self.backup_location=config['core']['backup_location']
+            if os.access(self.backup_location, os.W_OK) is False and os.path.exists(self.backup_location) is False:
+                try:
+                    os.makedirs(self.backup_location)
+                except Exception as e:
+                    print(f'Backup location specified in qcodes.config["core"]["backup_location"] '
+                        'could not be created. Try another location \n {e}')
+            if os.access(self.backup_location, os.W_OK) is False:
+                print('Backup location specified in qcodes.config["core"]["backup_location"] is not writable. '
+                    'Try another location')
         elif backup_location is None:
-            try:
-                self.backup_location='C:/Users/'+getlogin()+'/AppData/Local/qcodes-elab/data_backup'
-            except:
-                print(f'Default backup_location, C:/Users/'+getlogin()+'/AppData/Local/qcodes-elab/data_backup cannot be used. This usually is not a problem but you may like to specify one')
+            self.backup_location='C:/Users/'+os.getlogin()+'/AppData/Local/qcodes-elab/data_backup'
+            if os.access(self.backup_location, os.W_OK) is False and os.path.exists(self.backup_location) is False:
+                try:
+                    os.makedirs(self.backup_location)
+                except Exception as e:
+                    print(f'Default backup location {self.backup_location} '
+                        'could not be created. \n {e} '
+                        'This usually is not a problem but you may like to specify/create one. '
+                        'Specify it globally for this session using qcodes.config["core"]["backup_location"]="*your backup location*",'
+                        'or specify it for this DataSet by specifying backup_location="*your backup location*" in e.g. new_data() or get_data_set()')
+                    
+            if os.access(self.backup_location, os.W_OK) is False:
+                print(f'Default backup_location, C:/Users/'+os.getlogin()+'/AppData/Local/qcodes-elab/data_backup cannot be used. '
+                        'This usually is not a problem but you may like to specify one. '
+                        'Specify it globally for this session using qcodes.config["core"]["backup_location"]="*your backup location*",'
+                        'or specify it for this DataSet by specifying backup_location="*your backup location*" in e.g. new_data() or get_data_set()')
         else:
-            print('No backup_location specified for data saving. This usually is not a problem but you may like to specify one')
+            self.backup_location=self.location
+            print('No backup_location specified for saving data. This usually is not a problem but you may like to specify one. '
+                'Specify it globally for this session using qcodes.config["core"]["backup_location"]="*your backup location*",'
+                'or specify it for this DataSet by specifying backup_location="*your backup location*" in e.g. new_data() or get_data_set()')
 
         self.backup_used=False
         self.writing_skipped=False
+        self._backup_warning=False
+        self._skipped_warning=False
 
         self.publisher = None
 
@@ -684,10 +713,12 @@ class DataSet(DelegateAttributes):
                                      self.location,
                                      write_metadata=write_metadata,
                                      only_complete=only_complete)
-            if self.writing_skipped==True:
+            if self._skipped_warning==True or self._backup_warning==True:
                 print('Writing data to primary location resumed')
-                self.writing_skipped=False
-        except:
+                self._skipped_warning=False
+                self._backup_warning=False
+        except Exception as e:
+            print('Data could not be written to primary location: '+str(e))
             try:
                 if isinstance(self.formatter, GNUPlotFormat):
                     self.formatter.write(self,
@@ -705,10 +736,13 @@ class DataSet(DelegateAttributes):
                                         only_complete=only_complete)
                     
                 self.backup_used=True
+                self._backup_warning=True
+                print('Data written to backup location')
 
-            except:
-                print('Data could not be written to either primary or backup location.')
+            except Exception as e:
+                print('Data could not be written to backup location: '+str(e))
                 self.writing_skipped=True
+                self._skipped_warning=True
 
     def write_copy(self, path=None, io_manager=None, location=None):
         """

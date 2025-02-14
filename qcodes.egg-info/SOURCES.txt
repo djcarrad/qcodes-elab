@@ -120,6 +120,7 @@ qcodes/instrument_drivers/QDevil/QDAC2_Array.py
 qcodes/instrument_drivers/QDevil/QDAC2_legacy.py
 qcodes/instrument_drivers/QDevil/QDAC2_legacy_V2.py
 qcodes/instrument_drivers/QDevil/QSwitch.py
+qcodes/instrument_drivers/QDevil/QSwitch_elab.py
 qcodes/instrument_drivers/QDevil/__init__.py
 qcodes/instrument_drivers/QuTech/D4.py
 qcodes/instrument_drivers/QuTech/D5a.py

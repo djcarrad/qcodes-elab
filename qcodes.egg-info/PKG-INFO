@@ -146,7 +146,7 @@ Sometimes, git complains that you cannot pull due to non-committed changes. This
 
 	git reset --hard origin/master
 
-I will try to work out a fix for this soon.
+This _should_ now be fixed. If you encounter this error, please let me know.
 
 Status
 ======
