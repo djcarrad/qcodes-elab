@@ -681,7 +681,7 @@ class DataSet(DelegateAttributes):
             return
         self.formatter.read_metadata(self)
 
-    def write(self, write_metadata=False, only_complete=True, filename=None):
+    def write(self, write_metadata=False, only_complete=True, filename=None, force_rewrite=False):
         """
         Writes updates to the DataSet to storage.
         N.B. it is recommended to call data_set.finalize() when a DataSet is
@@ -699,7 +699,7 @@ class DataSet(DelegateAttributes):
             return
         # Only the gnuplot formatter has a "filename" kwarg
         try:
-            if self._backup_warning or self._skipped_warning:
+            if force_rewrite or self._backup_warning or self._skipped_warning:
                 force_rewrite=True
             else:
                 force_rewrite=False
@@ -827,7 +827,7 @@ class DataSet(DelegateAttributes):
             self.snapshot()
             self.formatter.write_metadata(self, self.io, self.location)
 
-    def finalize(self, filename=None, write_metadata=True):
+    def finalize(self, filename=None, write_metadata=True, force_rewrite=False):
         """
         Mark the DataSet complete and write any remaining modifications.
 
@@ -842,7 +842,7 @@ class DataSet(DelegateAttributes):
         """
         log.debug('Finalising the DataSet. Writing.')
         # write all new data, not only (to?) complete columns
-        self.write(only_complete=False, filename=filename)
+        self.write(only_complete=False, filename=filename, force_rewrite=force_rewrite)
 
         if hasattr(self.formatter, 'close_file'):
             self.formatter.close_file(self)

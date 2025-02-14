@@ -53,7 +53,7 @@ import numpy as np
 from tqdm.auto import tqdm
 
 from qcodes.station import Station
-from qcodes.data.data_set import new_data
+from qcodes.data.data_set import new_data, load_data
 from qcodes.data.data_array import DataArray
 from qcodes.utils.helpers import wait_secs, full_class, tprint
 from qcodes.utils.metadata import Metadatable
@@ -801,6 +801,19 @@ class ActiveLoop(Metadatable):
             if not quiet:
                 print(repr(self.data_set))
                 print(datetime.now().strftime('Finished at %Y-%m-%d %H:%M:%S'))
+            
+            # Check for NaNs in the data: this could be an indication that something wasn't
+            # saved properly: the user then has a chance to rectify it.
+            writtendata=load_data(self.data_set.location)
+            Nansfound=False
+            for param in writtendata.arrays:
+                if np.isnan(writtendata.arrays[param]).any():
+                    Nansfound=True
+            if Nansfound:
+                log.warning('NaNs found in the data on file. If you stopped the measurement manually, ignore this message. '
+                            'If not, there is a chance parts of the data were not written properly. '
+                            'If the data in memory is correct not the data on file, overwrite the data on file using \n'
+                            'data.write(force_rewrite=True)')
 
             # After normal loop execution we clear the data_set so we can run
             # again. But also if something went wrong during the loop execution
