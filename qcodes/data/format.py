@@ -162,7 +162,7 @@ class Formatter:
         """
         raise NotImplementedError
 
-    def match_save_range(self, group, file_exists, only_complete=True):
+    def match_save_range(self, group, file_exists, only_complete=True, force_rewrite=False):
         """
         Find the save range that will joins all changes in an array group.
 
@@ -221,6 +221,11 @@ class Formatter:
                 log.warning("Inconsistent file information. "
                             "last_save_index is not None but file does not "
                             "exist. Will rewrite from scratch")
+            return self._match_save_range_whole_file(
+                full_dim_data, only_complete)
+        
+        if force_rewrite:
+            log.warning("Writing to primary data file skipped: Will rewrite primary file from scratch")
             return self._match_save_range_whole_file(
                 full_dim_data, only_complete)
 

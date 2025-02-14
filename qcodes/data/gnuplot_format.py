@@ -244,7 +244,7 @@ class GNUPlotFormat(Formatter):
             return [l.replace('\\"', '"').replace('\\\\', '\\') for l in parts]
 
     def write(self, data_set, io_manager, location, force_write=False,
-              write_metadata=True, only_complete=True, filename=None):
+              write_metadata=True, only_complete=True, filename=None, force_rewrite=False):
         """
         Write updates in this DataSet to storage.
 
@@ -292,7 +292,7 @@ class GNUPlotFormat(Formatter):
             # relative by calling to_location
             file_exists = io_manager.to_location(fn) in existing_files
             save_range = self.match_save_range(group, file_exists,
-                                               only_complete=only_complete)
+                                               only_complete=only_complete, force_rewrite=force_rewrite)
 
             if save_range is None:
                 log.debug('Cannot match save range, skipping this group.')

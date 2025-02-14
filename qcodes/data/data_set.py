@@ -1,7 +1,7 @@
 """DataSet class and factory functions."""
 
 import time
-from datetime import datetime
+from datetime import datetime, date
 import logging
 import glob
 import numpy as np
@@ -309,10 +309,10 @@ class DataSet(DelegateAttributes):
                 try:
                     os.makedirs(self.backup_location)
                 except Exception as e:
-                    print(f'Backup location specified in qcodes.config["core"]["backup_location"] '
+                    log.warning(f'Backup location specified in qcodes.config["core"]["backup_location"] '
                         'could not be created. Try another location \n {e}')
             if os.access(self.backup_location, os.W_OK) is False:
-                print('Backup location specified in qcodes.config["core"]["backup_location"] is not writable. '
+                log.warning('Backup location specified in qcodes.config["core"]["backup_location"] is not writable. '
                     'Try another location')
         elif backup_location is None:
             self.backup_location='C:/Users/'+os.getlogin()+'/AppData/Local/qcodes-elab/data_backup'
@@ -320,20 +320,20 @@ class DataSet(DelegateAttributes):
                 try:
                     os.makedirs(self.backup_location)
                 except Exception as e:
-                    print(f'Default backup location {self.backup_location} '
+                    log.warning(f'Default backup location {self.backup_location} '
                         'could not be created. \n {e} '
                         'This usually is not a problem but you may like to specify/create one. '
                         'Specify it globally for this session using qcodes.config["core"]["backup_location"]="*your backup location*",'
                         'or specify it for this DataSet by specifying backup_location="*your backup location*" in e.g. new_data() or get_data_set()')
                     
             if os.access(self.backup_location, os.W_OK) is False:
-                print(f'Default backup_location, C:/Users/'+os.getlogin()+'/AppData/Local/qcodes-elab/data_backup cannot be used. '
+                log.warning(f'Default backup_location, C:/Users/'+os.getlogin()+'/AppData/Local/qcodes-elab/data_backup cannot be used. '
                         'This usually is not a problem but you may like to specify one. '
                         'Specify it globally for this session using qcodes.config["core"]["backup_location"]="*your backup location*",'
                         'or specify it for this DataSet by specifying backup_location="*your backup location*" in e.g. new_data() or get_data_set()')
         else:
             self.backup_location=self.location
-            print('No backup_location specified for saving data. This usually is not a problem but you may like to specify one. '
+            log.warning('No backup_location specified for saving data. This usually is not a problem but you may like to specify one. '
                 'Specify it globally for this session using qcodes.config["core"]["backup_location"]="*your backup location*",'
                 'or specify it for this DataSet by specifying backup_location="*your backup location*" in e.g. new_data() or get_data_set()')
 
@@ -382,7 +382,7 @@ class DataSet(DelegateAttributes):
                     loc_record={}
                     loc_record['name'] = self.name[:-(pathlength-246)]
                     self.location = self.location_provider(io, record=loc_record)
-                    print('DataSet filename has been automatically shortened to avoid Windows maximum character limit')
+                    log.warning('DataSet filename has been automatically shortened to avoid Windows maximum character limit')
 
     def sync(self):
         """
@@ -699,6 +699,10 @@ class DataSet(DelegateAttributes):
             return
         # Only the gnuplot formatter has a "filename" kwarg
         try:
+            if self._backup_warning or self._skipped_warning:
+                force_rewrite=True
+            else:
+                force_rewrite=False
             if isinstance(self.formatter, GNUPlotFormat):
                 self.formatter.write(self,
                                      self.io,
@@ -706,7 +710,8 @@ class DataSet(DelegateAttributes):
                                      write_metadata=write_metadata,
                                      only_complete=only_complete,
                                      filename=filename,
-                                     force_write=self.force_write)
+                                     force_write=self.force_write,
+                                     force_rewrite=force_rewrite)
             else:
                 self.formatter.write(self,
                                      self.io,
@@ -714,16 +719,16 @@ class DataSet(DelegateAttributes):
                                      write_metadata=write_metadata,
                                      only_complete=only_complete)
             if self._skipped_warning==True or self._backup_warning==True:
-                print('Writing data to primary location resumed')
+                log.warning('Writing data to primary location resumed')
                 self._skipped_warning=False
                 self._backup_warning=False
         except Exception as e:
-            print('Data could not be written to primary location: '+str(e))
+            log.warning('Data could not be written to primary location: '+str(e))
             try:
                 if isinstance(self.formatter, GNUPlotFormat):
                     self.formatter.write(self,
                                         self.io,
-                                        self.backup_location,
+                                        self.backup_location+f'/{date.today()} #{self.location_provider.counter}/',
                                         write_metadata=write_metadata,
                                         only_complete=only_complete,
                                         filename=filename,
@@ -731,16 +736,16 @@ class DataSet(DelegateAttributes):
                 else:
                     self.formatter.write(self,
                                         self.io,
-                                        self.backup_location,
+                                        self.backup_location+f'/{date.today()} #{self.location_provider.counter}/',
                                         write_metadata=write_metadata,
                                         only_complete=only_complete)
                     
                 self.backup_used=True
                 self._backup_warning=True
-                print('Data written to backup location')
+                log.warning(f'Data written to backup location: {self.backup_location}')
 
             except Exception as e:
-                print('Data could not be written to backup location: '+str(e))
+                log.warning('Data could not be written to backup location: '+str(e))
                 self.writing_skipped=True
                 self._skipped_warning=True
 
