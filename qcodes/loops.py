@@ -797,6 +797,7 @@ class ActiveLoop(Metadatable):
                 print(datetime.now().strftime('Started at %Y-%m-%d %H:%M:%S'))
             self._run_wrapper()
             ds = self.data_set
+
         finally:
             if not quiet:
                 print(repr(self.data_set))
@@ -810,9 +811,11 @@ class ActiveLoop(Metadatable):
                 if np.isnan(writtendata.arrays[param]).any():
                     Nansfound=True
             if Nansfound:
-                log.warning('NaNs found in the data on file. If you stopped the measurement manually, ignore this message. '
+                log.warning('NaNs found in the saved data file. If you stopped the measurement manually, '
+                            'you can likely ignore this message. '
                             'If not, there is a chance parts of the data were not written properly. '
-                            'If the data in memory is correct not the data on file, overwrite the data on file using \n'
+                            'If the data in memory is correct but the data on file is not, '
+                            'overwrite the data on file using \n'
                             'data.write(force_rewrite=True)')
 
             # After normal loop execution we clear the data_set so we can run
