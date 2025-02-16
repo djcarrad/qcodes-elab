@@ -8,8 +8,6 @@ from qcodes.utils.helpers import make_unique, DelegateAttributes
 
 from qcodes.instrument.base import Instrument
 from qcodes.instrument.parameter import Parameter, MultiParameter, _BaseParameter
-from qcodes.instrument.parameter import ManualParameter
-from qcodes.instrument.parameter import StandardParameter
 from qcodes.instrument.parameter import ElapsedTimeParameter
 
 from qcodes.actions import _actions_snapshot

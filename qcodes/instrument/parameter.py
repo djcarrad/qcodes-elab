@@ -59,6 +59,7 @@ import time
 from time import perf_counter
 import logging
 import os
+import traceback
 import collections
 import warnings
 import enum
@@ -205,6 +206,7 @@ class _BaseParameter(Metadatable):
                  vals: Optional[Validator]=None,
                  delay: Optional[Union[int, float]]=None) -> None:
         super().__init__(metadata)
+    
         if not str(name).isidentifier():
             raise ValueError(f"Parameter name must be a valid identifier "
                              f"got {name} which is not. Parameter names "
@@ -850,7 +852,7 @@ class Parameter(_BaseParameter):
 
     """
 
-    def __init__(self, name: str,
+    def __init__(self, name: Optional[str]=None,
                  instrument: Optional['Instrument']=None,
                  label: Optional[str]=None,
                  unit: Optional[str]=None,
@@ -861,6 +863,16 @@ class Parameter(_BaseParameter):
                  vals: Optional[Validator]=None,
                  docstring: Optional[str]=None,
                  **kwargs) -> None:
+        
+        # This won't work in every situation and is kind of hacky. But in most cases, it enables
+        # the user to not need to type the name twice; the name is inherited from the name used when declaring
+        # i.e. instead of example=Parameter(name='example', unit='V', label='Example', get_cmd='READ?'), 
+        # you can just type example=Parameter(unit='V', label='Example', get_cmd='READ?')
+        if name==None:
+            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
+            def_name = text[:text.find('=')].strip()
+            name = def_name
+
         super().__init__(name=name, instrument=instrument, vals=vals, **kwargs)
 
         # Enable set/get methods if get_cmd/set_cmd is given
@@ -1078,8 +1090,8 @@ class ArrayParameter(_BaseParameter):
     """
 
     def __init__(self,
-                 name: str,
                  shape: Sequence[int],
+                 name: Optional[str]=None,
                  instrument: Optional['Instrument']=None,
                  label: Optional[str]=None,
                  unit: Optional[str]=None,
@@ -1091,6 +1103,12 @@ class ArrayParameter(_BaseParameter):
                  snapshot_get: bool=True,
                  snapshot_value: bool=False,
                  metadata: Optional[dict]=None) -> None:
+
+        if name==None:
+            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
+            def_name = text[:text.find('=')].strip()
+            name = def_name
+
         super().__init__(name, instrument, snapshot_get, metadata,
                          snapshot_value=snapshot_value)
 
@@ -1274,9 +1292,9 @@ class MultiParameter(_BaseParameter):
     """
 
     def __init__(self,
-                 name: str,
                  names: Sequence[str],
                  shapes: Sequence[Sequence[Optional[int]]],
+                 name: Optional[str]=None,
                  instrument: Optional['Instrument']=None,
                  labels: Optional[Sequence[str]]=None,
                  units: Optional[Sequence[str]]=None,
@@ -1289,6 +1307,12 @@ class MultiParameter(_BaseParameter):
                  snapshot_get: bool=True,
                  snapshot_value: bool=False,
                  metadata: Optional[dict]=None) -> None:
+        
+        if name==None:
+            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
+            def_name = text[:text.find('=')].strip()
+            name = def_name
+
         super().__init__(name, instrument, snapshot_get, metadata,
                          snapshot_value=snapshot_value)
 
@@ -1412,6 +1436,11 @@ class MultiParameterWrapper(MultiParameter):
             shapes.append(())
             labels.append(param.label)
             units.append(param.unit)
+
+        if name==None:
+            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
+            def_name = text[:text.find('=')].strip()
+            name = def_name
         super().__init__(name=name, names=tuple(names),shapes=tuple(shapes),unit='')
 
         self.labels=tuple(labels)
@@ -1543,9 +1572,15 @@ class CombinedParameter(Metadatable):
     sequentially.
     """
 
-    def __init__(self, parameters: Sequence[Parameter], name: str,
+    def __init__(self, parameters: Sequence[Parameter], name: Optional[str]=None,
                  label: str = None, unit: str=None, units: str=None,
                  aggregator: Callable=None) -> None:
+        
+        if name==None:
+            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
+            def_name = text[:text.find('=')].strip()
+            name = def_name
+    
         super().__init__()
         # TODO(giulioungaretti)temporary hack
         # starthack
@@ -1720,13 +1755,18 @@ class ElapsedTimeParameter(Parameter):
             :class:`qcodes.parameters.Parameter` for more details.
     """
 
-    def __init__(self, name: str, label: str = "Elapsed time", **kwargs: Any):
+    def __init__(self, name: Optional[str]=None, label: str = "Elapsed time", **kwargs: Any):
 
         hardcoded_kwargs = ["unit", "get_cmd", "set_cmd"]
 
         for hck in hardcoded_kwargs:
             if hck in kwargs:
                 raise ValueError(f'Can not set "{hck}" for an ' "ElapsedTimeParameter.")
+            
+        if name==None:
+            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
+            def_name = text[:text.find('=')].strip()
+            name = def_name
 
         super().__init__(name=name, label=label, unit="s", set_cmd=False, **kwargs)
 
@@ -1741,33 +1781,6 @@ class ElapsedTimeParameter(Parameter):
     @property
     def t0(self) -> float:
         return self._t0
-
-# Deprecated parameters
-class StandardParameter(Parameter):
-    def __init__(self, name, instrument=None,
-                 get_cmd=False, get_parser=None,
-                 set_cmd=False, set_parser=None,
-                 delay=0, max_delay=None, step=None, max_val_age=3600,
-                 vals=None, val_mapping=None, **kwargs):
-        super().__init__(name, instrument=instrument,
-                 get_cmd=get_cmd, get_parser=get_parser,
-                 set_cmd=set_cmd, set_parser=set_parser,
-                 post_delay=delay, step=step, max_val_age=max_val_age,
-                 vals=vals, val_mapping=val_mapping, **kwargs)
-        warnings.warn('`StandardParameter` is deprecated, '
-                        'use `Parameter` instead. {}'.format(self))
-
-
-class ManualParameter(Parameter):
-    def __init__(self, name, instrument=None, initial_value=None, **kwargs):
-        """
-        A simple alias for a parameter that does not have a set or
-        a get function. Useful for parameters that do not have a direct
-        instrument mapping.
-        """
-        super().__init__(name=name, instrument=instrument,
-                         get_cmd=None, set_cmd=None,
-                         initial_value=initial_value, **kwargs)
 
 
 class ScaledParameter(Parameter):
@@ -1817,14 +1830,15 @@ class ScaledParameter(Parameter):
                  output: Parameter,
                  division: Union[int, float, Parameter] = None,
                  gain: Union[int, float, Parameter] = None,
-                 name: str=None,
+                 name: Optional[str]=None,
                  label: str=None,
                  unit: str=None) -> None:
         # Set the name
-        if name:
-            self.name = name
-        else:
-            self.name = "{}_scaled".format(output.name)
+        if name==None:
+            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
+            def_name = text[:text.find('=')].strip()
+            self.name = def_name
+            name=def_name
 
         # Set label
         if label:
@@ -1884,8 +1898,10 @@ class ScaledParameter(Parameter):
             self._multiplier_parameter = multiplier
             self.metadata['variable_multiplier'] = self._multiplier_parameter.name
         else:
-            self._multiplier_parameter = ManualParameter(
-                'multiplier', initial_value=multiplier)
+            self._multiplier_parameter = Parameter(
+                'multiplier',
+                         get_cmd=None, set_cmd=None,
+                         initial_value=multiplier)
             self.metadata['variable_multiplier'] = False
 
     # Division of the scaler
