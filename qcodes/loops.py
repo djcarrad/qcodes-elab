@@ -805,20 +805,19 @@ class ActiveLoop(Metadatable):
             
             # Check if the data written to file matches that in memory.
             # If not, save a copy and warn the user.
-            # Have to do it super verbose because of nan!=nan in python (fair enough)
             if check_written_data==True:
-                writtendata=load_data(self.data_set.location)
                 try:
+                    writtendata=load_data(self.data_set.location)
                     for array in self.data_set.arrays:
-                        for i,item in enumerate(writtendata.arrays[array]):
-                            if item!=self.data_set.arrays[array][i]:
-                                if not np.isnan(item) and not np.isnan(self.data_set.arrays[array][i]):
-                                    self.data_set.write_copy(self.data_set.location+'/copy')
-                                    #print(self.data_set.arrays[array],writtendata.arrays[array])
-                                    log.warning('Data in memory found to be different from data written to file. '
-                                            'A copy of the data in memory has been saved at '
-                                            f'{self.data_set.location}/copy. Please check the data for consistency.')
-                                    break
+                        if not np.array_equal(writtendata.arrays[array],self.data_set.arrays[array],equal_nan=True):
+                            self.data_set.write_copy(self.data_set.location+'/copy')
+                            #print(self.data_set.arrays[array],writtendata.arrays[array])
+                            log.warning('Data in memory found to be different from data written to file. '
+                                    'A copy of the data in memory has been saved at '
+                                    f'{self.data_set.location}/copy. Please check the data for consistency.')
+                            break
+                # If anything fails for any reason, write a copy anyway, since everything above should always work and
+                # there are almost certainly problems if something doesn't.
                 except Exception as e:
                     self.data_set.write_copy(self.data_set.location+'/copy')
                     log.warning('Data in memory found to be different from data written to file. '
