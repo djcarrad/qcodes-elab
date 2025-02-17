@@ -71,7 +71,7 @@ class GNUPlotFormat(Formatter):
     """
 
     def __init__(self, extension='dat', terminator='\n', separator='\t',
-                 comment='# ', number_format='.15g', metadata_file=None):
+                 comment='# ', number_format=None, metadata_file=None):
         self.metadata_file = metadata_file or 'snapshot.json'
         # file extension: accept either with or without leading dot
         self.extension = '.' + extension.lstrip('.')
@@ -96,7 +96,10 @@ class GNUPlotFormat(Formatter):
         self.comment_len = len(self.comment_chars)
 
         # number format (only used for writing; will read any number)
-        self.number_format = '{:' + number_format + '}'
+        if number_format is None: 
+            self.number_format = '{}'
+        else:
+            self.number_format = '{:' + number_format + '}'
 
     def read_one_file(self, data_set, f, ids_read):
         """

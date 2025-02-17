@@ -725,7 +725,7 @@ class ActiveLoop(Metadatable):
 
     def run(self, use_threads=False, quiet=False, station=None,
             progress_interval=False, set_active=True, publisher=None,
-            progress_bar=True,
+            progress_bar=True, check_written_data=True,
             *args, **kwargs):
         """
         Execute this loop.
@@ -803,22 +803,28 @@ class ActiveLoop(Metadatable):
                 print(repr(self.data_set))
                 print(datetime.now().strftime('Finished at %Y-%m-%d %H:%M:%S'))
             
-            # Check for NaNs in the data: this could be an indication that something wasn't
-            # saved properly: the user then has a chance to rectify it.
-            start=time.time()
-            writtendata=load_data(self.data_set.location)
-            Nansfound=False
-            for param in writtendata.arrays:
-                if np.isnan(writtendata.arrays[param]).any():
-                    Nansfound=True
-            if Nansfound:
-                log.warning('NaNs found in the saved data file. If you stopped the measurement manually, '
-                            'you can likely ignore this message. '
-                            'If not, there is a chance parts of the data were not written properly. '
-                            'If the data in memory is correct but the data on file is not, '
-                            'overwrite the data on file using \n'
-                            'data.write(force_rewrite=True)')
-            print(time.time()-start)
+            # Check if the data written to file matches that in memory.
+            # If not, save a copy and warn the user.
+            # Have to do it super verbose because of nan!=nan in python (fair enough)
+            if check_written_data==True:
+                writtendata=load_data(self.data_set.location)
+                try:
+                    for array in self.data_set.arrays:
+                        for i,item in enumerate(writtendata.arrays[array]):
+                            if item!=self.data_set.arrays[array][i]:
+                                if not np.isnan(item) and not np.isnan(self.data_set.arrays[array][i]):
+                                    self.data_set.write_copy(self.data_set.location+'/copy')
+                                    #print(self.data_set.arrays[array],writtendata.arrays[array])
+                                    log.warning('Data in memory found to be different from data written to file. '
+                                            'A copy of the data in memory has been saved at '
+                                            f'{self.data_set.location}/copy. Please check the data for consistency.')
+                                    break
+                except Exception as e:
+                    self.data_set.write_copy(self.data_set.location+'/copy')
+                    log.warning('Data in memory found to be different from data written to file. '
+                                'A copy of the data in memory has been saved at '
+                                f'{self.data_set.location}/copy. Please check the data for consistency.\n'
+                                f'Exception: {e}')
 
             # After normal loop execution we clear the data_set so we can run
             # again. But also if something went wrong during the loop execution

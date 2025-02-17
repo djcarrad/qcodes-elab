@@ -342,6 +342,8 @@ class DataSet(DelegateAttributes):
         self._backup_warning=False
         self._skipped_warning=False
 
+        self.finalized=False
+
         self.publisher = None
 
         self.name=name
@@ -852,6 +854,8 @@ class DataSet(DelegateAttributes):
 
         if self.publisher is not None:
             self.publisher.finalize(uuid=self.uuid)
+
+        self.finalized=True
 
     def snapshot(self, update=False):
         """JSON state of the DataSet."""
