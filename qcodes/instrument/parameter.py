@@ -59,7 +59,6 @@ import time
 from time import perf_counter
 import logging
 import os
-import traceback
 import collections
 import warnings
 import enum
@@ -852,7 +851,7 @@ class Parameter(_BaseParameter):
 
     """
 
-    def __init__(self, name: Optional[str]=None,
+    def __init__(self, name: str,
                  instrument: Optional['Instrument']=None,
                  label: Optional[str]=None,
                  unit: Optional[str]=None,
@@ -864,15 +863,6 @@ class Parameter(_BaseParameter):
                  docstring: Optional[str]=None,
                  **kwargs) -> None:
         
-        # This won't work in every situation and is kind of hacky. But in most cases, it enables
-        # the user to not need to type the name twice; the name is inherited from the name used when declaring
-        # i.e. instead of example=Parameter(name='example', unit='V', label='Example', get_cmd='READ?'), 
-        # you can just type example=Parameter(unit='V', label='Example', get_cmd='READ?')
-        if name==None:
-            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
-            def_name = text[:text.find('=')].strip()
-            name = def_name
-
         super().__init__(name=name, instrument=instrument, vals=vals, **kwargs)
 
         # Enable set/get methods if get_cmd/set_cmd is given
@@ -1089,9 +1079,8 @@ class ArrayParameter(_BaseParameter):
             JSON snapshot of the parameter
     """
 
-    def __init__(self,
+    def __init__(self, name: str,
                  shape: Sequence[int],
-                 name: Optional[str]=None,
                  instrument: Optional['Instrument']=None,
                  label: Optional[str]=None,
                  unit: Optional[str]=None,
@@ -1103,11 +1092,6 @@ class ArrayParameter(_BaseParameter):
                  snapshot_get: bool=True,
                  snapshot_value: bool=False,
                  metadata: Optional[dict]=None) -> None:
-
-        if name==None:
-            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
-            def_name = text[:text.find('=')].strip()
-            name = def_name
 
         super().__init__(name, instrument, snapshot_get, metadata,
                          snapshot_value=snapshot_value)
@@ -1291,10 +1275,9 @@ class MultiParameter(_BaseParameter):
             JSON snapshot of the parameter
     """
 
-    def __init__(self,
+    def __init__(self, name: str,
                  names: Sequence[str],
                  shapes: Sequence[Sequence[Optional[int]]],
-                 name: Optional[str]=None,
                  instrument: Optional['Instrument']=None,
                  labels: Optional[Sequence[str]]=None,
                  units: Optional[Sequence[str]]=None,
@@ -1308,11 +1291,6 @@ class MultiParameter(_BaseParameter):
                  snapshot_value: bool=False,
                  metadata: Optional[dict]=None) -> None:
         
-        if name==None:
-            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
-            def_name = text[:text.find('=')].strip()
-            name = def_name
-
         super().__init__(name, instrument, snapshot_get, metadata,
                          snapshot_value=snapshot_value)
 
@@ -1437,10 +1415,6 @@ class MultiParameterWrapper(MultiParameter):
             labels.append(param.label)
             units.append(param.unit)
 
-        if name==None:
-            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
-            def_name = text[:text.find('=')].strip()
-            name = def_name
         super().__init__(name=name, names=tuple(names),shapes=tuple(shapes),unit='')
 
         self.labels=tuple(labels)
@@ -1572,15 +1546,10 @@ class CombinedParameter(Metadatable):
     sequentially.
     """
 
-    def __init__(self, parameters: Sequence[Parameter], name: Optional[str]=None,
+    def __init__(self, parameters: Sequence[Parameter], name: str,
                  label: str = None, unit: str=None, units: str=None,
                  aggregator: Callable=None) -> None:
         
-        if name==None:
-            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
-            def_name = text[:text.find('=')].strip()
-            name = def_name
-    
         super().__init__()
         # TODO(giulioungaretti)temporary hack
         # starthack
@@ -1755,7 +1724,7 @@ class ElapsedTimeParameter(Parameter):
             :class:`qcodes.parameters.Parameter` for more details.
     """
 
-    def __init__(self, name: Optional[str]=None, label: str = "Elapsed time", **kwargs: Any):
+    def __init__(self, name: str, label: str = "Elapsed time", **kwargs: Any):
 
         hardcoded_kwargs = ["unit", "get_cmd", "set_cmd"]
 
@@ -1763,11 +1732,6 @@ class ElapsedTimeParameter(Parameter):
             if hck in kwargs:
                 raise ValueError(f'Can not set "{hck}" for an ' "ElapsedTimeParameter.")
             
-        if name==None:
-            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
-            def_name = text[:text.find('=')].strip()
-            name = def_name
-
         super().__init__(name=name, label=label, unit="s", set_cmd=False, **kwargs)
 
         self._t0: float = perf_counter()
@@ -1781,7 +1745,6 @@ class ElapsedTimeParameter(Parameter):
     @property
     def t0(self) -> float:
         return self._t0
-
 
 class ScaledParameter(Parameter):
     """
@@ -1834,11 +1797,10 @@ class ScaledParameter(Parameter):
                  label: str=None,
                  unit: str=None) -> None:
         # Set the name
-        if name==None:
-            (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
-            def_name = text[:text.find('=')].strip()
-            self.name = def_name
-            name=def_name
+        if name:
+            self.name = name
+        else:
+            self.name = "{}_scaled".format(output.name)
 
         # Set label
         if label:
