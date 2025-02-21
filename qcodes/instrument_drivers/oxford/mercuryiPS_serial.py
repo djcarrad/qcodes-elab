@@ -205,7 +205,7 @@ class MercuryiPS_120(SerialInstrument):
         self.add_parameter('phi_fixrt', #Set phi using values for radius and theta given by 'radius_fix' and 'theta_fix'
                             get_cmd=self._get_phi,
                             set_cmd=self._set_phifixrt,
-                            unit='T')
+                            unit='rad')
 
         self.add_parameter('radius_fix',
                             initial_value=0,
