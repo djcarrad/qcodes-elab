@@ -1188,7 +1188,8 @@ class QDac2Channel(InstrumentChannel):
         self.add_parameter(
             name='output_range',
             label='range',
-            set_cmd='sour{1}:rang {0}'.format('{}', channum),
+            set_cmd=self._set_output_range, #'sour{1}:rang {0}'.format('{}', channum),
+                                            #Since at current .volt needs to be set manually to zero after range change
             get_cmd=f'sour{channum}:rang?',
             vals=validators.Enum('LOW', 'HIGH')
         )
@@ -1578,6 +1579,20 @@ class QDac2Channel(InstrumentChannel):
     def _set_fixed_voltage_immediately(self, v) -> None:
         self.write(f'sour{self._channum}:volt:mode fix')
         self.write(f'sour{self._channum}:volt {v}')
+
+    def _set_output_range(self,value) -> None:
+        if not self.volt()==0:
+            start=self.volt()
+            if start<0:
+                sweeppoints=[start+(i/100) for i in range(101)]
+            else:
+                sweeppoints=[start-(i/100) for i in range(101)]
+            for point in sweeppoints:
+                self.volt(point)
+                time.sleep(0.05)
+            self.volt(0)
+        self.write(f'sour{self._channum}:rang {value}')
+        self.volt(0)
 
     def ask_channel(self, cmd: str) -> str:
         """Inject channel number into SCPI query
@@ -3202,11 +3217,14 @@ class QDac2(VisaInstrument):
     def openControlPanel(self):
         if not self._gui_open:
             if not self._snapped:
+                print('Updating snapshot...')
                 self.snapshot(update = True)
-                self._snapped = True 
+                self._snapped = True
+                print('Opening control panel...')
                 
             self.gui_thread = threading.Thread(target = self._createControlPanel)
             self.gui_thread.start()
             self._gui_open = True
+            print('Control panel opened.')
         else:
             raise RuntimeError("GUI already open. If it's not, set qdac._gui_open = False. I am not a real developer.")
