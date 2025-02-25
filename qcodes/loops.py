@@ -702,7 +702,7 @@ class ActiveLoop(Metadatable):
             print('Note: Station not declared. Estimate does not include'
                     'an estimate of communication time.')
         else:
-            commtime=station.measurement_time(averages=10)
+            commtime=station.communication_time(averages=10)
 
         estimate=self.sweep_values.snapshot()['values'][0]['num']*(commtime+self.delay+extra_delay[0])
         for action in self.actions:
