@@ -44,6 +44,7 @@ class Triton(IPInstrument):
         self.add_parameter(name='action',
                            label='Current action',
                            get_cmd='READ:SYS:DR:ACTN',
+                           set_cmd=self._set_action,
                            get_parser=self._parse_action)
 
         self.add_parameter(name='status',
@@ -93,22 +94,12 @@ class Triton(IPInstrument):
 
         self.add_parameter(name='pid_range',
                            label='PID heater range',
-                           # TODO: The units in the software are mA, how to
-                           # do this correctly?
                            unit='A',
                            get_cmd=partial(self._get_control_param, 'RANGE'),
                            set_cmd=partial(self._set_control_param, 'RANGE'),
                            get_parser=self._heater_current_parser,
                            set_parser=self._heater_current_parser,
                            vals=Enum(*self._heater_range_curr))
-
-        self.add_parameter(name = 'heater_current',
-                           label = 'PID heater current',
-                           unit = 'A',
-                           get_cmd = partial(self._get_htr_control_param, 'CURR'),
-                           set_cmd = partial(self._set_htr_control_param,'CURR'),
-                            get_parser=self._heater_current_parser,
-                            set_parser=self._heater_current_parser)
 
         self.add_parameter(name = 'heater_power',
                            label = 'PID heater power',
@@ -407,6 +398,13 @@ class Triton(IPInstrument):
         else:
             action = 'Unknown'
         return action
+
+    def _set_action(self,action):
+        actions=['CLDN','PCL','COND','PCOND','RCOND','WARM','COLL','RPCL','STOP']
+        if action not in actions:
+            raise ValueError(f'{self.name}.action() not one of {actions}')
+        else:
+            self.write(f'SET:SYS:DR:ACTN:{action}\r\n')
 
     def _parse_status(self, msg):
         return msg[19:]
