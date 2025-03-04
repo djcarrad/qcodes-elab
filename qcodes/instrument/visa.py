@@ -51,12 +51,13 @@ def listVISAinstruments(baudrates='qdac'):
 
     resman=pyvisa.ResourceManager()
     for resource in resman.list_resources():
-        res=resman.open_resource(resource)
         try:
+            res=resman.open_resource(resource)
             print(resource,'\n',res.query('*IDN?'))
         except:
             for baudrate in baudrates:    
                 try:
+                    res=resman.open_resource(resource)
                     res.baud_rate=baudrate
                     print(resource,'\n',res.query('*IDN?'))
                     break
