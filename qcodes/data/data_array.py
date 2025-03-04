@@ -111,7 +111,7 @@ class DataArray(DelegateAttributes):
     def __init__(self, parameter=None, name=None, full_name=None, label=None,
                  snapshot=None, array_id=None, set_arrays=(), shape=None,
                  action_indices=(), unit=None, units=None, is_setpoint=False,
-                 preset_data=None):
+                 preset_data=None,data_type=float):
         self.name = name
         self.full_name = full_name or name
         self.label = label
@@ -125,6 +125,8 @@ class DataArray(DelegateAttributes):
         self.is_setpoint = is_setpoint
         self.action_indices = action_indices
         self.set_arrays = set_arrays
+
+        self.data_type=data_type
 
         self._preset = False
 
@@ -306,9 +308,15 @@ class DataArray(DelegateAttributes):
         # only floats can hold nan values. I guess we could
         # also raise an error in this case? But generally float is
         # what people want anyway.
-        if self.ndarray.dtype != float:
-            self.ndarray = self.ndarray.astype(float)
-        self.ndarray.fill(float('nan'))
+
+        self.ndarray=self.ndarray.astype(self.data_type)
+
+        if self.ndarray.dtype==str:
+            self.ndarray.fill('nan')
+        else:
+            self.ndarray=self.ndarray.astype(float)
+            self.ndarray.fill(float('nan'))
+
 
     def __setitem__(self, loop_indices, value):
         """
