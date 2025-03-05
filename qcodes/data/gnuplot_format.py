@@ -130,6 +130,13 @@ class GNUPlotFormat(Formatter):
 
         for i, array_id in indexed_ids[:ndim]:
             snap = data_set.get_array_metadata(array_id)
+            # if 'data_type' in snap.keys():
+            #     if 'str' in snap['data_type']:
+            #         data_type=str
+            #     else:
+            #         data_type=float
+            # else:
+            #     data_type=float
 
             # setpoint arrays
             set_shape = shape[: i + 1]
@@ -156,6 +163,13 @@ class GNUPlotFormat(Formatter):
 
         for i, array_id in indexed_ids[ndim:]:
             snap = data_set.get_array_metadata(array_id)
+            if 'data_type' in snap.keys():
+                if 'str' in snap['data_type']:
+                    data_type=str
+                else:
+                    data_type=float
+            else:
+                data_type=float
 
             # data arrays
             if array_id in ids_read:
@@ -167,7 +181,7 @@ class GNUPlotFormat(Formatter):
             else:
                 data_array = DataArray(label=labels[i], array_id=array_id,
                                        set_arrays=set_arrays, shape=shape,
-                                       snapshot=snap)
+                                       snapshot=snap,data_type=data_type)
                 data_array.init_data()
                 data_set.add_array(data_array)
             data_arrays.append(data_array)
@@ -192,8 +206,9 @@ class GNUPlotFormat(Formatter):
                 if not first_point:
                     resetting += 1
                 continue
+            
 
-            values = tuple(map(float, line.split()))
+            values = tuple(map(str, line.split(self.separator)))
 
             if resetting:
                 indices[-resetting - 1] += 1
@@ -206,7 +221,7 @@ class GNUPlotFormat(Formatter):
                 stored_value = nparray[myindices]
                 if math.isnan(stored_value):
                     nparray[myindices] = value
-                elif stored_value != value:
+                elif stored_value != float(value):
                     raise ValueError('inconsistent setpoint values',
                                      stored_value, value, set_array.name,
                                      myindices, indices)

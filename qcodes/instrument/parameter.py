@@ -203,7 +203,8 @@ class _BaseParameter(Metadatable):
                  snapshot_value: bool=True,
                  max_val_age: Optional[float]=None,
                  vals: Optional[Validator]=None,
-                 delay: Optional[Union[int, float]]=None) -> None:
+                 delay: Optional[Union[int, float]]=None,
+                 data_type: Optional[type]=float) -> None:
         super().__init__(metadata)
     
         if not str(name).isidentifier():
@@ -273,6 +274,12 @@ class _BaseParameter(Metadatable):
         # Specify time of last set operation, used when comparing to delay to
         # check if additional waiting time is needed before next set
         self._t_last_set = time.perf_counter()
+
+        if data_type != float:
+            if data_type != str:
+                raise ValueError('Parameter data_type must be either float or str')
+        else:
+            self.data_type=data_type
 
     def __str__(self):
         """Include the instrument name with the Parameter name if possible."""
@@ -861,9 +868,10 @@ class Parameter(_BaseParameter):
                  max_val_age: Optional[float]=None,
                  vals: Optional[Validator]=None,
                  docstring: Optional[str]=None,
+                 data_type: Optional[type]=float,
                  **kwargs) -> None:
         
-        super().__init__(name=name, instrument=instrument, vals=vals, **kwargs)
+        super().__init__(name=name, instrument=instrument, vals=vals, data_type=data_type, **kwargs)
 
         # Enable set/get methods if get_cmd/set_cmd is given
         # Called first so super().__init__ can wrap get/set methods
@@ -891,6 +899,11 @@ class Parameter(_BaseParameter):
         self.label = name if label is None else label
         self.unit = unit if unit is not None else ''
 
+        if data_type == float or data_type == str:
+            self.data_type = data_type
+        else:
+            raise ValueError('Parameter data_type must be float or str')
+        
         if initial_value is not None:
             self.set(initial_value)
 

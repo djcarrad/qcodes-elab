@@ -467,7 +467,7 @@ class ActiveLoop(Metadatable):
         
         else:    
             loop_array = DataArray(parameter=self.sweep_values.parameter,
-                               is_setpoint=True)
+                               is_setpoint=True,data_type=self.sweep_values.parameter.data_type)
         loop_array.nest(size=loop_size)
 
         data_arrays = [loop_array]
@@ -486,7 +486,6 @@ class ActiveLoop(Metadatable):
                 # note that this supports lists (separate output arrays)
                 # and arrays (nested in one/each output array) of return values
                 action_arrays = self._parameter_arrays(action)
-
             else:
                 # this *is* covered but the report misses it because Python
                 # optimizes it away. See:
@@ -497,7 +496,6 @@ class ActiveLoop(Metadatable):
                 array.nest(size=loop_size, action_index=i,
                            set_array=loop_array)
             data_arrays.extend(action_arrays)
-
         return data_arrays
 
     def _parameter_arrays(self, action):
@@ -573,10 +571,10 @@ class ActiveLoop(Metadatable):
                 setpoints = setpoints + (all_setpoints[sp_def],)
 
             # finally, make the output data array with these setpoints
+
             out.append(DataArray(name=name, full_name=full_name, label=label,
                                  shape=shape, action_indices=i, unit=unit,
-                                 set_arrays=setpoints, parameter=action))
-
+                                 set_arrays=setpoints, parameter=action, data_type=action.data_type))
         return out
 
     def _fill_blank(self, inputs, blanks):
@@ -809,13 +807,14 @@ class ActiveLoop(Metadatable):
                 try:
                     writtendata=load_data(self.data_set.location)
                     for array in self.data_set.arrays:
-                        if not np.array_equal(writtendata.arrays[array],self.data_set.arrays[array],equal_nan=True):
-                            self.data_set.write_copy(self.data_set.location+'/copy')
-                            #print(self.data_set.arrays[array],writtendata.arrays[array])
-                            log.warning('Data in memory found to be different from data written to file. '
-                                    'A copy of the data in memory has been saved at '
-                                    f'{self.data_set.location}/copy. Please check the data for consistency.')
-                            break
+                        if self.data_set.arrays[array].data_type==float:
+                            if not np.array_equal(writtendata.arrays[array],self.data_set.arrays[array],equal_nan=True):
+                                self.data_set.write_copy(self.data_set.location+'/copy')
+                                #print(self.data_set.arrays[array],writtendata.arrays[array])
+                                log.warning('Data in memory found to be different from data written to file. '
+                                        'A copy of the data in memory has been saved at '
+                                        f'{self.data_set.location}/copy. Please check the data for consistency.')
+                                break
                 # If anything fails for any reason, write a copy anyway, since everything above should always work and
                 # there are almost certainly problems if something doesn't.
                 except Exception as e:

@@ -79,6 +79,10 @@ class DataArray(DelegateAttributes):
             array, if already known (for example if this is a setpoint
             array). ``shape`` will be inferred from this array instead of
             from the ``shape`` argument.
+
+        data_type (Optional[Type] default = float): numpy array entries 
+            must be of the same type. Float covers most instances, otherwise
+            string is best. 
     """
 
     # attributes of self to include in the snapshot
@@ -89,14 +93,16 @@ class DataArray(DelegateAttributes):
         'unit',
         'label',
         'action_indices',
-        'is_setpoint')
+        'is_setpoint',
+        'data_type')
 
     # attributes of the parameter (or keys in the incoming snapshot)
     # to copy to DataArray attributes, if they aren't set some other way
     COPY_ATTRS_FROM_INPUT = (
         'name',
         'label',
-        'unit')
+        'unit',
+        'data_type')
 
     # keys in the parameter snapshot to omit from our snapshot
     SNAP_OMIT_KEYS = (
@@ -125,7 +131,6 @@ class DataArray(DelegateAttributes):
         self.is_setpoint = is_setpoint
         self.action_indices = action_indices
         self.set_arrays = set_arrays
-
         self.data_type=data_type
 
         self._preset = False
@@ -273,7 +278,7 @@ class DataArray(DelegateAttributes):
                 if isinstance(data, collections.abc.Iterator):
                     # faster than np.array(tuple(data)) (or via list)
                     # but requires us to assume float
-                    data = np.fromiter(data, float)
+                    data = np.fromiter(data)
                 else:
                     data = np.array(data)
 
@@ -308,15 +313,14 @@ class DataArray(DelegateAttributes):
         # only floats can hold nan values. I guess we could
         # also raise an error in this case? But generally float is
         # what people want anyway.
-
-        self.ndarray=self.ndarray.astype(self.data_type)
-
-        if self.ndarray.dtype==str:
+        if self.data_type==str:
+            self.ndarray=self.ndarray.astype(np.dtypes.StringDType)
             self.ndarray.fill('nan')
-        else:
+        elif self.data_type==float:
             self.ndarray=self.ndarray.astype(float)
             self.ndarray.fill(float('nan'))
-
+        else:
+            raise TypeError('dtype must be float or str for ndarrays within DataArray')
 
     def __setitem__(self, loop_indices, value):
         """

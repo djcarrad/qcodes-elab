@@ -515,7 +515,6 @@ class DataSet(DelegateAttributes):
             ValueError: if there is already an array with this id here.
         """
         # TODO: mask self.arrays so you *can't* set it directly?
-
         if data_array.array_id in self.arrays:
             raise ValueError('array_id {} already exists in this '
                              'DataSet'.format(data_array.array_id))
