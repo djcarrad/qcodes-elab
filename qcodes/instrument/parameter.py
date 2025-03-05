@@ -1191,6 +1191,33 @@ class ArrayParameter(_BaseParameter):
             return self.setpoint_names
 
 
+class ArrayParameterWrapper(ArrayParameter):
+
+    """
+    Wrapper to easily declare ArrayParameters. 
+    Example usage where an instrument has a get_buffer() function which returns an array
+    VoltageBuffer=qc.ArrayParameterWrapper(name='VoltageBuffer',
+                                            label='Voltage',
+                                            unit='V',
+                                            get_cmd=VoltageInstrument.get_buffer)
+    """
+
+    def __init__(self, name=None, label=None,unit=None, instrument=None, shape=None, get_cmd=None):
+
+        self.name=name
+        self.label=label
+        self.unit=unit
+        if get_cmd is not None:
+            self.get_raw=get_cmd
+        if shape is None and get_cmd is not None:
+            array=get_cmd()
+            shape=array.shape
+        else:
+            raise AttributeError('Provide either a shape or a get_cmd')
+
+        super().__init__(name=name, shape=shape,instrument=instrument,label=label,unit=unit)
+
+
 def _is_nested_sequence_or_none(obj, types, shapes):
     """Validator for MultiParameter setpoints/names/labels"""
     if obj is None:

@@ -44,6 +44,7 @@ from qcodes.instrument.function import Function
 from qcodes.instrument.parameter import (
     Parameter,
     ArrayParameter,
+    ArrayParameterWrapper,
     MultiParameter,
     MultiParameterWrapper,
     ElapsedTimeParameter,
