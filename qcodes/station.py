@@ -269,14 +269,15 @@ class Station(Metadatable, DelegateAttributes):
 
         return out
 
-    def measure(self,*actions):
+    def measure(self,*actions,timer=None):
         """
         Pass the default measurement or parameters in actions to a loop.
         """
 
         if not actions:
             actions = self.default_measurement
-
+        if timer==False:
+            actions=tuple(action for action in actions if action.name!='timer')
         return actions
 
     # station['someitem'] and station.someitem are both

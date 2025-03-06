@@ -22,8 +22,10 @@ class Measure(Metadatable):
                                 label='Single Measurement',
                                 set_cmd=None, get_cmd=None)
 
-    def __init__(self, *actions):
+    def __init__(self, *actions, timer=False):
         super().__init__()
+        if timer==False:
+            actions=tuple(action for action in actions if action.name!='timer')
         self._dummyLoop = Loop(self.dummy_parameter[0]).each(*actions)
 
     def run_temp(self, **kwargs):
@@ -82,7 +84,7 @@ class Measure(Metadatable):
 
         # run the measurement as if it were a Loop
         self._dummyLoop.run(use_threads=use_threads,
-                            station=station, quiet=True, check_written_data=False)
+                            station=station, quiet=True, check_written_data=False, progress_bar=False)
 
         # look for arrays that are unnecessarily nested, and un-nest them
         all_unnested = True
@@ -138,6 +140,8 @@ class Measure(Metadatable):
         data_set.add_metadata({'measurement': self.snapshot()})
 
         data_set.save_metadata()
+
+        data_set.finalize()
 
         if not quiet:
             print(repr(data_set))

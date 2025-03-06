@@ -1211,6 +1211,8 @@ class ArrayParameterWrapper(ArrayParameter):
             self.get_raw=get_cmd
         if shape is None and get_cmd is not None:
             array=get_cmd()
+            if isinstance(array,list):
+                array=numpy.array(array)
             shape=array.shape
         else:
             raise AttributeError('Provide either a shape or a get_cmd')
