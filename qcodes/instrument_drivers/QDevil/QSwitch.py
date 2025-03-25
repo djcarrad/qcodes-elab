@@ -254,10 +254,10 @@ class QSwitch(VisaInstrument):
 
     def lineFloat(self, lines: OneOrMore) -> None:
         if isinstance(lines, str):
-            for tap in range(10):
+            for tap in range(relays_per_line+1):
                 self.open_relay(self._to_line(lines), tap)
         else:
-            for tap in range(10):
+            for tap in range(relays_per_line+1):
                 numbers = map(self._to_line, lines)
                 pairs = list(itertools.zip_longest(numbers, [], fillvalue=tap))
                 self.open_relays(pairs)
