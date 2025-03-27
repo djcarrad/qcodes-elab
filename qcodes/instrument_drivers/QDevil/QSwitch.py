@@ -252,6 +252,16 @@ class QSwitch(VisaInstrument):
             connections = list(itertools.zip_longest(numbers, [], fillvalue=0))
             self.open_relays(connections)
 
+    def lineFloat(self, lines: OneOrMore) -> None:
+        if isinstance(lines, str):
+            for tap in range(relays_per_line+1):
+                self.open_relay(self._to_line(lines), tap)
+        else:
+            for tap in range(relays_per_line+1):
+                numbers = map(self._to_line, lines)
+                pairs = list(itertools.zip_longest(numbers, [], fillvalue=tap))
+                self.open_relays(pairs)
+
     def breakout(self, line: str, tap: str) -> None:
         self.close_relay(self._to_line(line), self._to_tap(tap))
         self.open_relay(self._to_line(line), 0)
