@@ -1,7 +1,7 @@
 from QSwitch_elab import QSwitch
 import numpy as np
 from typing import (
-    Tuple, Sequence, List, Dict, Set, Union, Optional)
+    Tuple, Sequence, Dict, Union, Optional)
 
 relays_per_line = 9
 relay_lines = 24
