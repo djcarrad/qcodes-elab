@@ -242,7 +242,7 @@ class QSwitch(Instrument):
             # Determine the directory of the Jupyter Notebook
             notebook_dir = os.getcwd()
             if unique:
-                savedstates_path = os.path.join(notebook_dir, f'savedstates_{self.IDN()["serial"]}.json')
+                savedstates_path = os.path.join(notebook_dir, 'savedstates_{}.json'.format(self.IDN()["serial"]))
             else:
                 savedstates_path = os.path.join(notebook_dir, 'savedstates.json')
 
@@ -274,7 +274,7 @@ class QSwitch(Instrument):
         try:
             notebook_dir = os.getcwd()
             if unique:
-                savedstates_path = os.path.join(notebook_dir, f'savedstates_{self.IDN()["serial"]}.json')
+                savedstates_path = os.path.join(notebook_dir, 'savedstates_{}.json'.format(self.IDN()["serial"]))
             else:
                 savedstates_path = os.path.join(notebook_dir, 'savedstates.json')
 
@@ -291,6 +291,33 @@ class QSwitch(Instrument):
             raise ValueError("No saved states found.")
         except Exception as e:
             raise ValueError(f"Failed to load state: {e}")
+        
+
+    def saved_states(self, unique = False) -> Dict[str, str]:
+        """Get a dictionary of saved states
+
+        Args:
+            unique (bool): If True, load the state from a file with the serial number of the qswitch as an identifier
+
+        Returns:
+            Dict[str, str]: Dictionary of saved states
+        """
+        try:
+            notebook_dir = os.getcwd()
+            if unique:
+                savedstates_path = os.path.join(notebook_dir, 'savedstates_{}.json'.format(self.IDN()["serial"]))
+            else:
+                savedstates_path = os.path.join(notebook_dir, 'savedstates.json')
+
+            with open(savedstates_path, 'r') as f:
+                savedstates = json.load(f)
+
+            return savedstates
+
+        except FileNotFoundError:
+            raise ValueError("No saved states found.")
+        except Exception as e:
+            raise ValueError(f"Failed to load saved states: {e}")
             
 
     # -----------------------------------------------------------------------
