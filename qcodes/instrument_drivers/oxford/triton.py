@@ -92,6 +92,12 @@ class Triton(IPInstrument):
                            set_cmd=partial(self._set_control_param,
                                            'RAMP:RATE'))
 
+        self.add_parameter(name='PTC_state',
+                            label='PTC state',
+                            unit='',
+                            get_cmd=partial(self._get_PTC_param,'STATE'),
+                            set_cmd=partial(self._set_PTC_param,'STATE'))
+
         self.add_parameter(name='pid_range',
                            label='PID heater range',
                            unit='A',
@@ -269,6 +275,12 @@ class Triton(IPInstrument):
     def _set_htr_control_param(self, param, value):
         cmd = 'SET:DEV:H1:HTR:SIG:{}:{}'.format(param, value)
         self.write(cmd)
+
+    def _get_PTC_param(self,param):
+        return self.ask(f'READ:DEV:C1:PTC:SIG:{param}').split(':')[-1]
+
+    def _set_PTC_param(self,param,val):
+        self.write(f'SET:DEV:C1:PTC:SIG:{param}:{val}')
 
     def _set_control_magnet_sweeprate_param(self, s):
         if 0 < s <= 0.2:
