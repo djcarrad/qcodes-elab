@@ -193,15 +193,23 @@ class Loop(Metadatable):
 
         """
 
-        if isinstance(self.sweep_values.parameter,MultiParameter):
-            actions=(self.sweep_values.parameter,)+actions
-        else:
-            actions = list(actions)
+        actions = list(actions)
         # check for nested Loops, and activate them with default measurement
         for i, action in enumerate(actions):
             if isinstance(action, Loop):
                 default = Station.default.default_measurement
                 actions[i] = action.each(*default)
+
+        if isinstance(self.sweep_values.parameter,MultiParameter):
+            # If this loop is an outer loop, the MultiParameter components need to get sent to
+            # the inner loop. This isn't recursive, so it will only work for up to 2D loops.
+            # The day where we actually run 3D loops.... we will think about it.
+            if any(isinstance(action, ActiveLoop) for action in actions):
+                for i, action in enumerate(actions):
+                    if isinstance(action, ActiveLoop):
+                        action.actions = [self.sweep_values.parameter,*action.actions]
+            else:
+                actions=[self.sweep_values.parameter,*actions]
 
         self.validate_actions(*actions)
 
