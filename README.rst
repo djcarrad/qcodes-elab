@@ -23,3 +23,5 @@ From there, the code should behave exactly the same, except for....
 Breaking changes
 ----------------
 It is no longer necessary to define a ``Parameter`` data_type, e.g. ``str`` or ``float``, and ``Parameter.__init__`` therefore no longer accepts the argument ``data_type``.
+
+Module ``plots`` has been renamed ``plotting`` to not conflict with QCoDeS. Likely most relevant if you have imported the ``analysis_tools``. Now they are at ``qcodespp.plotting.analysis_tools``
