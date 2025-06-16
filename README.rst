@@ -1,8 +1,8 @@
 QCoDeS-elab version
 ===================================
-This package is no longer supported. You should migrate to qcodespp.github.io
+This package is no longer supported. You should migrate to `qcodes++ <qcodespp.github.io>`__
 
-Once you have installed qcodes++, you can update your notebooks in the following way:
+Once you have installed qcodes++, you can update your code in the following way:
 
 Replace ``import qcodes as qc`` with ``import qcodespp as qc`` such that calls to top-level functions e.g. qc.Parameter will be imported from qcodes++.
 
@@ -18,8 +18,10 @@ Otherwise, leave it as importing from qcodes to import the mainline qcodes drive
 
 This more or less applies to all other lower level classes/functions. If the object still exists in qcodes++, import it from there. Otherwise, fall back on importing from qcodes.
 
-Other breaking changes
-----------------------
-``qcodes.plotting.analysis_tools`` is now ``qcodes.plotting.matplotlib_tools``
+From there, the code should behave exactly the same, except for....
+
+Breaking changes
+----------------
+``qcodes.plotting.analysis_tools`` is now ``qcodespp.plotting.matplotlib_tools``
 
 It is no longer necessary to define a ``Parameter`` data_type, e.g. ``str`` or ``float``, and ``Parameter.__init__`` therefore no longer accepts the argument ``data_type``.
