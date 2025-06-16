@@ -8,15 +8,15 @@ Replace ``import qcodes as qc`` with ``import qcodespp as qc`` such that calls t
 
 Similarly, if you have done e.g. ``from qcodes import Parameter``, you should change this to ``from qcodespp import Parameter``
 
-For lower-level functions, the situation is a bit different. This is because qcodes-elab was a installed as qcodes, and existed independent from mainline qcodes. That is not the case any longer. qcodes++ is installed ALONGSIDE qcodes, meaning that references to qcodes will reference mainline qcodes. However, this should only really apply to instrument drivers. If the driver still exists in qcodes++, then replace e.g.
+For lower-level functions, the situation is a bit different. This is because qcodes-elab was a installed as qcodes, and existed independent from `QCoDeS <qcodes.github.io>`__. That is not the case any longer. qcodes++ is installed `alongside` QCoDeS, meaning that references to ``qcodes`` in code will reference mainline QCoDeS. However, this should only really apply to instrument drivers. If the driver still exists in qcodes++, then replace e.g.
 
 ``from qcodes.instrument_drivers.tektronix.QDevil.QDac2 import QDAC2`` with
 
 ``from qcodespp.instrument_drivers.tektronix.QDevil.QDac2 import QDAC2``
 
-Otherwise, leave it as importing from qcodes to import the mainline qcodes driver.
+Otherwise, leave it as importing from qcodes to import the QCoDeS driver.
 
-This more or less applies to all other lower level classes/functions. If the object still exists in qcodes++, import it from there. Otherwise, fall back on importing from qcodes.
+This more or less applies to all other lower level classes/functions. If the object still exists in qcodes++, import it from there. Otherwise, fall back on importing from QCoDeS.
 
 From there, the code should behave exactly the same, except for....
 
