@@ -22,6 +22,4 @@ From there, the code should behave exactly the same, except for....
 
 Breaking changes
 ----------------
-``qcodes.plotting.analysis_tools`` is now ``qcodespp.plotting.matplotlib_tools``
-
 It is no longer necessary to define a ``Parameter`` data_type, e.g. ``str`` or ``float``, and ``Parameter.__init__`` therefore no longer accepts the argument ``data_type``.
