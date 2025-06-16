@@ -1,6 +1,6 @@
 QCoDeS-elab version
 ===================================
-This package is no longer supported. You should migrate to `qcodes++ <qcodespp.github.io>`__
+This package is no longer supported. You should migrate to `qcodes++ <http://qcodespp.github.io>`__
 
 Once you have installed qcodes++, you can update your code in the following way:
 
@@ -8,7 +8,7 @@ Replace ``import qcodes as qc`` with ``import qcodespp as qc`` such that calls t
 
 Similarly, if you have done e.g. ``from qcodes import Parameter``, you should change this to ``from qcodespp import Parameter``
 
-For lower-level functions, the situation is a bit different. This is because qcodes-elab was a installed as qcodes, and existed independent from `QCoDeS <qcodes.github.io>`__. That is not the case any longer. qcodes++ is installed `alongside` QCoDeS, meaning that references to ``qcodes`` in code will reference mainline QCoDeS. However, this should only really apply to instrument drivers. If the driver still exists in qcodes++, then replace e.g.
+For lower-level functions, the situation is a bit different. This is because qcodes-elab was a installed as qcodes, and existed independent from `QCoDeS <http://qcodes.github.io>`__. That is not the case any longer. qcodes++ is installed `alongside` QCoDeS, meaning that references to ``qcodes`` in code will reference mainline QCoDeS. However, this should only really apply to instrument drivers. If the driver still exists in qcodes++, then replace e.g.
 
 ``from qcodes.instrument_drivers.tektronix.QDevil.QDac2 import QDAC2`` with
 
